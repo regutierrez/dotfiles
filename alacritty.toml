@@ -1,0 +1,14 @@
+# READ FIRST: PUT THIS INTO ~/config/alacritty/
+[env]
+TERM = "xterm-256color"
+
+[window]
+padding.x = 5
+padding.y = 5
+
+decorations = "Buttonless"
+opacity = 0.8
+blur = true
+
+[font]
+normal.family = "MesloLGS Nerd Font Mono"
