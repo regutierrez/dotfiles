@@ -47,17 +47,14 @@ install_xcode() {
 
 install_homebrew() {
   echo "installing homebrew..."
-  if [[ $(command -v brew)="" ]]; then
-    echo "homebrew is already installed. skipping..."
-    return
-  fi
-  NONINTERACTIVE=1 /bin/bash -c "$(url -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  # if [[ $(command -v brew)="" ]]; then
+  #   echo "homebrew is already installed. skipping..."
+  #   return
+  # fi
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   echo "adding environment variables to $HOME/.zprofile..."
-  local homebrew_home=/usr/local
-  if [[ $(sysctl -n machdep.cpu.brand_string) =~ 'Apple' ]]; then
-    homebrew_home=/opt/homebrew
-  fi
+  local homebrew_home=/opt/homebrew
   echo '# Homebrew' >> $HOME/.zprofile
   echo 'eval $('${homebrew_home}'/bin/brew shellenv)' >> $HOME/.zprofile
   eval $(${homebrew_home}/bin/brew shellenv)
@@ -69,7 +66,6 @@ init() {
   generate_ssh_key
   install_xcode
   install_homebrew
-  clone_repo
 }
 
 init
