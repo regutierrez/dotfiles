@@ -61,11 +61,18 @@ install_homebrew() {
 
 }
 
+set_git_config() {
+  echo "setting git config"
+  git config --global user.name "$GHUSER"
+  git config --global user.email "$EMAIL"
+}
+
 init() {
   show_variables
   generate_ssh_key
   install_xcode
   install_homebrew
+  set_git_config
 }
 
 init
