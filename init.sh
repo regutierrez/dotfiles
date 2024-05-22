@@ -70,7 +70,6 @@ init() {
   install_xcode
   install_homebrew
   clone_repo
-  echo "initialization complete... running playbook"
 }
 
 init
