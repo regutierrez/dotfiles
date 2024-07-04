@@ -55,7 +55,7 @@ bindkey '^n' history-search-forward
 bindkey '^[w' kill-region
 
 # History
-HISTSIZE=5000
+HISTSIZE=10000
 HISTFILE=~/.zsh_history
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
@@ -74,11 +74,25 @@ zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
+#Add additional paths
+export PATH=$PATH:$HOME/.local/bin/lvim
+
+# contains my helper scripts for aescape
+export PATH=$PATH:$HOME/helpers/
+
+
 # Aliases
 alias ls='ls --color'
-alias vim='nvim'
-alias c='clear'
+alias vim='$HOME/.local/bin/lvim'
+
+
+
 
 # Shell integrations
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
+
+
+
+
+
