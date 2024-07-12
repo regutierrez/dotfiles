@@ -58,6 +58,7 @@ bindkey '^[w' kill-region
 HISTSIZE=100000
 HISTFILE=~/.zsh_history
 SAVEHIST=$HISTSIZE
+
 # HISTDUP=erase
 setopt appendhistory
 setopt sharehistory
@@ -86,14 +87,7 @@ export PATH=$PATH:$HOME/ae-helpers/
 alias ls='ls --color'
 alias vim='lvim'
 
-
-
-
 # Shell integrations
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
-
-
-
-
 
