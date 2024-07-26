@@ -86,6 +86,8 @@ export PATH=$PATH:$HOME/ae-helpers/
 # Aliases
 alias ls='ls --color'
 alias vim='lvim'
+alias adbc='adb connect 127.0.0.1:5555'
+alias adbd='adb disconnect 127.0.0.1:5555'
 
 # Shell integrations
 eval "$(fzf --zsh)"
