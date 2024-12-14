@@ -55,10 +55,11 @@ bindkey '^n' history-search-forward
 bindkey '^[w' kill-region
 
 # History
-HISTSIZE=5000
+HISTSIZE=100000
 HISTFILE=~/.zsh_history
 SAVEHIST=$HISTSIZE
-HISTDUP=erase
+
+# HISTDUP=erase
 setopt appendhistory
 setopt sharehistory
 setopt hist_ignore_space
@@ -74,11 +75,21 @@ zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
+#Add additional paths
+export PATH=$PATH:$HOME/.local/bin/
+export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
+
+# contains my helper scripts for aescape
+export PATH=$PATH:$HOME/ae-helpers/
+
+
 # Aliases
 alias ls='ls --color'
-alias vim='nvim'
-alias c='clear'
+alias vim='lvim'
+alias adbc='adb connect 127.0.0.1:5555'
+alias adbd='adb disconnect 127.0.0.1:5555'
 
 # Shell integrations
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
+
