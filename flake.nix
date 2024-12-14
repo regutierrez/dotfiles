@@ -21,7 +21,6 @@
           pkgs.tmux
           pkgs.eza
           pkgs.zoxide
-          pkgs.wezterm
           pkgs.fzf
           pkgs.tldr
           pkgs.go
@@ -30,7 +29,7 @@
           pkgs.pandoc
           pkgs.pipx
           # GUI apps
-          pkgs.kitty
+          pkgs.wezterm
           pkgs.vscode
         ];
 
@@ -43,11 +42,9 @@
           "whatsapp"
           "homerow"
           "iina"
-          "qbittorrent"
           "obsidian"
           "raycast"
           "zen-browser"
-          "zed"
           "protonvpn"
         ];
         masApps = {
@@ -60,7 +57,28 @@
 
       system.defaults = {
         dock.autohide = true;
-
+        controlcenter.BatteryShowPercentage = true;
+        finder._FXShowPosixPathInTitle = true;
+        finder._FXSortFoldersFirst = true;
+        finder.AppleShowAllExtensions = true;
+        finder.FXPreferredViewStyle = "clmv";
+        finder.NewWindowTarget = "Home";
+        finder.QuitMenuItem = true;
+        finder.ShowPathbar = true;
+        finder.ShowStatusBar = true;
+        NSGlobalDomain."com.apple.keyboard.fnState" = true;
+        NSGlobalDomain."com.apple.mouse.tapBehavior" = 1;
+        NSGlobalDomain.AppleICUForce24HourTime = true;
+        NSGlobalDomain.AppleInterfaceStyle = "Dark";
+        NSGlobalDomain.NSDocumentSaveNewDocumentsToCloud = false;
+        NSGlobalDomain.NSTableViewDefaultSizeMode = 1;
+        NSGlobalDomain.NSAutomaticInlinePredictionEnabled = false;
+        NSGlobalDomain.NSWindowShouldDragOnGesture = true;
+        trackpad.Clicking = true;
+        trackpad.FirstClickThreshold = 0;
+        trackpad.SecondClickThreshold = 0;
+        trackpad.TrackpadThreeFingerDrag = true;
+        universalaccess.reduceMotion = true;
       };
 
     system.activationScripts.applications.text = let
