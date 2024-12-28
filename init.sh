@@ -72,7 +72,7 @@ set_git_config() {
   git config --global user.email "$EMAIL"
 }
 
-show_variables
+check_variables
 # generate_ssh_key
 install_xcode
 install_homebrew
