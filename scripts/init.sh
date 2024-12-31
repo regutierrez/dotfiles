@@ -58,7 +58,7 @@ install_homebrew() {
     sleep 5
     echo "installing packages via brew..."
     brew install neovim mkalias tmux eza zoxide fzf tldr go lazygit pyenv pandoc mas stow
-    brew install --cask aldente shottr homerow iina obsidian raycast arc zed wezterm
+    brew install --cask aldente shottr homerow iina obsidian raycast arc zed wezterm karabiner-elements
     mas install 1352778147
     echo "do you want to instal personal apps? [y]es/[n]o: "
     read -r input
