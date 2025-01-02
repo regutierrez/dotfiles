@@ -32,13 +32,13 @@ zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
 
 # Add in snippets
-zinit snippet OMZP::git
-zinit snippet OMZP::sudo
-zinit snippet OMZP::archlinux
-zinit snippet OMZP::aws
-zinit snippet OMZP::kubectl
-zinit snippet OMZP::kubectx
-zinit snippet OMZP::command-not-found
+# zinit snippet OMZP::git
+# zinit snippet OMZP::sudo
+# zinit snippet OMZP::archlinux
+# zinit snippet OMZP::aws
+# zinit snippet OMZP::kubectl
+# zinit snippet OMZP::kubectx
+# zinit snippet OMZP::command-not-found
 
 # Load completions
 autoload -Uz compinit && compinit
@@ -80,16 +80,8 @@ export PATH=$PATH:$HOME/.local/bin/
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
 
 # contains my helper scripts for aescape
-export PATH=$PATH:$HOME/ae-helpers/
+# export PATH=$PATH:$HOME/ae-helpers/
 
 
 # Aliases
 alias ls='ls --color'
-alias vim='lvim'
-alias adbc='adb connect 127.0.0.1:5555'
-alias adbd='adb disconnect 127.0.0.1:5555'
-
-# Shell integrations
-eval "$(fzf --zsh)"
-eval "$(zoxide init --cmd cd zsh)"
-
