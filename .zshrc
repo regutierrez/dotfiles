@@ -78,9 +78,10 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 #Add additional paths
 export PATH=$PATH:$HOME/.local/bin/
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
+export PATH=$PATH:$HOME/go/bin
 
 # contains my helper scripts for aescape
-# export PATH=$PATH:$HOME/ae-helpers/
+export PATH=$PATH:$HOME/ae-repo/aescape_platform_incubator/qa-helper-scripts/qa-helper-scripts
 
 
 # Aliases
