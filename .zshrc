@@ -22,6 +22,10 @@ fi
 # Source/Load zinit
 source "${ZINIT_HOME}/zinit.zsh"
 
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
+eval "$(zoxide init --cmd cd zsh)"
+
 # Add in Powerlevel10k
 zinit ice depth=1; zinit light romkatv/powerlevel10k
 
@@ -82,6 +86,10 @@ export PATH=$PATH:$HOME/go/bin
 
 # contains my helper scripts for aescape
 export PATH=$PATH:$HOME/ae-repo/aescape_platform_incubator/qa-helper-scripts/qa-helper-scripts
+export NVM_DIR="$HOME/.nvm"
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+
 
 
 # Aliases
