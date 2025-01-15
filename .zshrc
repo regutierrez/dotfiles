@@ -57,6 +57,8 @@ bindkey -e
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
 bindkey '^[w' kill-region
+ 
+DISABLE_AUTO_TITLE=true
 
 # History
 HISTSIZE=100000
@@ -85,7 +87,10 @@ export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
 export PATH=$PATH:$HOME/go/bin
 
 # contains my helper scripts for aescape
-export PATH=$PATH:$HOME/ae-repo/aescape_platform_incubator/qa-helper-scripts/qa-helper-scripts
+export PATH=$PATH:$HOME/ae-repo/helper_scripts/
+export PATH=$PATH:$HOME/ae-repo/aescape_platform_incubator/qa-helper-scripts/machine-interact-helper-scripts/
+export PATH=$PATH:$HOME/ae-repo/aescape-utils/aescape_utils_py/
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
 [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
@@ -94,3 +99,4 @@ export NVM_DIR="$HOME/.nvm"
 
 # Aliases
 alias ls='ls --color'
+alias lg='lazygit'
