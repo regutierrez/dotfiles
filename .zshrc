@@ -100,3 +100,4 @@ export NVM_DIR="$HOME/.nvm"
 # Aliases
 alias ls='ls --color'
 alias lg='lazygit'
+alias v='nvim'
