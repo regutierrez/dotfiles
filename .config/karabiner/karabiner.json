@@ -120,12 +120,12 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Zed.app'",
+                "description": "Open -a 'Visual Studio Code.app'",
                 "from": {
                   "key_code": "v",
                   "modifiers": { "mandatory": ["any"] }
                 },
-                "to": [{ "shell_command": "open -a 'Zed.app'" }],
+                "to": [{ "shell_command": "open -a 'Visual Studio Code.app'" }],
                 "type": "basic"
               },
               {
