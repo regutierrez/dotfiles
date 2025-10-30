@@ -17,5 +17,10 @@
     "bindings": {
       // "j k": ["workspace::SendKeystrokes", "escape"]
     }
+  },
+  {
+    "bindings": {
+      "cmd-`": "terminal_panel::ToggleFocus"
+    }
   }
 ]

@@ -87,9 +87,11 @@ export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
 export PATH=$PATH:$HOME/go/bin
 
 # contains my helper scripts for aescape
-export PATH=$PATH:$HOME/ae-repo/helper_scripts/
+export PATH=$PATH:$HOME/ae-repo/helper_scripts/scripts/
 export PATH=$PATH:$HOME/ae-repo/aescape_platform_incubator/qa-helper-scripts/machine-interact-helper-scripts/
-export PATH=$PATH:$HOME/ae-repo/aescape-utils/aescape_utils_py/
+export PATH=$PATH:$HOME/ae-repo/robot-stack/utils/aescape_utils_py/
+export AESCAPE_ROLE="qa"
+# eval "$(_AE_COMPLETE=zsh_source ae)"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm

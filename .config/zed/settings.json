@@ -7,17 +7,26 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "ui_font_weight": 400.0,
+  "agent": {
+    "default_model": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-5-latest"
+    },
+    "model_parameters": [],
+    "play_sound_when_agent_done": true,
+  },
   "telemetry": {
     "metrics": false
   },
   "vim_mode": true,
   "relative_line_numbers": true,
-  "ui_font_size": 16,
-  "buffer_font_size": 16,
+  "ui_font_size": 13.0,
+  "buffer_font_size": 13.0,
   "theme": {
     "mode": "system",
     "light": "One Light",
-    "dark": "One Dark"
+    "dark": "Ayu Dark"
   },
   "buffer_font_family": "MesloLGS Nerd Font"
 }

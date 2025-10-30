@@ -9,6 +9,7 @@ config.enable_scroll_bar = true
 -- config.color_scheme = 'TokyoNight'
 -- config.color_scheme = 'Chalk (dark) (terminal.sexy)'
 config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
+config.max_fps = 120
 
 -- and finally, return the configuration to wezterm
 return config
