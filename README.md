@@ -5,7 +5,7 @@ Personal macOS configuration and setup scripts.
 ## Setup
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/scripts/mac/mac_init.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/refs/heads/main/scripts/mac/mac_init.sh)
 ```
 
 This will:
@@ -31,7 +31,6 @@ bash scripts/mac/mac_init.sh
 ### Scripts (`scripts/mac/`)
 
 - **`mac_init.sh`** - Single all-in-one setup script
-- **`init.config`** - Package list (optional, deleted after use)
 
 ### Dotfiles
 
@@ -43,15 +42,13 @@ bash scripts/mac/mac_init.sh
 
 ### Modify Packages
 
-Edit `scripts/mac/init.config` before running `mac_init.sh`:
+Edit the package arrays in `scripts/mac/mac_init.sh`:
 
 ```bash
 BREW_PACKAGES=(git neovim ...)
 BREW_CASKS=(iterm2 raycast ...)
 MAS_APPS=(1352778147 ...)
 ```
-
-If `init.config` doesn't exist, the script uses built-in defaults.
 
 ### Modify System Settings
 
@@ -69,6 +66,5 @@ stow --restow .
 
 - Some settings require logout/restart to take effect
 - Review script before running
-- `init.config` is automatically deleted after first use
 - All system settings are embedded in `mac_init.sh` - no separate files needed
 - Dotfiles are automatically symlinked using `stow` during setup

@@ -6,7 +6,6 @@ set -e -u
 # Usage (local):  bash mac_init.sh
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "$HOME")"
-CONFIG_FILE="$SCRIPT_DIR/init.config"
 DOTFILES_DIR="$HOME/.dotfiles"
 SSH_TYPE=ed25519
 SSH_FILE="$HOME/.ssh/id_$SSH_TYPE"
@@ -21,15 +20,9 @@ read -p "Enter your GitHub username: " GHUSER
 read -p "Enter your email: " EMAIL
 [[ -z "$EMAIL" ]] && { echo "Error: Email is required."; exit 1; }
 
-# Load packages from init.config if it exists, otherwise use defaults
-if [[ -f "$CONFIG_FILE" ]]; then
-    echo "Found init.config, loading packages..."
-    source "$CONFIG_FILE"
-    echo "Deleting init.config..."
-    rm "$CONFIG_FILE"
-else
-    echo "Using default packages..."
-    BREW_PACKAGES=(
+# Default packages
+echo "Using default packages..."
+BREW_PACKAGES=(
         ripgrep
         uv
         fd
@@ -67,7 +60,6 @@ else
     MAS_APPS=(
         1352778147
     )
-fi
 
 # Confirmation
 echo ""
