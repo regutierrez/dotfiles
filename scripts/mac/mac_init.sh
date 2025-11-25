@@ -23,8 +23,10 @@ read -p "Enter your email: " EMAIL
 # Default packages
 echo "Using default packages..."
 BREW_PACKAGES=(
+        asciinema
         ripgrep
         uv
+        tailscale
         fd
         ffmpeg
         rust
@@ -43,13 +45,13 @@ BREW_PACKAGES=(
     )
 
     BREW_CASKS=(
-        asciinema
         aldente
         shottr
         stats
         homerow
         iina
         obsidian
+        parsec
         raycast
         zed
         zen
