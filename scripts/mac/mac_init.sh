@@ -88,7 +88,7 @@ install_homebrew() {
         echo "Homebrew already installed, skipping..."
     else
         echo "Installing Homebrew..."
-        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
         local homebrew_home=/opt/homebrew
         echo -e '\n# Homebrew' >> "$HOME/.zprofile"
