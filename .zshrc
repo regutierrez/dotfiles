@@ -5,6 +5,18 @@ if [[ -f "/opt/homebrew/bin/brew" ]] then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
+# Set the directory we want to store zinit and plugins
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+
+# Download Zinit, if it's not there yet
+if [ ! -d "$ZINIT_HOME" ]; then
+   mkdir -p "$(dirname $ZINIT_HOME)"
+   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+fi
+
+# Source/Load zinit
+source "${ZINIT_HOME}/zinit.zsh"
+
 # Set up fzf key bindings and fuzzy completion
 source <(fzf --zsh)
 eval "$(zoxide init --cmd cd zsh)"
@@ -12,12 +24,17 @@ eval "$(zoxide init --cmd cd zsh)"
 # Load completions
 autoload -Uz compinit && compinit
 
+# Add in zsh plugins
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-completions
+zinit light zsh-users/zsh-autosuggestions
+
 # Keybindings
 bindkey -e
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
 bindkey '^[w' kill-region
- 
+
 DISABLE_AUTO_TITLE=true
 
 # History
@@ -51,13 +68,8 @@ export PATH=$PATH:$HOME/ae-repo/helper_scripts/scripts/
 export PATH=$PATH:$HOME/ae-repo/aescape_platform_incubator/qa-helper-scripts/machine-interact-helper-scripts/
 export PATH=$PATH:$HOME/ae-repo/robot-stack/utils/aescape_utils_py/
 export AESCAPE_ROLE="qa"
-# eval "$(_AE_COMPLETE=zsh_source ae)"
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
 # Aliases
-alias ls='ls --color'
+alias ls='eza'
 alias lg='lazygit'
 alias v='nvim'
