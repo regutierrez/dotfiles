@@ -22,5 +22,47 @@
     "bindings": {
       "cmd-`": "terminal_panel::ToggleFocus"
     }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "cmd-[": null
+    }
+  },
+  {
+    "context": "Pane",
+    "bindings": {
+      "cmd-[": "pane::GoBack"
+    }
+  },
+  {
+    "context": "ThreadHistory",
+    "bindings": {
+      "cmd-[": "pane::GoBack"
+    }
+  },
+  {
+    "context": "AgentConfiguration",
+    "bindings": {
+      "cmd-[": "pane::GoBack"
+    }
+  },
+  {
+    "context": "Pane",
+    "bindings": {
+      "ctrl--": null
+    }
+  },
+  {
+    "context": "ThreadHistory",
+    "bindings": {
+      "ctrl--": null
+    }
+  },
+  {
+    "context": "AgentConfiguration",
+    "bindings": {
+      "ctrl--": null
+    }
   }
 ]
