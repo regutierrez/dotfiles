@@ -241,6 +241,9 @@ apply_mac_settings() {
     # Speed up Mission Control animations
     defaults write com.apple.dock expose-animation-duration -float 0.15
 
+    # Auto-hide Dock
+    defaults write com.apple.dock "autohide" -bool "true"
+
     # Make Dock icons of hidden applications translucent
     defaults write com.apple.dock showhidden -bool true
 
