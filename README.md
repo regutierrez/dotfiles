@@ -77,7 +77,7 @@ stow --restow .
 ```
 
 ## Notes
-
+- need to change .git/config to use ssh to be able to push changes 
 - Review scripts before running
 - `mac_settings.sh` requires sudo and some settings need logout/restart to take effect
 - Dotfiles are automatically symlinked using `stow` during setup
