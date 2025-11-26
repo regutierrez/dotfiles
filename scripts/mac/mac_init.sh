@@ -23,6 +23,7 @@ read -p "Enter your email: " EMAIL
 # Default packages
 echo "Using default packages..."
 BREW_PACKAGES=(
+        starship
         asciinema
         ripgrep
         uv

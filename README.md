@@ -4,6 +4,8 @@ Personal macOS configuration and setup scripts.
 
 ## Setup
 
+### Quick Setup
+
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/refs/heads/main/scripts/mac/mac_init.sh)
 ```
@@ -13,10 +15,20 @@ This will:
 - Install Xcode Command Line Tools
 - Install Homebrew and packages
 - Configure Git
-- Apply macOS system settings
 - Clone this repo to `~/.dotfiles`
+- Symlink dotfiles using stow
 
 After completion, restart your terminal.
+
+### Apply macOS System Settings (Optional)
+
+To apply custom macOS system settings, run:
+
+```bash
+sudo bash ~/.dotfiles/scripts/mac/mac_settings.sh
+```
+
+Note: Requires sudo privileges. Some settings may require logout/restart to take effect.
 
 ### Manual Setup
 
@@ -24,13 +36,15 @@ After completion, restart your terminal.
 git clone https://github.com/YOUR_USERNAME/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 bash scripts/mac/mac_init.sh
+sudo bash scripts/mac/mac_settings.sh
 ```
 
 ## What's Included
 
 ### Scripts (`scripts/mac/`)
 
-- **`mac_init.sh`** - Single all-in-one setup script
+- **`mac_init.sh`** - Main setup script (installs packages, configures git, clones repo)
+- **`mac_settings.sh`** - macOS system settings (requires sudo)
 
 ### Dotfiles
 
@@ -52,7 +66,7 @@ MAS_APPS=(1352778147 ...)
 
 ### Modify System Settings
 
-Edit the `apply_mac_settings()` function in `scripts/mac/mac_init.sh` to change macOS preferences.
+Edit `scripts/mac/mac_settings.sh` to change macOS preferences.
 
 ## Updating
 
@@ -64,7 +78,6 @@ stow --restow .
 
 ## Notes
 
-- Some settings require logout/restart to take effect
-- Review script before running
-- All system settings are embedded in `mac_init.sh` - no separate files needed
+- Review scripts before running
+- `mac_settings.sh` requires sudo and some settings need logout/restart to take effect
 - Dotfiles are automatically symlinked using `stow` during setup
