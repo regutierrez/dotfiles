@@ -7,14 +7,14 @@ Personal macOS configuration and setup scripts.
 ### Quick Setup
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/refs/heads/main/scripts/mac/mac_init.sh)
+curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/scripts/mac/mac_init.sh | bash
 ```
 
 This will:
-- Prompt for your GitHub username and email
 - Install Xcode Command Line Tools
 - Install Homebrew and packages
-- Configure Git
+- Configure Git (skips if already configured)
+- Generate SSH key (skips if already exists)
 - Clone this repo to `~/.dotfiles`
 - Symlink dotfiles using stow
 

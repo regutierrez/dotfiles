@@ -2,7 +2,7 @@
 set -e -u
 
 # Mac initialization script - works both remotely and locally
-# Usage (remote): bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/dotfiles/main/scripts/mac/mac_init.sh)
+# Usage (remote): curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/scripts/mac/mac_init.sh | bash
 # Usage (local):  bash mac_init.sh
 
 DOTFILES_DIR="$HOME/.dotfiles"
