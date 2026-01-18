@@ -5,7 +5,6 @@ set -e -u
 # Usage (remote): bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/dotfiles/main/scripts/mac/mac_init.sh)
 # Usage (local):  bash mac_init.sh
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "$HOME")"
 DOTFILES_DIR="$HOME/.dotfiles"
 SSH_TYPE=ed25519
 SSH_FILE="$HOME/.ssh/id_$SSH_TYPE"
@@ -60,29 +59,30 @@ BREW_CASKS=(
 #   1352778147 # bitwarden
 # )
 
-# Confirmation
+# Show configuration
 echo ""
 echo "Configuration:"
 echo "  GitHub user: $GHUSER"
 echo "  Email: $EMAIL"
 echo "  Packages: ${#BREW_PACKAGES[@]} brew, ${#BREW_CASKS[@]} casks"
 echo ""
-read -p "Proceed? [y/N]: " confirm
-[[ "$confirm" != "y" ]] && {
-  echo "Aborted."
-  exit 0
-}
 
 # Install Xcode Command Line Tools
 install_xcode() {
-  [[ -d /Library/Developer/CommandLineTools ]] && {
+  if xcode-select -p &>/dev/null; then
     echo "Xcode CLI Tools already installed, skipping..."
     return
-  }
+  fi
+
   echo "Installing Xcode Command Line Tools..."
-  xcode-select --install
-  echo "Press any key after Xcode CLI Tools installation completes..."
-  read -n 1
+  # Trigger install and wait for completion
+  xcode-select --install &>/dev/null
+
+  # Wait until installed
+  until xcode-select -p &>/dev/null; do
+    sleep 5
+  done
+  echo "Xcode CLI Tools installed."
 }
 
 # Install Homebrew and packages
@@ -91,7 +91,7 @@ install_homebrew() {
     echo "Homebrew already installed, skipping..."
   else
     echo "Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
     local homebrew_home=/opt/homebrew
     echo -e '\n# Homebrew' >>"$HOME/.zprofile"
@@ -106,11 +106,53 @@ install_homebrew() {
   brew cleanup
 }
 
-# Configure Git
+# Setup SSH key (skip if already exists)
+setup_ssh_key() {
+  if [[ -f "$SSH_FILE" ]]; then
+    echo "SSH key already exists at $SSH_FILE, skipping..."
+    return
+  fi
+
+  echo "Generating SSH key..."
+  mkdir -p "$HOME/.ssh"
+  chmod 700 "$HOME/.ssh"
+  ssh-keygen -t "$SSH_TYPE" -C "$EMAIL" -f "$SSH_FILE" -N ""
+
+  # Configure ssh-agent persistence
+  if ! grep -q "AddKeysToAgent" "$HOME/.ssh/config" 2>/dev/null; then
+    cat >> "$HOME/.ssh/config" <<EOF
+Host *
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile $SSH_FILE
+EOF
+    chmod 600 "$HOME/.ssh/config"
+  fi
+
+  # Add key to keychain
+  ssh-add --apple-use-keychain "$SSH_FILE" 2>/dev/null || ssh-add "$SSH_FILE"
+
+  echo ""
+  echo "SSH key generated. Public key:"
+  cat "${SSH_FILE}.pub"
+  echo ""
+  echo "Add this key to GitHub: https://github.com/settings/keys"
+}
+
+# Configure Git (skip if already configured)
 set_git_config() {
+  local current_name current_email
+  current_name=$(git config --global user.name 2>/dev/null || echo "")
+  current_email=$(git config --global user.email 2>/dev/null || echo "")
+
+  if [[ -n "$current_name" && -n "$current_email" ]]; then
+    echo "Git already configured (name: $current_name, email: $current_email), skipping..."
+    return
+  fi
+
   echo "Configuring Git..."
-  git config --global user.name "$GHUSER"
-  git config --global user.email "$EMAIL"
+  [[ -z "$current_name" ]] && git config --global user.name "$GHUSER"
+  [[ -z "$current_email" ]] && git config --global user.email "$EMAIL"
 }
 
 # Clone dotfiles repository
@@ -122,12 +164,8 @@ clone_dotfiles() {
   local repo_url="https://github.com/$GHUSER/dotfiles.git"
 
   if [[ -d "$DOTFILES_DIR" ]]; then
-    echo "Dotfiles directory already exists at $DOTFILES_DIR"
-    read -p "Pull latest changes? [y/N]: " pull_confirm
-    if [[ "$pull_confirm" == "y" ]]; then
-      cd "$DOTFILES_DIR"
-      git pull
-    fi
+    echo "Dotfiles directory already exists, pulling latest..."
+    git -C "$DOTFILES_DIR" pull
   else
     git clone "$repo_url" "$DOTFILES_DIR"
     echo "Dotfiles cloned to $DOTFILES_DIR"
@@ -140,14 +178,20 @@ stow_dotfiles() {
   echo "=== Symlinking Dotfiles ==="
   echo ""
 
-  if [[ -d "$DOTFILES_DIR" ]]; then
-    cd "$DOTFILES_DIR"
-    echo "Running stow..."
-    stow .
-    echo "Dotfiles symlinked successfully."
-  else
+  if [[ ! -d "$DOTFILES_DIR" ]]; then
     echo "Warning: Dotfiles directory not found, skipping stow."
+    return
   fi
+
+  cd "$DOTFILES_DIR"
+  # --adopt: take ownership of existing files (moves them into dotfiles, then symlinks)
+  # --no-folding: create individual symlinks instead of symlinking parent dirs
+  stow --adopt --no-folding -t "$HOME" .
+
+  # Reset any adopted files to repo version
+  git checkout .
+
+  echo "Dotfiles symlinked successfully."
 }
 
 # Main execution
@@ -155,15 +199,16 @@ main() {
   install_xcode
   install_homebrew
   set_git_config
-  install_nvm
+  setup_ssh_key
   clone_dotfiles
   stow_dotfiles
 
   echo ""
   echo "=== Setup Complete ==="
   echo ""
-  echo "Next step:"
-  echo "  Reboot machine for everything to take effect."
+  echo "Next steps:"
+  echo "  1. Restart your terminal (or run: source ~/.zshrc)"
+  echo "  2. Reboot machine for everything to take effect"
   echo ""
 }
 
