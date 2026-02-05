@@ -113,12 +113,12 @@
                                         "value": 1
                                     }
                                 ],
-                                "description": "Open -a 'Zed.app'",
+                                "description": "Open -a 'Antigravity.app'",
                                 "from": {
                                     "key_code": "v",
                                     "modifiers": { "mandatory": ["any"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'Zed.app'" }],
+                                "to": [{ "shell_command": "open -a 'Antigravity.app'" }],
                                 "type": "basic"
                             },
                             {
@@ -257,12 +257,12 @@
                                         "value": 1
                                     }
                                 ],
-                                "description": "Open -a 'Parsec.app'",
+                                "description": "Open -a 'Moonlight.app'",
                                 "from": {
-                                    "key_code": "c",
+                                    "key_code": "9",
                                     "modifiers": { "mandatory": ["any"] }
                                 },
-                                "to": [{ "shell_command": "open -a 'Parsec.app'" }],
+                                "to": [{ "shell_command": "open -a 'Moonlight.app'" }],
                                 "type": "basic"
                             },
                             {
