@@ -4,3 +4,9 @@ archive/
 macos/
 linux/
 srv/
+
+{{- if ne .chezmoi.os "darwin" }}
+.ssh/id_ed25519
+.ssh/id_ed25519.pub
+.ssh/config
+{{- end }}

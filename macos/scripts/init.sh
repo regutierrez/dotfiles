@@ -49,7 +49,7 @@ BREW_CASKS=(
   parsec
   raycast
   zed
-  vivaldi
+  arc
   ghostty
   karabiner-elements
 )
