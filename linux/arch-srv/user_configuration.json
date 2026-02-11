@@ -1,0 +1,196 @@
+{
+    "app_config": {
+        "audio_config": {
+            "audio": "No audio server"
+        }
+    },
+    "archinstall-language": "English",
+    "auth_config": {},
+    "bootloader_config": {
+        "bootloader": "Limine",
+        "removable": false,
+        "uki": false
+    },
+    "custom_commands": [
+        "usermod -aG wheel pael",
+        "printf '%wheel ALL=(ALL:ALL) ALL\\n' > /etc/sudoers.d/10-wheel",
+        "chmod 440 /etc/sudoers.d/10-wheel",
+        "printf \"pael ALL=(ALL) NOPASSWD: ALL\\n\" > /etc/sudoers.d/99-pael",
+        "chmod 440 /etc/sudoers.d/99-pael",
+        "su - pael -c \"git clone https://aur.archlinux.org/paru.git /home/pael/paru\"",
+        "mkdir -p /tmp && chmod 1777 /tmp",
+        "mkdir -p /var/tmp && chmod 1777 /var/tmp",
+        "su - pael -c \"cd /home/pael/paru && TMPDIR=/var/tmp makepkg -si --noconfirm\"",
+        "chsh -s /bin/zsh pael",
+        "su - pael -c 'sh -c \"$(curl -fsLS get.chezmoi.io)\" -- init --apply regutierrez'",
+        "su - pael -c \"bash -lc 'source /usr/share/nvm/init-nvm.sh && nvm install --lts && npm install -g @steipete/summarize'\"",
+        "rm -f /etc/sudoers.d/99-pael",
+        "printf '[Match]\\nType=ether\\n\\n[Network]\\nDHCP=yes\\n' > /etc/systemd/network/20-wired.network"
+    ],
+    "disk_config": {
+        "btrfs_options": {
+            "snapshot_config": null
+        },
+        "config_type": "default_layout",
+        "device_modifications": [
+            {
+                "device": "/dev/vda",
+                "partitions": [
+                    {
+                        "btrfs": [],
+                        "dev_path": null,
+                        "flags": [
+                            "boot"
+                        ],
+                        "fs_type": "fat32",
+                        "mount_options": [],
+                        "mountpoint": "/boot",
+                        "obj_id": "9a959131-0777-4531-8a79-eddb58095a4b",
+                        "size": {
+                            "sector_size": {
+                                "unit": "B",
+                                "value": 512
+                            },
+                            "unit": "GiB",
+                            "value": 1
+                        },
+                        "start": {
+                            "sector_size": {
+                                "unit": "B",
+                                "value": 512
+                            },
+                            "unit": "MiB",
+                            "value": 1
+                        },
+                        "status": "create",
+                        "type": "primary"
+                    },
+                    {
+                        "btrfs": [
+                            {
+                                "mountpoint": "/",
+                                "name": "@"
+                            },
+                            {
+                                "mountpoint": "/home",
+                                "name": "@home"
+                            },
+                            {
+                                "mountpoint": "/var/log",
+                                "name": "@log"
+                            },
+                            {
+                                "mountpoint": "/var/cache/pacman/pkg",
+                                "name": "@pkg"
+                            }
+                        ],
+                        "dev_path": null,
+                        "flags": [],
+                        "fs_type": "btrfs",
+                        "mount_options": [
+                            "compress=zstd"
+                        ],
+                        "mountpoint": null,
+                        "obj_id": "9fab49a3-3bbc-463c-b8ad-b13d210a709a",
+                        "size": {
+                            "sector_size": {
+                                "unit": "B",
+                                "value": 512
+                            },
+                            "unit": "B",
+                            "value": 213673574400
+                        },
+                        "start": {
+                            "sector_size": {
+                                "unit": "B",
+                                "value": 512
+                            },
+                            "unit": "B",
+                            "value": 1074790400
+                        },
+                        "status": "create",
+                        "type": "primary"
+                    }
+                ],
+                "wipe": true
+            }
+        ]
+    },
+    "hostname": "noco",
+    "kernels": [
+        "linux"
+    ],
+    "locale_config": {
+        "kb_layout": "us",
+        "sys_enc": "UTF-8",
+        "sys_lang": "en_US"
+    },
+    "mirror_config": {
+        "custom_repositories": [],
+        "custom_servers": [],
+        "mirror_regions": {},
+        "optional_repositories": []
+    },
+    "ntp": true,
+    "packages": [
+        "asciinema",
+        "ast-grep",
+        "base-devel",
+        "bat",
+        "btop",
+        "curl",
+        "dpkg",
+        "eza",
+        "fakeroot",
+        "fd",
+        "ffmpeg",
+        "fzf",
+        "git",
+        "go",
+        "jq",
+        "neovim",
+        "nvm",
+        "openssh",
+        "python-pymupdf",
+        "qemu-guest-agent",
+        "ripgrep",
+        "rust",
+        "spice-vdagent",
+        "starship",
+        "tmux",
+        "tree-sitter-cli",
+        "uv",
+        "zoxide",
+        "zip",
+        "zsh"
+    ],
+    "parallel_downloads": 0,
+    "profile_config": {
+        "gfx_driver": null,
+        "greeter": null,
+        "profile": {
+            "custom_settings": {
+                "Docker": {},
+                "sshd": {}
+            },
+            "details": [
+                "Docker",
+                "sshd"
+            ],
+            "main": "Server"
+        }
+    },
+    "script": null,
+    "services": [
+        "sshd",
+        "qemu-guest-agent",
+        "systemd-networkd",
+        "systemd-resolved"
+    ],
+    "swap": {
+        "algorithm": "zstd",
+        "enabled": true
+    },
+    "timezone": "America/New_York",
+    "version": "3.0.15"
+}
