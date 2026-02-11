@@ -3,6 +3,7 @@
 Managed with `chezmoi`.
 
 ## arch bootstrap
+> you probably need to re-fix partitions, but other than that should be good to go.
 ```bash
 archinstall --config-url https://raw.githubusercontent.com/regutierrez/dotfiles/main/linux/arch-srv/user_configuration.json --creds-url https://raw.githubusercontent.com/regutierrez/dotfiles/main/linux/arch-srv/user_credentials.json
 ```

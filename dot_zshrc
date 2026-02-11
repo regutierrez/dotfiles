@@ -87,6 +87,7 @@ export COLORTERM=truecolor
 export PATH=$PATH:$HOME/.local/bin/
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
 export PATH=$PATH:$HOME/go/bin
+export PATH=$PATH:$HOME/dotfiles/bin/ # my helper scripts
 
 # ============================================================================
 # ALIASES
@@ -107,6 +108,11 @@ alias c='claude'
 # if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
 #   exec tmux
 # fi
+
+
+# ============================================================================
+# system-generated fluff
+# ============================================================================
 
 # Added by Antigravity
 export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
