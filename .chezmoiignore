@@ -9,4 +9,6 @@ srv/
 .ssh/id_ed25519
 .ssh/id_ed25519.pub
 .ssh/config
+.config/karabiner
+.config/zed
 {{- end }}

@@ -13,7 +13,7 @@
     },
     "custom_commands": [
         "usermod -aG wheel pael",
-        "printf '%wheel ALL=(ALL:ALL) ALL\\n' > /etc/sudoers.d/10-wheel",
+        "printf '%%wheel ALL=(ALL:ALL) ALL\\n' > /etc/sudoers.d/10-wheel",
         "chmod 440 /etc/sudoers.d/10-wheel",
         "printf \"pael ALL=(ALL) NOPASSWD: ALL\\n\" > /etc/sudoers.d/99-pael",
         "chmod 440 /etc/sudoers.d/99-pael",
