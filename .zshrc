@@ -83,6 +83,7 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 # ============================================================================
 
 # General paths
+export COLORTERM=truecolor
 export PATH=$PATH:$HOME/.local/bin/
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
 export PATH=$PATH:$HOME/go/bin
@@ -115,3 +116,14 @@ alias c='claude'
 
 # Added by Antigravity
 export PATH="/Users/pael/.antigravity/antigravity/bin:$PATH"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# bun completions
+[ -s "/Users/pael/.bun/_bun" ] && source "/Users/pael/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"

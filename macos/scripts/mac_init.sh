@@ -75,12 +75,16 @@ install_xcode() {
   fi
 
   echo "Installing Xcode Command Line Tools..."
-  # Trigger install and wait for completion
-  xcode-select --install &>/dev/null
+  xcode-select --install &>/dev/null || true
 
-  # Wait until installed
+  local timeout=900 elapsed=0
   until xcode-select -p &>/dev/null; do
+    if (( elapsed >= timeout )); then
+      echo "Error: Xcode CLI Tools installation timed out after 15 minutes."
+      exit 1
+    fi
     sleep 5
+    (( elapsed += 5 ))
   done
   echo "Xcode CLI Tools installed."
 }
@@ -93,9 +97,8 @@ install_homebrew() {
     echo "Installing Homebrew..."
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    local homebrew_home=/opt/homebrew
     echo -e '\n# Homebrew' >>"$HOME/.zprofile"
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
+    echo "eval '$(/opt/homebrew/bin/brew shellenv)'" >>"$HOME/.zprofile"
     eval "$(/opt/homebrew/bin/brew shellenv)"
   fi
 
@@ -120,7 +123,7 @@ setup_ssh_key() {
 
   # Configure ssh-agent persistence
   if ! grep -q "AddKeysToAgent" "$HOME/.ssh/config" 2>/dev/null; then
-    cat >> "$HOME/.ssh/config" <<EOF
+    cat >>"$HOME/.ssh/config" <<EOF
 Host *
   AddKeysToAgent yes
   UseKeychain yes
