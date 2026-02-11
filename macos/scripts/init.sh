@@ -74,7 +74,19 @@ install_xcode() {
 	fi
 
 	echo "Installing Xcode Command Line Tools..."
-	xcode-select --install &>/dev/null || true
+
+	local clt_label
+	if sudo -n true 2>/dev/null; then
+		clt_label=$(softwareupdate -l 2>/dev/null | awk '/\* Label: Command Line Tools for Xcode/ { sub(/^\* Label: /, ""); label=$0 } END { print label }')
+		if [[ -n "$clt_label" ]]; then
+			sudo softwareupdate -i "$clt_label" --verbose
+			sudo xcode-select --switch /Library/Developer/CommandLineTools || true
+		else
+			xcode-select --install &>/dev/null || true
+		fi
+	else
+		xcode-select --install &>/dev/null || true
+	fi
 
 	local timeout=900 elapsed=0
 	until xcode-select -p &>/dev/null; do
