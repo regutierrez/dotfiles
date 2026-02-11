@@ -98,7 +98,7 @@ alias lg='lazygit'
 alias v='nvim'
 alias o='opencode'
 alias t='tmux'
-alias c='claude'
+alias c='commando'
 
 # ============================================================================
 # MY FUNCTIONS
