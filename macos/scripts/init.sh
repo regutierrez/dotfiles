@@ -5,11 +5,10 @@ set -e -u
 # Usage (remote): curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/scripts/mac/mac_init.sh | bash
 # Usage (local):  bash mac_init.sh
 
-DOTFILES_DIR="$HOME/.dotfiles"
-SSH_TYPE=ed25519
-SSH_FILE="$HOME/.ssh/id_$SSH_TYPE"
+DOTFILES_DIR="$HOME/.local/share/chezmoi"
 GHUSER="regutierrez"
 EMAIL="rpegutierrez@gmail.com"
+AGE_IDENTITY_FILE="$HOME/.config/chezmoi/key.txt"
 
 echo "=== Mac Initialization ==="
 echo ""
@@ -17,8 +16,8 @@ echo ""
 # Default packages
 echo "Using default packages..."
 BREW_PACKAGES=(
-  starship
   asciinema
+  starship
   ripgrep
   uv
   tailscale
@@ -35,7 +34,7 @@ BREW_PACKAGES=(
   lazygit
   pandoc
   mas
-  stow
+  chezmoi
   nvm
   mingw-w64
 )
@@ -79,12 +78,12 @@ install_xcode() {
 
   local timeout=900 elapsed=0
   until xcode-select -p &>/dev/null; do
-    if (( elapsed >= timeout )); then
+    if ((elapsed >= timeout)); then
       echo "Error: Xcode CLI Tools installation timed out after 15 minutes."
       exit 1
     fi
     sleep 5
-    (( elapsed += 5 ))
+    ((elapsed += 5))
   done
   echo "Xcode CLI Tools installed."
 }
@@ -109,37 +108,57 @@ install_homebrew() {
   brew cleanup
 }
 
-# Setup SSH key (skip if already exists)
-setup_ssh_key() {
-  if [[ -f "$SSH_FILE" ]]; then
-    echo "SSH key already exists at $SSH_FILE, skipping..."
+# Setup dotfiles using chezmoi
+setup_dotfiles() {
+  echo ""
+  echo "=== Setting Up Dotfiles ==="
+  echo ""
+
+  local repo_url="https://github.com/$GHUSER/dotfiles.git"
+
+  if [[ -d "$DOTFILES_DIR" ]]; then
+    echo "Dotfiles source already exists, updating and applying..."
+    chezmoi update --init
+  else
+    chezmoi init --apply "$repo_url"
+  fi
+
+  echo "Dotfiles applied successfully."
+}
+
+# Ensure age identity is available before applying encrypted files
+ensure_age_identity() {
+  if [[ -f "$AGE_IDENTITY_FILE" ]]; then
+    chmod 600 "$AGE_IDENTITY_FILE" 2>/dev/null || true
     return
   fi
 
-  echo "Generating SSH key..."
-  mkdir -p "$HOME/.ssh"
-  chmod 700 "$HOME/.ssh"
-  ssh-keygen -t "$SSH_TYPE" -C "$EMAIL" -f "$SSH_FILE" -N ""
+  echo ""
+  echo "Error: age identity file not found: $AGE_IDENTITY_FILE"
+  echo "Restore your age key before running dotfiles setup."
+  echo "Expected public recipient: age1jjprr9qsy2maxva7f3g2ll0z8px58343z0chunj3ljkjnw60kdhs5ypcjt"
+  echo ""
+  exit 1
+}
 
-  # Configure ssh-agent persistence
-  if ! grep -q "AddKeysToAgent" "$HOME/.ssh/config" 2>/dev/null; then
-    cat >>"$HOME/.ssh/config" <<EOF
-Host *
-  AddKeysToAgent yes
-  UseKeychain yes
-  IdentityFile $SSH_FILE
-EOF
-    chmod 600 "$HOME/.ssh/config"
+# Add SSH key to macOS keychain so passphrase is remembered
+setup_ssh_keychain() {
+  echo ""
+  echo "=== Configuring SSH Keychain ==="
+
+  local ssh_key="$HOME/.ssh/id_ed25519"
+
+  if [[ ! -f "$ssh_key" ]]; then
+    echo "SSH key not found at $ssh_key, skipping..."
+    return
   fi
 
-  # Add key to keychain
-  ssh-add --apple-use-keychain "$SSH_FILE" 2>/dev/null || ssh-add "$SSH_FILE"
-
-  echo ""
-  echo "SSH key generated. Public key:"
-  cat "${SSH_FILE}.pub"
-  echo ""
-  echo "Add this key to GitHub: https://github.com/settings/keys"
+  if ssh-add --apple-use-keychain "$ssh_key"; then
+    echo "SSH key added to agent and macOS keychain."
+  else
+    echo "Warning: Could not add SSH key to keychain automatically."
+    echo "Run this manually: ssh-add --apple-use-keychain ~/.ssh/id_ed25519"
+  fi
 }
 
 # Configure Git (skip if already configured)
@@ -158,53 +177,14 @@ set_git_config() {
   [[ -z "$current_email" ]] && git config --global user.email "$EMAIL"
 }
 
-# Clone dotfiles repository
-clone_dotfiles() {
-  echo ""
-  echo "=== Cloning Dotfiles Repository ==="
-  echo ""
-
-  local repo_url="https://github.com/$GHUSER/dotfiles.git"
-
-  if [[ -d "$DOTFILES_DIR" ]]; then
-    echo "Dotfiles directory already exists, pulling latest..."
-    git -C "$DOTFILES_DIR" pull
-  else
-    git clone "$repo_url" "$DOTFILES_DIR"
-    echo "Dotfiles cloned to $DOTFILES_DIR"
-  fi
-}
-
-# Symlink dotfiles using stow
-stow_dotfiles() {
-  echo ""
-  echo "=== Symlinking Dotfiles ==="
-  echo ""
-
-  if [[ ! -d "$DOTFILES_DIR" ]]; then
-    echo "Warning: Dotfiles directory not found, skipping stow."
-    return
-  fi
-
-  cd "$DOTFILES_DIR"
-  # --adopt: take ownership of existing files (moves them into dotfiles, then symlinks)
-  # --no-folding: create individual symlinks instead of symlinking parent dirs
-  stow --adopt --no-folding -t "$HOME" .
-
-  # Reset any adopted files to repo version
-  git checkout .
-
-  echo "Dotfiles symlinked successfully."
-}
-
 # Main execution
 main() {
   install_xcode
   install_homebrew
   set_git_config
-  setup_ssh_key
-  clone_dotfiles
-  stow_dotfiles
+  ensure_age_identity
+  setup_dotfiles
+  setup_ssh_keychain
 
   echo ""
   echo "=== Setup Complete ==="
