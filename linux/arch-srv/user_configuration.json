@@ -114,7 +114,6 @@
             }
         ]
     },
-    "hostname": "noco",
     "kernels": [
         "linux"
     ],
@@ -149,6 +148,8 @@
         "github-cli",
         "go",
         "jq",
+        "less",
+        "lsof",
         "neovim",
         "nvm",
         "openssh",
