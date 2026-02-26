@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)" || true
+
 command -v tmux >/dev/null 2>&1 || {
   printf 'tmux is required.\n' >&2
   exit 1
@@ -17,7 +19,7 @@ selected="$(
     for dir in "$root"/*; do
       [[ -d "$dir" ]] && printf '%s\n' "$dir"
     done
-  done | fzf --prompt='Project > ' --height=40% --reverse
+  done | fzf --prompt='Project > ' --reverse
 )" || exit 0
 
 [[ -n "$selected" ]] || exit 0
