@@ -49,4 +49,4 @@ selection-foreground = #F8FAFC
 cursor-color = #61AFEF
 desktop-notifications = true
 auto-update=download
-macos-titlebar-style = hidden
+macos-titlebar-style = tabs
