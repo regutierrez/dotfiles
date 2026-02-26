@@ -100,6 +100,8 @@ alias v='nvim'
 alias o='opencode'
 alias t='tmux'
 alias c='commando'
+alias noco='ssh -t noco -u a'
+alias sbs='ssh -t sbs@sbs-apps -u a'
 
 # ============================================================================
 # MY FUNCTIONS
