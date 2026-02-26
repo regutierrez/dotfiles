@@ -14,7 +14,7 @@ command -v fzf >/dev/null 2>&1 || {
 }
 
 selected="$(
-  for root in "$HOME/repos" "$HOME/playground"; do
+  for root in "$HOME/repos" "$HOME/playground" "$HOME/config/nvim"; do
     [[ -d "$root" ]] || continue
     for dir in "$root"/*; do
       [[ -d "$dir" ]] && printf '%s\n' "$dir"

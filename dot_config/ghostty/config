@@ -41,6 +41,11 @@
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
 #
-theme = Catppuccin Mocha
+theme = Atom One Dark
+background = #000000
+foreground = #E6EDF3
+selection-background = #2C313C
+selection-foreground = #F8FAFC
+cursor-color = #61AFEF
 desktop-notifications = true
 auto-update=download

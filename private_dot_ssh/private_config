@@ -1,3 +1,5 @@
+Include /Users/pael/.colima/ssh_config
+
 Host *
 	IgnoreUnknown UseKeychain
 	AddKeysToAgent yes
