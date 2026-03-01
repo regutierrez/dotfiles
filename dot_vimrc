@@ -18,9 +18,11 @@ if has('termguicolors')
   set termguicolors
 endif
 
-if has('clipboard')
-  set clipboard=unnamedplus
-endif
+function! OSCYank()
+  let b64 = system('echo -n ' . shellescape(getreg('"')) . ' | base64 | tr -d "\n"')
+  call system('printf ''\e]52;c;%s\a'' ' . shellescape(b64) . ' > /dev/tty')
+endfunction
+autocmd TextYankPost * call OSCYank()
 
 augroup server_filetypes
   autocmd!
