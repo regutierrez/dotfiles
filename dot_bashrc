@@ -1,0 +1,48 @@
+# Minimal Bash config for servers.
+# No shell plugins required.
+
+# Stop here for non-interactive shells.
+[[ $- != *i* ]] && return
+
+# History
+HISTSIZE=50000
+HISTFILESIZE=100000
+HISTCONTROL=ignoredups:ignorespace
+shopt -s histappend
+PROMPT_COMMAND='history -a; history -n'
+
+# Safer defaults
+set -o noclobber
+shopt -s checkwinsize
+
+# Colors for files and directories
+if command -v dircolors >/dev/null 2>&1; then
+  eval "$(dircolors -b)"
+fi
+
+alias ls='ls --color=auto -F'
+alias grep='grep --color=auto'
+
+alias ll='ls -lah'
+
+# Readline/completion behavior
+bind 'set show-all-if-ambiguous on'
+bind 'set completion-ignore-case on'
+bind 'set colored-stats on'
+bind 'set mark-directories on'
+bind 'set mark-symlinked-directories on'
+bind 'TAB:menu-complete'
+
+# Bash completion (package-provided, no plugins)
+for completion_file in \
+  /usr/share/bash-completion/bash_completion \
+  /etc/bash_completion
+do
+  if [ -r "$completion_file" ]; then
+    . "$completion_file"
+    break
+  fi
+done
+
+# Prompt: user@host:path $
+PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '

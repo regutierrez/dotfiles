@@ -1,3 +1,6 @@
+{{- $profile := (index . "profile" | default "desktop") -}}
+{{- $cfg := ((index .profiles $profile) | default (index .profiles "desktop")) -}}
+
 # Add binding to reload tmux.conf
 bind r source-file ~/.tmux.conf \; display ".conf reloaded"
 
@@ -43,12 +46,16 @@ set -g automatic-rename off
 set -g allow-rename off
 
 # plugins
+{{- if $cfg.tmux_plugins }}
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
+{{- end }}
 
 # custom commands
 bind o display-popup -E -w 50 -h 15 ~/bin/commando
 bind v setw synchronize-panes
 set-option -g status-position top
 
+{{- if $cfg.tmux_plugins }}
 run '~/.tmux/plugins/tpm/tpm'
+{{- end }}

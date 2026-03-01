@@ -1,0 +1,45 @@
+set nocompatible
+
+syntax on
+filetype plugin indent on
+
+set number
+set hidden
+set tabstop=2
+set shiftwidth=2
+set expandtab
+set smartindent
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+
+if has('termguicolors')
+  set termguicolors
+endif
+
+if has('clipboard')
+  set clipboard=unnamedplus
+endif
+
+augroup server_filetypes
+  autocmd!
+  autocmd BufRead,BufNewFile *.env,.env,.env.* setfiletype sh
+  autocmd BufRead,BufNewFile *.conf,*.cfg,*.cnf,*.ini setfiletype dosini
+augroup END
+
+function! ToggleCommentLine() abort
+  let l:line = getline('.')
+  let l:indent = matchstr(l:line, '^\s*')
+  let l:content = substitute(l:line, '^\s*', '', '')
+
+  if l:content =~ '^#\s\?'
+    let l:content = substitute(l:content, '^#\s\?', '', '')
+  else
+    let l:content = '# ' . l:content
+  endif
+
+  call setline('.', l:indent . l:content)
+endfunction
+
+nnoremap gcc :call ToggleCommentLine()<CR>

@@ -1,3 +1,6 @@
+{{- $profile := (index . "profile" | default "desktop") -}}
+{{- $cfg := ((index .profiles $profile) | default (index .profiles "desktop")) -}}
+
 README.md
 LICENSE
 archive/
@@ -11,4 +14,24 @@ srv/
 .ssh/config
 .config/karabiner
 .config/zed
+{{- end }}
+
+{{- if not $cfg.manage_bashrc }}
+.bashrc
+{{- end }}
+
+{{- if not $cfg.manage_vimrc }}
+.vimrc
+{{- end }}
+
+{{- if not $cfg.manage_bin }}
+bin/
+{{- end }}
+
+{{- if not $cfg.manage_dot_config }}
+.config/
+{{- end }}
+
+{{- if not $cfg.tmux_plugins }}
+.tmux/plugins/
 {{- end }}

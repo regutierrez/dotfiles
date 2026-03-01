@@ -1,0 +1,13 @@
+[profiles.desktop]
+tmux_plugins = true
+manage_bashrc = false
+manage_vimrc = false
+manage_bin = true
+manage_dot_config = true
+
+[profiles.server]
+tmux_plugins = false
+manage_bashrc = true
+manage_vimrc = true
+manage_bin = false
+manage_dot_config = false
