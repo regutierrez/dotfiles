@@ -101,7 +101,7 @@ alias o='opencode'
 alias t='tmux'
 alias c='commando'
 alias noco='ssh -t noco tmux -u a'
-alias sbs='ssh -t sbs@sbs-apps tmux -u a'
+alias sbs='ssh -t sbs@10.5.46.136 tmux -u a'
 
 # ============================================================================
 # MY FUNCTIONS
