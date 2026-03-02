@@ -50,3 +50,6 @@ cursor-color = #61AFEF
 desktop-notifications = true
 auto-update=download
 macos-titlebar-style = tabs
+macos-option-as-alt = true
+keybind = alt+arrow_left=unbind
+keybind = alt+arrow_right=unbind
