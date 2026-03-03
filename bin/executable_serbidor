@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import cast
 
 
+# NOTE: browsers will probably block downloads because this is served via HTTP. if you need to download, just `curl -L -o <link>`
 def main():
     parser = argparse.ArgumentParser(description="Serve a file over HTTP")
     _ = parser.add_argument("filepath", type=Path, help="File to serve")
