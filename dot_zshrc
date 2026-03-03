@@ -94,6 +94,7 @@ export PATH=$PATH:$HOME/repos/dotfiles/bin/ # my helper scripts
 # Environment variables
 export GOOGLE_CLOUD_PROJECT="pael-project"
 export GOOGLE_CLOUD_LOCATION="global"
+export EDITOR=nvim
 
 # ============================================================================
 # ALIASES
