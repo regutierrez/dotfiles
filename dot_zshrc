@@ -103,6 +103,7 @@ alias c='commando'
 alias noco='ssh -t noco tmux -u a'
 alias golgra='ssh -t golgra tmux -u a'
 alias sbs='ssh -t sbs@10.5.46.136 tmux -u a'
+alias esquie='ssh -t esquie tmux -u a'
 
 # ============================================================================
 # MY FUNCTIONS
