@@ -18,11 +18,17 @@ bind -n M-l select-pane -R
 bind N new-session -c "#{pane_current_path}"
 bind R command-prompt -p "rename session to:" "rename-session '%%'"
 
-# resize pane with alt + arrow keys
-bind -nr M-Left resize-pane -L 5
-bind -nr M-Down resize-pane -D 5
-bind -nr M-Up resize-pane -U 5
-bind -nr M-Right resize-pane -R 5
+# clear old alt+arrow resize bindings (important on config reload)
+unbind -nq M-Left
+unbind -nq M-Down
+unbind -nq M-Up
+unbind -nq M-Right
+
+# resize pane with alt + shift + hjkl
+bind -nr M-H resize-pane -L 5
+bind -nr M-J resize-pane -D 5
+bind -nr M-K resize-pane -U 5
+bind -nr M-L resize-pane -R 5
 set -s escape-time 0
 
 # mouse support on

@@ -47,7 +47,7 @@ def main():
     server = HTTPServer(("0.0.0.0", port), handler)
 
     print(f"Serving {filepath.name}", flush=True)
-    print(f"http://localhost:{port}/{filepath.name}", flush=True)
+    print(f"http://{socket.gethostname()}:{port}/{filepath.name}", flush=True)
     print(flush=True)
 
     try:
