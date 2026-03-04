@@ -104,6 +104,7 @@ alias ls='eza'
 alias lg='lazygit'
 alias v='nvim'
 alias o='opencode'
+alias ff='fastfetch'
 alias t='tmux'
 alias c='commando'
 alias noco='ssh -t noco tmux -u a'
@@ -115,7 +116,6 @@ alias esquie='ssh -t esquie tmux -u a'
 # ============================================================================
 # MY FUNCTIONS
 # ============================================================================
-fastfetch
 
 
 # ============================================================================
