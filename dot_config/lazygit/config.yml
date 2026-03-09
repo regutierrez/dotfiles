@@ -1,0 +1,18 @@
+gui:
+  showIcons: true
+  nerdFontsVersion: "3"
+  border: rounded
+  sidePanelWidth: 0.3333
+  showBottomLine: true
+
+git:
+  paging:
+    colorArg: always
+    pager: delta --dark --paging=never --syntax-theme=zenburn
+
+os:
+  editPreset: nvim
+  # On headless SSH sessions, use tmux's clipboard integration (-w) to forward copies to the local terminal clipboard.
+  copyToClipboardCmd: 'tmux set-buffer -w -- {{text}}'
+
+promptToReturnFromSubprocess: false
