@@ -139,7 +139,7 @@
         "bun",
         "curl",
         "dpkg",
-        "docker-compose-plugin",
+        "docker-compose",
         "eza",
         "fakeroot",
         "fd",
