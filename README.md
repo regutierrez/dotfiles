@@ -30,12 +30,14 @@ Profile behavior is centralized in `.chezmoidata.toml`.
   - `manage_vimrc = false`
   - `manage_bin = true`
   - `manage_dot_config = true`
+  - `manage_agents = true` (`~/.agents` is managed)
 - `profiles.server`
   - `tmux_plugins = false` (same tmux config, no plugins)
   - `manage_bashrc = true` (minimal Bash config)
   - `manage_vimrc = true` (minimal Vim config)
   - `manage_bin = false`
   - `manage_dot_config = false`
+  - `manage_agents = false`
 
 Set profile per machine in local config (`~/.config/chezmoi/chezmoi.toml`):
 

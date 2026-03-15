@@ -4,6 +4,7 @@ manage_bashrc = false
 manage_vimrc = false
 manage_bin = true
 manage_dot_config = true
+manage_agents = true
 
 [profiles.server]
 tmux_plugins = false
@@ -11,3 +12,4 @@ manage_bashrc = true
 manage_vimrc = true
 manage_bin = false
 manage_dot_config = false
+manage_agents = false

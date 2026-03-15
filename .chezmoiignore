@@ -32,6 +32,10 @@ bin/
 .config/
 {{- end }}
 
+{{- if not $cfg.manage_agents }}
+.agents/
+{{- end }}
+
 {{- if not $cfg.tmux_plugins }}
 .tmux/plugins/
 {{- end }}
