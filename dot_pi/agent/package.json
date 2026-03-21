@@ -1,0 +1,11 @@
+{
+  "name": "pi-agent-dotfiles",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@mariozechner/pi-ai": "^0.61.1",
+    "@mariozechner/pi-coding-agent": "^0.61.1",
+    "@mariozechner/pi-tui": "^0.61.1",
+    "diff": "^8.0.2"
+  }
+}
