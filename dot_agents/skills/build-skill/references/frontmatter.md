@@ -115,7 +115,7 @@ metadata:
 
 String-to-string map. Arbitrary key-value pairs.
 
-### references (OpenCode-specific)
+### references (Agent-specific)
 
 ```yaml
 references:

@@ -24,7 +24,7 @@ Instructions go here.
 EOF
 ```
 
-Place in `.agents/skills/` (project) or `~/.agents/skills/` (global).
+Place in `.agents/skills/` (project) or your agent's configured global skills directory.
 
 ## Skill Type Decision Tree
 
@@ -110,13 +110,14 @@ Run: `./scripts/validate_skill.sh ./my-skill`
 
 ## Skill Locations
 
-| Priority | Location                                 |
-| -------- | ---------------------------------------- |
-| 1        | `.agents/skills/<name>/` (project)       |
-| 2        | `~/.agents/skills/<name>/` (global)      |
-| 3        | `.claude/skills/<name>/` (Claude-compat) |
+| Priority | Location |
+|----------|----------|
+| 1 | `.agents/skills/<name>/` (project) |
+| 2 | `~/.agents/skills/<name>/` (common global convention) |
+| 3 | `~/.config/<agent>/skills/<name>/` (agent-specific global path) |
+| 4 | `.claude/skills/<name>/` (Claude-compat) |
 
-Discovery walks up from CWD to git root. First-wins for duplicate names.
+Discovery rules vary by agent. Prefer the conventions your agent already documents.
 
 ## See Also
 
