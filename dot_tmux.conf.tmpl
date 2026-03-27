@@ -3,6 +3,7 @@
 
 # Add binding to reload tmux.conf
 bind r source-file ~/.tmux.conf \; display ".conf reloaded"
+bind ? display-popup -E "tmux list-keys | fzf --ansi --layout=reverse --prompt='tmux keybindings> '"
 
 # Remap prefix
 set -g prefix `
@@ -51,15 +52,26 @@ setw -g pane-base-index 1
 set -g renumber-windows on
 
 # vi copy mode
-setw -g mode-keys vi
-bind -T copy-mode-vi v send -X begin-selection
-bind -T copy-mode-vi y send -X copy-selection-and-cancel
+set-window-option -g mode-keys vi
+
+# Enter copy mode with prefix+v
+bind v copy-mode
+
+# Copy mode navigation and selection (vim-style)
+bind -T copy-mode-vi q send-keys -X cancel
+bind -T copy-mode-vi v send-keys -X begin-selection
+bind -T copy-mode-vi V send-keys -X select-line
+bind -T copy-mode-vi Escape send-keys -X clear-selection
+bind -T copy-mode-vi 'C-v' send-keys -X rectangle-toggle
+bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
+
 set -g set-clipboard on
 set -g focus-events on
 set -g allow-passthrough on
 
-set -g status-left-length 50
-set -g status-right-length 50
+set -g status-left-length 100
+set -g status-right-length 100
 set -g automatic-rename off
 set -g allow-rename off
 
@@ -67,15 +79,39 @@ set -g allow-rename off
 {{- if $cfg.tmux_plugins }}
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @plugin 'catppuccin/tmux#v2.1.3'
+set -g @catppuccin_flavor 'mocha'
+set -g @catppuccin_window_status_style 'rounded'
+set -g @catppuccin_pane_status_enabled 'no'
+set -g pane-border-status top
+set -g @catppuccin_pane_border_style 'fg=#{@thm_surface_0}'
+set -g @catppuccin_pane_active_border_style 'fg=#{@thm_lavender}'
+
+# auto-install TPM if missing
+if "test ! -d ~/.tmux/plugins/tpm" \
+   "run 'git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm && ~/.tmux/plugins/tpm/bin/install_plugins'"
+{{- end }}
+
+{{- if $cfg.tmux_plugins }}
+# load catppuccin before status module configuration
+if-shell "test -f ~/.tmux/plugins/tmux/catppuccin.tmux" \
+  "run '~/.tmux/plugins/tmux/catppuccin.tmux'"
+
+# subtle pane numbers in the top border, no background fill
+set -g pane-border-format '#{?pane_active,#[fg=#{@thm_lavender}],#[fg=#{@thm_surface_0}]}#{pane_index}'
+
+# remove tmux's default pane title on the right and use catppuccin modules instead
+set -g status-left ""
+set -ag status-left "#{E:@catppuccin_status_session}"
+set -g status-right "#{E:@catppuccin_status_date_time}"
+set -ag status-right "#{E:@catppuccin_status_uptime}"
+
 {{- end }}
 
 # custom commands
 bind o display-popup -E -w 50 -h 15 ~/bin/commando
-bind v setw synchronize-panes
+bind S setw synchronize-panes
 set-option -g status-position top
-set-option -g pane-active-border-style fg=blue
-
-set-hook -g after-select-pane "run-shell 'tmux set -w window-active-style \"bg=brightblack\"; sleep 0.05 && tmux set -w window-active-style \"\"'"
 
 {{- if $cfg.tmux_plugins }}
 run '~/.tmux/plugins/tpm/tpm'
