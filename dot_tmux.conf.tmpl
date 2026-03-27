@@ -7,6 +7,7 @@ bind r source-file ~/.tmux.conf \; display ".conf reloaded"
 # Remap prefix
 set -g prefix `
 bind ` send-prefix
+set -g extended-keys on
 set -g extended-keys-format csi-u
 
 # use opt + hjkl to navigate through panes
@@ -72,6 +73,9 @@ set -g @plugin 'tmux-plugins/tmux-continuum'
 bind o display-popup -E -w 50 -h 15 ~/bin/commando
 bind v setw synchronize-panes
 set-option -g status-position top
+set-option -g pane-active-border-style fg=blue
+
+set-hook -g after-select-pane "run-shell 'tmux set -w window-active-style \"bg=brightblack\"; sleep 0.05 && tmux set -w window-active-style \"\"'"
 
 {{- if $cfg.tmux_plugins }}
 run '~/.tmux/plugins/tpm/tpm'

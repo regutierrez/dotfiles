@@ -39,3 +39,12 @@ bin/
 {{- if not $cfg.tmux_plugins }}
 .tmux/plugins/
 {{- end }}
+
+# Mirror repo-local .gitignore entries so chezmoi never syncs them.
+.config/raycast/
+.config/nvim/
+.config/btop/
+
+.pi/agent/node_modules/
+.pi/agent/package-lock.json
+package-lock.json
