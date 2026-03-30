@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: sync-agent-skills [--check] [--source DIR] [skill...]
+
+Copies overlapping skills from the source skills directory into dot_agents/skills.
+
+Options:
+  --check        Report deviations without changing files.
+  --source DIR   Override source skills directory.
+  -h, --help     Show this help.
+
+Defaults:
+  source: ~/playground/agent-stuff/skills
+  dest:   <repo>/dot_agents/skills
+
+If one or more skill names are provided, only those skills are checked/synced.
+Otherwise, all overlapping skill directory names are processed.
+EOF
+}
+
+MODE=sync
+SOURCE_ROOT="${HOME}/playground/agent-stuff/skills"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+DEST_ROOT="${REPO_ROOT}/dot_agents/skills"
+REQUESTED_SKILLS=()
+
+while (($#)); do
+  case "$1" in
+    --check)
+      MODE=check
+      shift
+      ;;
+    --source)
+      SOURCE_ROOT="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      REQUESTED_SKILLS+=("$@")
+      break
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      REQUESTED_SKILLS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ! -d "${SOURCE_ROOT}" ]]; then
+  echo "Source skills directory not found: ${SOURCE_ROOT}" >&2
+  exit 1
+fi
+
+if [[ ! -d "${DEST_ROOT}" ]]; then
+  echo "Destination skills directory not found: ${DEST_ROOT}" >&2
+  exit 1
+fi
+
+collect_all_skills() {
+  comm -12 \
+    <(find "${SOURCE_ROOT}" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort) \
+    <(find "${DEST_ROOT}" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -printf '%f\n' | sort)
+}
+
+if ((${#REQUESTED_SKILLS[@]})); then
+  SKILLS=("${REQUESTED_SKILLS[@]}")
+else
+  mapfile -t SKILLS < <(collect_all_skills)
+fi
+
+if ((${#SKILLS[@]} == 0)); then
+  echo "No skills to process."
+  exit 0
+fi
+
+status=0
+for skill in "${SKILLS[@]}"; do
+  src="${SOURCE_ROOT}/${skill}"
+  dest="${DEST_ROOT}/${skill}"
+
+  if [[ ! -d "${src}" ]]; then
+    echo "[missing-source] ${skill}: ${src}" >&2
+    status=1
+    continue
+  fi
+
+  if [[ ! -e "${dest}" && ! -L "${dest}" ]]; then
+    if [[ "${MODE}" == check ]]; then
+      echo "[missing-dest] ${skill}"
+      status=1
+      continue
+    fi
+  fi
+
+  if [[ "${MODE}" == check ]]; then
+    if [[ -L "${dest}" ]]; then
+      echo "[deviates] ${skill}: destination is a symlink"
+      status=1
+      continue
+    fi
+
+    if [[ ! -d "${dest}" ]]; then
+      echo "[deviates] ${skill}: destination directory missing"
+      status=1
+      continue
+    fi
+
+    if ! diff -qr --exclude .DS_Store "${src}" "${dest}" >/dev/null; then
+      echo "[deviates] ${skill}"
+      diff -qr --exclude .DS_Store "${src}" "${dest}" || true
+      status=1
+    else
+      echo "[ok] ${skill}"
+    fi
+    continue
+  fi
+
+  rm -rf "${dest}"
+  cp -a "${src}" "${dest}"
+  echo "[synced] ${skill}"
+done
+
+exit "${status}"
