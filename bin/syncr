@@ -4,7 +4,7 @@
 # dependencies = []
 # ///
 """
-syncr: Sync skills from cached repos to dotfiles
+syncr: Sync skills from repos to dotfiles
 
 Discovers repos in ~/.cache/syncr/ and syncs their skills to dotfiles.
 
@@ -45,15 +45,6 @@ def parse_repo_url(repo_input: str) -> tuple[str, str, str] | None:
         if match:
             host = match.group(1)
             path = match.group(2)
-    elif repo_input.startswith("ssh://"):
-        # ssh://git@github.com/owner/repo
-        rest = repo_input[6:].lstrip("/")
-        if "@" in rest:
-            rest = rest.split("@", 1)[1]
-        parts = rest.split("/", 1)
-        if len(parts) >= 2:
-            host = parts[0]
-            path = parts[1]
     elif repo_input.startswith(("http://", "https://")):
         # https://github.com/owner/repo
         rest = repo_input.split("://", 1)[1]
@@ -61,19 +52,6 @@ def parse_repo_url(repo_input: str) -> tuple[str, str, str] | None:
         if len(parts) >= 2:
             host = parts[0]
             path = parts[1]
-    elif "/" in repo_input:
-        # owner/repo shorthand
-        first = repo_input.split("/")[0]
-        if "." in first or first == "localhost":
-            # host/owner/repo format
-            parts = repo_input.split("/", 1)
-            if len(parts) >= 2:
-                host = parts[0]
-                path = parts[1]
-        else:
-            # owner/repo shorthand - default to github.com
-            host = "github.com"
-            path = repo_input
     else:
         # Not a URL
         return None
@@ -87,7 +65,17 @@ def parse_repo_url(repo_input: str) -> tuple[str, str, str] | None:
 
     # Handle deep links (tree/blob/pull etc)
     parts = path.split("/")
-    if len(parts) >= 3 and parts[2] in ("tree", "blob", "pull", "issues", "commit", "actions", "releases", "compare", "wiki"):
+    if len(parts) >= 3 and parts[2] in (
+        "tree",
+        "blob",
+        "pull",
+        "issues",
+        "commit",
+        "actions",
+        "releases",
+        "compare",
+        "wiki",
+    ):
         path = f"{parts[0]}/{parts[1]}"
         parts = path.split("/")
 
@@ -398,7 +386,9 @@ def cmd_select() -> list[str] | None:
                 source_rel = source.relative_to(CACHE_ROOT)
                 # Get first two parts (org/repo)
                 parts = source_rel.parts
-                source_str = f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else str(source_rel)
+                source_str = (
+                    f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else str(source_rel)
+                )
             except ValueError:
                 source_str = str(source)
         else:
@@ -470,7 +460,9 @@ Examples:
 
     # add command
     add_parser = subparsers.add_parser("add", help="Clone a repo to the cache")
-    _ = add_parser.add_argument("repo", help="Repo URL (owner/repo, https://..., git@...)")
+    _ = add_parser.add_argument(
+        "repo", help="Repo URL (owner/repo, https://..., git@...)"
+    )
 
     _ = subparsers.add_parser("status", help="Show discovered repos and skills")
     _ = subparsers.add_parser("check", help="Check for skill updates")
