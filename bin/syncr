@@ -102,7 +102,7 @@ def parse_repo_url(repo_input: str) -> tuple[str, str, str] | None:
 
 def clone_repo(host: str, org: str, repo: str) -> Path:
     """Clone a repo to the cache directory. Returns the path."""
-    checkout_path = CACHE_ROOT / host / org / repo
+    checkout_path = CACHE_ROOT / org / repo
     repo_url = f"https://{host}/{org}/{repo}.git"
 
     if checkout_path.exists():
@@ -154,15 +154,13 @@ def discover_cached_repos() -> list[Path]:
     if not CACHE_ROOT.exists():
         return repos
 
-    for host_dir in CACHE_ROOT.iterdir():
-        if not host_dir.is_dir():
+    # Structure: ~/.cache/syncr/<org>/<repo>
+    for org_dir in CACHE_ROOT.iterdir():
+        if not org_dir.is_dir():
             continue
-        for org_dir in host_dir.iterdir():
-            if not org_dir.is_dir():
-                continue
-            for repo_dir in org_dir.iterdir():
-                if repo_dir.is_dir() and (repo_dir / ".git").exists():
-                    repos.append(repo_dir)
+        for repo_dir in org_dir.iterdir():
+            if repo_dir.is_dir() and (repo_dir / ".git").exists():
+                repos.append(repo_dir)
 
     return sorted(repos)
 
@@ -393,7 +391,17 @@ def cmd_select() -> list[str] | None:
 
     for i, skill in enumerate(all_skills, 1):
         source = find_skill_source(skill)
-        source_str = str(source.parent.parent.parent) if source else "unknown"
+        if source:
+            # Extract org/repo from path: ~/.cache/syncr/<org>/<repo>/...
+            try:
+                source_rel = source.relative_to(CACHE_ROOT)
+                # Get first two parts (org/repo)
+                parts = source_rel.parts
+                source_str = f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else str(source_rel)
+            except ValueError:
+                source_str = str(source)
+        else:
+            source_str = "unknown"
         dotfiles_path = DOTFILES_SKILLS / skill
         status = "✓" if dotfiles_path.exists() else "?"
         print(f"  {i}. [{status}] {skill} (from {source_str})")
