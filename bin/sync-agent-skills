@@ -9,13 +9,15 @@ sync-agent-skills: Sync skills from cached repos to dotfiles
 Discovers repos in ~/.cache/checkouts/ and syncs their .agents/skills to dotfiles.
 
 Commands:
-  status         Show discovered repos and their skills
-  check          Check which skills need updating
-  sync           Sync skills to dotfiles and commit
-  select         Interactively select which skills to sync
+  add <repo-url>  Clone a repo to the cache
+  status          Show discovered repos and their skills
+  check           Check which skills need updating
+  sync            Sync skills to dotfiles and commit
+  select          Interactively select which skills to sync
 """
 
 import argparse
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +26,125 @@ from typing import cast
 # Configuration
 CACHE_ROOT = Path.home() / ".cache" / "checkouts"
 DOTFILES_SKILLS = Path.home() / "repos" / "dotfiles" / "dot_agents" / "skills"
+
+
+def parse_repo_url(repo_input: str) -> tuple[str, str, str] | None:
+    """Parse a repo URL into (host, org, repo). Returns None if not a URL."""
+    repo_input = repo_input.strip()
+
+    # Strip query/fragment
+    repo_input = repo_input.split("?")[0].split("#")[0]
+
+    host = ""
+    path = ""
+
+    # Handle different URL formats
+    if repo_input.startswith("git@"):
+        # git@github.com:owner/repo.git
+        match = re.match(r"git@([^:]+):(.+)", repo_input)
+        if match:
+            host = match.group(1)
+            path = match.group(2)
+    elif repo_input.startswith("ssh://"):
+        # ssh://git@github.com/owner/repo
+        rest = repo_input[6:].lstrip("/")
+        if "@" in rest:
+            rest = rest.split("@", 1)[1]
+        parts = rest.split("/", 1)
+        if len(parts) >= 2:
+            host = parts[0]
+            path = parts[1]
+    elif repo_input.startswith(("http://", "https://")):
+        # https://github.com/owner/repo
+        rest = repo_input.split("://", 1)[1]
+        parts = rest.split("/", 1)
+        if len(parts) >= 2:
+            host = parts[0]
+            path = parts[1]
+    elif "/" in repo_input:
+        # owner/repo shorthand
+        first = repo_input.split("/")[0]
+        if "." in first or first == "localhost":
+            # host/owner/repo format
+            parts = repo_input.split("/", 1)
+            if len(parts) >= 2:
+                host = parts[0]
+                path = parts[1]
+        else:
+            # owner/repo shorthand - default to github.com
+            host = "github.com"
+            path = repo_input
+    else:
+        # Not a URL
+        return None
+
+    if not host or not path:
+        return None
+
+    # Clean up path
+    path = path.lstrip("/").rstrip("/")
+    path = path.removesuffix(".git")
+
+    # Handle deep links (tree/blob/pull etc)
+    parts = path.split("/")
+    if len(parts) >= 3 and parts[2] in ("tree", "blob", "pull", "issues", "commit", "actions", "releases", "compare", "wiki"):
+        path = f"{parts[0]}/{parts[1]}"
+        parts = path.split("/")
+
+    if len(parts) < 2:
+        return None
+
+    repo = parts[-1]
+    org = "/".join(parts[:-1])
+
+    return (host, org, repo)
+
+
+def clone_repo(host: str, org: str, repo: str) -> Path:
+    """Clone a repo to the cache directory. Returns the path."""
+    checkout_path = CACHE_ROOT / host / org / repo
+    repo_url = f"https://{host}/{org}/{repo}.git"
+
+    if checkout_path.exists():
+        print(f"  Repo already exists at {checkout_path}")
+        return checkout_path
+
+    print(f"  Cloning {repo_url}...")
+    _ = checkout_path.parent.mkdir(parents=True, exist_ok=True)
+
+    _ = subprocess.run(
+        ["git", "clone", "--filter=blob:none", repo_url, str(checkout_path)],
+        check=True,
+        capture_output=True,
+    )
+    print("  ✓ Cloned")
+
+    return checkout_path
+
+
+def cmd_add(repo_url: str) -> None:
+    """Add a repo by cloning it to the cache."""
+    parsed = parse_repo_url(repo_url)
+
+    if not parsed:
+        print(f"Error: Cannot parse repo URL: {repo_url}")
+        print("Supported formats: owner/repo, https://..., git@...")
+        sys.exit(1)
+
+    host, org, repo = parsed
+    print(f"Adding {host}/{org}/{repo}...")
+    path = clone_repo(host, org, repo)
+
+    # Show what skills are available
+    skills = get_repo_skills(path)
+    if skills:
+        print(f"\nFound {len(skills)} skill(s):")
+        for skill in skills:
+            print(f"  - {skill}")
+    else:
+        print("\nNo skills found in this repo.")
+
+    print(f"\nRepo location: {path}")
 
 
 def discover_cached_repos() -> list[Path]:
@@ -133,7 +254,7 @@ def cmd_status() -> None:
 
     if not repos:
         print(f"No cached repos found in {CACHE_ROOT}")
-        print("Use the librarian skill or clone repos to that location first.")
+        print("Use 'add' command to clone repos, or clone manually to that location.")
         return
 
     all_skills: set[str] = set()
@@ -324,18 +445,23 @@ def main() -> None:
         description="Sync agent skills from cached repos to dotfiles",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Discovers repos in ~/.cache/checkouts/ and manages their skills.
+Manages repos in ~/.cache/checkouts/ and syncs their skills to dotfiles.
 
 Examples:
-  sync-agent-skills status
-  sync-agent-skills check
-  sync-agent-skills sync                    # sync all skills
-  sync-agent-skills sync skill1 skill2      # sync specific skills
-  sync-agent-skills select                  # interactively choose skills
+  sync-agent-skills add owner/repo           # clone a repo
+  sync-agent-skills status                   # show all repos and skills
+  sync-agent-skills check                    # check what needs updating
+  sync-agent-skills sync                     # sync all skills
+  sync-agent-skills sync skill1 skill2       # sync specific skills
+  sync-agent-skills select                   # interactively choose skills
         """,
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
+
+    # add command
+    add_parser = subparsers.add_parser("add", help="Clone a repo to the cache")
+    _ = add_parser.add_argument("repo", help="Repo URL (owner/repo, https://..., git@...)")
 
     _ = subparsers.add_parser("status", help="Show discovered repos and skills")
     _ = subparsers.add_parser("check", help="Check for skill updates")
@@ -350,7 +476,6 @@ Examples:
     args = parser.parse_args()
 
     command = cast(str | None, args.command)
-    skills = cast(list[str], args.skills)
     if not command:
         parser.print_help()
         sys.exit(1)
@@ -359,12 +484,16 @@ Examples:
         print(f"Error: Dotfiles skills directory not found: {DOTFILES_SKILLS}")
         sys.exit(1)
 
-    if command == "status":
+    if command == "add":
+        repo_input = cast(str, args.repo)
+        cmd_add(repo_input)
+    elif command == "status":
         cmd_status()
     elif command == "check":
         cmd_check()
     elif command == "sync":
-        specific_skills = skills if skills else None
+        skills_arg = cast(list[str], args.skills)
+        specific_skills = skills_arg if skills_arg else None
         cmd_sync(specific_skills)
     elif command == "select":
         selected = cmd_select()
