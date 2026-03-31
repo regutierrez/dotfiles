@@ -1,136 +1,282 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
+"""
+sync-agent-skills: Sync skills from cached repos to dotfiles
 
-usage() {
-  cat <<'EOF'
-Usage: sync-agent-skills [--check] [--source DIR] [skill...]
+Discovers repos in ~/.cache/checkouts/ and syncs their .agents/skills to dotfiles.
 
-Copies overlapping skills from the source skills directory into dot_agents/skills.
+Commands:
+  status    Show discovered repos and their skills
+  check     Check which skills need updating
+  sync      Sync skills to dotfiles and commit
+"""
 
-Options:
-  --check        Report deviations without changing files.
-  --source DIR   Override source skills directory.
-  -h, --help     Show this help.
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+from typing import cast
 
-Defaults:
-  source: ~/playground/agent-stuff/skills
-  dest:   <repo>/dot_agents/skills
+# Configuration
+CACHE_ROOT = Path.home() / ".cache" / "checkouts"
+DOTFILES_SKILLS = Path.home() / "repos" / "dotfiles" / "dot_agents" / "skills"
 
-If one or more skill names are provided, only those skills are checked/synced.
-Otherwise, all overlapping skill directory names are processed.
-EOF
-}
 
-MODE=sync
-SOURCE_ROOT="${HOME}/playground/agent-stuff/skills"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-DEST_ROOT="${REPO_ROOT}/dot_agents/skills"
-REQUESTED_SKILLS=()
+def discover_cached_repos() -> list[Path]:
+    """Find all repos in the cache directory."""
+    repos: list[Path] = []
+    
+    if not CACHE_ROOT.exists():
+        return repos
+    
+    for host_dir in CACHE_ROOT.iterdir():
+        if not host_dir.is_dir():
+            continue
+        for org_dir in host_dir.iterdir():
+            if not org_dir.is_dir():
+                continue
+            for repo_dir in org_dir.iterdir():
+                if repo_dir.is_dir() and (repo_dir / ".git").exists():
+                    repos.append(repo_dir)
+    
+    return sorted(repos)
 
-while (($#)); do
-  case "$1" in
-    --check)
-      MODE=check
-      shift
-      ;;
-    --source)
-      SOURCE_ROOT="$2"
-      shift 2
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    --)
-      shift
-      REQUESTED_SKILLS+=("$@")
-      break
-      ;;
-    -*)
-      echo "Unknown option: $1" >&2
-      usage >&2
-      exit 1
-      ;;
-    *)
-      REQUESTED_SKILLS+=("$1")
-      shift
-      ;;
-  esac
-done
 
-if [[ ! -d "${SOURCE_ROOT}" ]]; then
-  echo "Source skills directory not found: ${SOURCE_ROOT}" >&2
-  exit 1
-fi
+def get_repo_skills(repo_path: Path) -> list[str]:
+    """Get list of skills available in any skills/ directory within the repo."""
+    skills: list[str] = []
+    
+    # Find all directories named "skills"
+    for skills_dir in repo_path.rglob("skills"):
+        if not skills_dir.is_dir():
+            continue
+        # Collect all subdirectories (each is a skill)
+        for skill_dir in sorted(skills_dir.iterdir()):
+            if skill_dir.is_dir():
+                skills.append(skill_dir.name)
+    
+    return skills
 
-if [[ ! -d "${DEST_ROOT}" ]]; then
-  echo "Destination skills directory not found: ${DEST_ROOT}" >&2
-  exit 1
-fi
 
-collect_all_skills() {
-  comm -12 \
-    <(find "${SOURCE_ROOT}" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort) \
-    <(find "${DEST_ROOT}" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -printf '%f\n' | sort)
-}
+def find_skill_source(skill_name: str) -> Path | None:
+    """Find which cached repo has this skill (searches all skills/ directories)."""
+    repos = discover_cached_repos()
+    
+    for repo_path in repos:
+        # Search for skill in any skills/ directory
+        for skills_dir in repo_path.rglob("skills"):
+            skill_path = skills_dir / skill_name
+            if skill_path.exists() and skill_path.is_dir():
+                return skill_path
+    
+    return None
 
-if ((${#REQUESTED_SKILLS[@]})); then
-  SKILLS=("${REQUESTED_SKILLS[@]}")
-else
-  mapfile -t SKILLS < <(collect_all_skills)
-fi
 
-if ((${#SKILLS[@]} == 0)); then
-  echo "No skills to process."
-  exit 0
-fi
+def get_skill_mtime(skill_path: Path) -> float:
+    """Get modification time of a skill directory."""
+    if not skill_path.exists():
+        return 0
+    return max(
+        f.stat().st_mtime for f in skill_path.rglob("*") if f.is_file()
+    )
 
-status=0
-for skill in "${SKILLS[@]}"; do
-  src="${SOURCE_ROOT}/${skill}"
-  dest="${DEST_ROOT}/${skill}"
 
-  if [[ ! -d "${src}" ]]; then
-    echo "[missing-source] ${skill}: ${src}" >&2
-    status=1
-    continue
-  fi
+def needs_update(skill_name: str) -> bool:
+    """Check if skill in dotfiles is outdated compared to source."""
+    source_path = find_skill_source(skill_name)
+    if not source_path:
+        return False
+    
+    dotfiles_path = DOTFILES_SKILLS / skill_name
+    
+    source_mtime = get_skill_mtime(source_path)
+    dotfiles_mtime = get_skill_mtime(dotfiles_path) if dotfiles_path.exists() else 0
+    
+    return source_mtime > dotfiles_mtime
 
-  if [[ ! -e "${dest}" && ! -L "${dest}" ]]; then
-    if [[ "${MODE}" == check ]]; then
-      echo "[missing-dest] ${skill}"
-      status=1
-      continue
-    fi
-  fi
 
-  if [[ "${MODE}" == check ]]; then
-    if [[ -L "${dest}" ]]; then
-      echo "[deviates] ${skill}: destination is a symlink"
-      status=1
-      continue
-    fi
+def sync_skill(skill_name: str) -> bool:
+    """Sync a skill from source to dotfiles. Returns success."""
+    src = find_skill_source(skill_name)
+    if not src:
+        print(f"  ✗ Source not found: {skill_name}")
+        return False
+    
+    dest = DOTFILES_SKILLS / skill_name
+    
+    # Remove old and copy new
+    if dest.exists():
+        _ = subprocess.run(["rm", "-rf", str(dest)], check=True)
+    
+    _ = subprocess.run(["cp", "-a", str(src), str(dest)], check=True)
+    print(f"  ✓ Synced: {skill_name}")
+    return True
 
-    if [[ ! -d "${dest}" ]]; then
-      echo "[deviates] ${skill}: destination directory missing"
-      status=1
-      continue
-    fi
 
-    if ! diff -qr --exclude .DS_Store "${src}" "${dest}" >/dev/null; then
-      echo "[deviates] ${skill}"
-      diff -qr --exclude .DS_Store "${src}" "${dest}" || true
-      status=1
-    else
-      echo "[ok] ${skill}"
-    fi
-    continue
-  fi
+def get_all_unique_skills() -> set[str]:
+    """Collect all unique skills from all cached repos."""
+    repos = discover_cached_repos()
+    all_skills: set[str] = set()
+    
+    for repo_path in repos:
+        skills = get_repo_skills(repo_path)
+        all_skills.update(skills)
+    
+    return all_skills
 
-  rm -rf "${dest}"
-  cp -a "${src}" "${dest}"
-  echo "[synced] ${skill}"
-done
 
-exit "${status}"
+def cmd_status() -> None:
+    """Show current state."""
+    repos = discover_cached_repos()
+    
+    if not repos:
+        print(f"No cached repos found in {CACHE_ROOT}")
+        print("Use the librarian skill or clone repos to that location first.")
+        return
+    
+    all_skills: set[str] = set()
+    
+    print(f"\nDiscovered repos ({len(repos)}):")
+    for repo_path in repos:
+        print(f"  {repo_path}")
+        skills = get_repo_skills(repo_path)
+        for skill in skills:
+            all_skills.add(skill)
+            dotfiles_path = DOTFILES_SKILLS / skill
+            status = "✓" if dotfiles_path.exists() else "?"
+            print(f"    {status} {skill}")
+    
+    print(f"\n{len(all_skills)} unique skill(s) found")
+    print(f"Dotfiles skills: {DOTFILES_SKILLS}")
+
+
+def cmd_check() -> None:
+    """Check which skills need updating."""
+    all_skills = get_all_unique_skills()
+    
+    if not all_skills:
+        print("No skills found in cached repos.")
+        return
+    
+    print(f"\nChecking {len(all_skills)} skill(s)...\n")
+    
+    outdated: list[str] = []
+    for skill in sorted(all_skills):
+        source = find_skill_source(skill)
+        if not source:
+            print(f"  ? {skill}: source not found")
+            continue
+        
+        if needs_update(skill):
+            print(f"  ↑ {skill}: needs update")
+            outdated.append(skill)
+        else:
+            print(f"  ✓ {skill}: up to date")
+    
+    if outdated:
+        print(f"\n{len(outdated)} skill(s) need updating. Run 'sync' to update.")
+    else:
+        print("\nAll skills are up to date.")
+
+
+def cmd_sync() -> None:
+    """Sync skills and commit to dotfiles."""
+    all_skills = get_all_unique_skills()
+    
+    if not all_skills:
+        print("No skills to sync.")
+        return
+    
+    # Find outdated skills
+    outdated: list[str] = [s for s in all_skills if needs_update(s)]
+    
+    if not outdated:
+        print("All skills are already up to date.")
+        return
+    
+    print(f"Syncing {len(outdated)} skill(s)...\n")
+    
+    # Sync each skill
+    synced: list[str] = []
+    for skill in outdated:
+        if sync_skill(skill):
+            synced.append(skill)
+    
+    if not synced:
+        print("\nNo skills were synced.")
+        return
+    
+    # Git operations
+    print("\nCommitting to dotfiles...")
+    try:
+        _ = subprocess.run(
+            ["git", "-C", str(DOTFILES_SKILLS.parent.parent), "add", "dot_agents/skills"],
+            check=True
+        )
+        
+        skill_list = ", ".join(synced)
+        commit_msg = f"Update skills: {skill_list}" if len(synced) <= 3 else f"Update {len(synced)} skills"
+        
+        result = subprocess.run(
+            ["git", "-C", str(DOTFILES_SKILLS.parent.parent), "commit", "-m", commit_msg],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            print(f"  ✓ Committed: {commit_msg}")
+        else:
+            if "nothing to commit" in result.stderr.lower():
+                print("  (no changes to commit)")
+            else:
+                print(f"  ✗ Commit failed: {result.stderr}")
+    except subprocess.CalledProcessError as e:
+        print(f"  ✗ Git operation failed: {e}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Sync agent skills from cached repos to dotfiles",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Discovers repos in ~/.cache/checkouts/ and manages their skills.
+
+Examples:
+  sync-agent-skills status
+  sync-agent-skills check
+  sync-agent-skills sync
+        """
+    )
+    
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+    
+    _ = subparsers.add_parser("status", help="Show discovered repos and skills")
+    _ = subparsers.add_parser("check", help="Check for skill updates")
+    _ = subparsers.add_parser("sync", help="Sync skills and commit")
+    
+    args = parser.parse_args()
+    
+    command = cast(str | None, args.command)
+    if not command:
+        parser.print_help()
+        sys.exit(1)
+    
+    if not DOTFILES_SKILLS.exists():
+        print(f"Error: Dotfiles skills directory not found: {DOTFILES_SKILLS}")
+        sys.exit(1)
+    
+    if command == "status":
+        cmd_status()
+    elif command == "check":
+        cmd_check()
+    elif command == "sync":
+        cmd_sync()
+
+
+if __name__ == "__main__":
+    main()
+
+# vim: set filetype=python :
