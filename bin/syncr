@@ -4,9 +4,9 @@
 # dependencies = []
 # ///
 """
-sync-agent-skills: Sync skills from cached repos to dotfiles
+syncr: Sync skills from cached repos to dotfiles
 
-Discovers repos in ~/.cache/checkouts/ and syncs their .agents/skills to dotfiles.
+Discovers repos in ~/.cache/syncr/ and syncs their skills to dotfiles.
 
 Commands:
   add <repo-url>  Clone a repo to the cache
@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import cast
 
 # Configuration
-CACHE_ROOT = Path.home() / ".cache" / "checkouts"
+CACHE_ROOT = Path.home() / ".cache" / "syncr"
 DOTFILES_SKILLS = Path.home() / "repos" / "dotfiles" / "dot_agents" / "skills"
 
 
@@ -445,15 +445,15 @@ def main() -> None:
         description="Sync agent skills from cached repos to dotfiles",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Manages repos in ~/.cache/checkouts/ and syncs their skills to dotfiles.
+Manages repos in ~/.cache/syncr/ and syncs their skills to dotfiles.
 
 Examples:
-  sync-agent-skills add owner/repo           # clone a repo
-  sync-agent-skills status                   # show all repos and skills
-  sync-agent-skills check                    # check what needs updating
-  sync-agent-skills sync                     # sync all skills
-  sync-agent-skills sync skill1 skill2       # sync specific skills
-  sync-agent-skills select                   # interactively choose skills
+  syncr add owner/repo           # clone a repo
+  syncr status                   # show all repos and skills
+  syncr check                    # check what needs updating
+  syncr sync                     # sync all skills
+  syncr sync skill1 skill2       # sync specific skills
+  syncr select                   # interactively choose skills
         """,
     )
 
