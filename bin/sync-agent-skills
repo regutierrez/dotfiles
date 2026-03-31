@@ -9,9 +9,10 @@ sync-agent-skills: Sync skills from cached repos to dotfiles
 Discovers repos in ~/.cache/checkouts/ and syncs their .agents/skills to dotfiles.
 
 Commands:
-  status    Show discovered repos and their skills
-  check     Check which skills need updating
-  sync      Sync skills to dotfiles and commit
+  status         Show discovered repos and their skills
+  check          Check which skills need updating
+  sync           Sync skills to dotfiles and commit
+  select         Interactively select which skills to sync
 """
 
 import argparse
@@ -28,10 +29,10 @@ DOTFILES_SKILLS = Path.home() / "repos" / "dotfiles" / "dot_agents" / "skills"
 def discover_cached_repos() -> list[Path]:
     """Find all repos in the cache directory."""
     repos: list[Path] = []
-    
+
     if not CACHE_ROOT.exists():
         return repos
-    
+
     for host_dir in CACHE_ROOT.iterdir():
         if not host_dir.is_dir():
             continue
@@ -41,14 +42,14 @@ def discover_cached_repos() -> list[Path]:
             for repo_dir in org_dir.iterdir():
                 if repo_dir.is_dir() and (repo_dir / ".git").exists():
                     repos.append(repo_dir)
-    
+
     return sorted(repos)
 
 
 def get_repo_skills(repo_path: Path) -> list[str]:
     """Get list of skills available in any skills/ directory within the repo."""
     skills: list[str] = []
-    
+
     # Find all directories named "skills"
     for skills_dir in repo_path.rglob("skills"):
         if not skills_dir.is_dir():
@@ -57,21 +58,21 @@ def get_repo_skills(repo_path: Path) -> list[str]:
         for skill_dir in sorted(skills_dir.iterdir()):
             if skill_dir.is_dir():
                 skills.append(skill_dir.name)
-    
+
     return skills
 
 
 def find_skill_source(skill_name: str) -> Path | None:
     """Find which cached repo has this skill (searches all skills/ directories)."""
     repos = discover_cached_repos()
-    
+
     for repo_path in repos:
         # Search for skill in any skills/ directory
         for skills_dir in repo_path.rglob("skills"):
             skill_path = skills_dir / skill_name
             if skill_path.exists() and skill_path.is_dir():
                 return skill_path
-    
+
     return None
 
 
@@ -79,9 +80,7 @@ def get_skill_mtime(skill_path: Path) -> float:
     """Get modification time of a skill directory."""
     if not skill_path.exists():
         return 0
-    return max(
-        f.stat().st_mtime for f in skill_path.rglob("*") if f.is_file()
-    )
+    return max(f.stat().st_mtime for f in skill_path.rglob("*") if f.is_file())
 
 
 def needs_update(skill_name: str) -> bool:
@@ -89,12 +88,12 @@ def needs_update(skill_name: str) -> bool:
     source_path = find_skill_source(skill_name)
     if not source_path:
         return False
-    
+
     dotfiles_path = DOTFILES_SKILLS / skill_name
-    
+
     source_mtime = get_skill_mtime(source_path)
     dotfiles_mtime = get_skill_mtime(dotfiles_path) if dotfiles_path.exists() else 0
-    
+
     return source_mtime > dotfiles_mtime
 
 
@@ -104,13 +103,13 @@ def sync_skill(skill_name: str) -> bool:
     if not src:
         print(f"  ✗ Source not found: {skill_name}")
         return False
-    
+
     dest = DOTFILES_SKILLS / skill_name
-    
+
     # Remove old and copy new
     if dest.exists():
         _ = subprocess.run(["rm", "-rf", str(dest)], check=True)
-    
+
     _ = subprocess.run(["cp", "-a", str(src), str(dest)], check=True)
     print(f"  ✓ Synced: {skill_name}")
     return True
@@ -120,25 +119,25 @@ def get_all_unique_skills() -> set[str]:
     """Collect all unique skills from all cached repos."""
     repos = discover_cached_repos()
     all_skills: set[str] = set()
-    
+
     for repo_path in repos:
         skills = get_repo_skills(repo_path)
         all_skills.update(skills)
-    
+
     return all_skills
 
 
 def cmd_status() -> None:
     """Show current state."""
     repos = discover_cached_repos()
-    
+
     if not repos:
         print(f"No cached repos found in {CACHE_ROOT}")
         print("Use the librarian skill or clone repos to that location first.")
         return
-    
+
     all_skills: set[str] = set()
-    
+
     print(f"\nDiscovered repos ({len(repos)}):")
     for repo_path in repos:
         print(f"  {repo_path}")
@@ -148,7 +147,7 @@ def cmd_status() -> None:
             dotfiles_path = DOTFILES_SKILLS / skill
             status = "✓" if dotfiles_path.exists() else "?"
             print(f"    {status} {skill}")
-    
+
     print(f"\n{len(all_skills)} unique skill(s) found")
     print(f"Dotfiles skills: {DOTFILES_SKILLS}")
 
@@ -156,76 +155,100 @@ def cmd_status() -> None:
 def cmd_check() -> None:
     """Check which skills need updating."""
     all_skills = get_all_unique_skills()
-    
+
     if not all_skills:
         print("No skills found in cached repos.")
         return
-    
+
     print(f"\nChecking {len(all_skills)} skill(s)...\n")
-    
+
     outdated: list[str] = []
     for skill in sorted(all_skills):
         source = find_skill_source(skill)
         if not source:
             print(f"  ? {skill}: source not found")
             continue
-        
+
         if needs_update(skill):
             print(f"  ↑ {skill}: needs update")
             outdated.append(skill)
         else:
             print(f"  ✓ {skill}: up to date")
-    
+
     if outdated:
         print(f"\n{len(outdated)} skill(s) need updating. Run 'sync' to update.")
     else:
         print("\nAll skills are up to date.")
 
 
-def cmd_sync() -> None:
+def cmd_sync(specific_skills: list[str] | None = None) -> None:
     """Sync skills and commit to dotfiles."""
-    all_skills = get_all_unique_skills()
-    
+    if specific_skills:
+        # Use provided skills
+        all_skills = set(specific_skills)
+        print(f"Syncing {len(all_skills)} specified skill(s)...\n")
+    else:
+        # Auto-discover all skills
+        all_skills = get_all_unique_skills()
+        print(f"Syncing all discovered skills ({len(all_skills)})...\n")
+
     if not all_skills:
         print("No skills to sync.")
         return
-    
+
     # Find outdated skills
     outdated: list[str] = [s for s in all_skills if needs_update(s)]
-    
+
     if not outdated:
         print("All skills are already up to date.")
         return
-    
-    print(f"Syncing {len(outdated)} skill(s)...\n")
-    
+
+    print(f"Found {len(outdated)} skill(s) to update...\n")
+
     # Sync each skill
     synced: list[str] = []
     for skill in outdated:
         if sync_skill(skill):
             synced.append(skill)
-    
+
     if not synced:
         print("\nNo skills were synced.")
         return
-    
+
     # Git operations
     print("\nCommitting to dotfiles...")
     try:
         _ = subprocess.run(
-            ["git", "-C", str(DOTFILES_SKILLS.parent.parent), "add", "dot_agents/skills"],
-            check=True
+            [
+                "git",
+                "-C",
+                str(DOTFILES_SKILLS.parent.parent),
+                "add",
+                "dot_agents/skills",
+            ],
+            check=True,
         )
-        
+
         skill_list = ", ".join(synced)
-        commit_msg = f"Update skills: {skill_list}" if len(synced) <= 3 else f"Update {len(synced)} skills"
-        
-        result = subprocess.run(
-            ["git", "-C", str(DOTFILES_SKILLS.parent.parent), "commit", "-m", commit_msg],
-            capture_output=True,
-            text=True
+        commit_msg = (
+            f"Update skills: {skill_list}"
+            if len(synced) <= 3
+            else f"Update {len(synced)} skills"
         )
-        
+
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(DOTFILES_SKILLS.parent.parent),
+                "commit",
+                "-m",
+                commit_msg,
+            ],
+            capture_output=True,
+            text=True,
+        )
+
         if result.returncode == 0:
             print(f"  ✓ Committed: {commit_msg}")
         else:
@@ -235,6 +258,65 @@ def cmd_sync() -> None:
                 print(f"  ✗ Commit failed: {result.stderr}")
     except subprocess.CalledProcessError as e:
         print(f"  ✗ Git operation failed: {e}")
+
+
+def cmd_select() -> list[str] | None:
+    """Interactively select skills to sync. Returns list of selected skill names."""
+    all_skills = sorted(get_all_unique_skills())
+
+    if not all_skills:
+        print("No skills found in cached repos.")
+        return None
+
+    print(f"\nFound {len(all_skills)} skill(s):\n")
+
+    for i, skill in enumerate(all_skills, 1):
+        source = find_skill_source(skill)
+        source_str = str(source.parent.parent.parent) if source else "unknown"
+        dotfiles_path = DOTFILES_SKILLS / skill
+        status = "✓" if dotfiles_path.exists() else "?"
+        print(f"  {i}. [{status}] {skill} (from {source_str})")
+
+    print("\nEnter skill numbers to sync (comma-separated, e.g., 1,3,5)")
+    print("Or 'all' to sync everything, or press Enter to cancel:")
+
+    try:
+        selection = input("> ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print("\nCancelled.")
+        return None
+
+    if not selection:
+        print("Cancelled.")
+        return None
+
+    if selection.lower() == "all":
+        return list(all_skills)
+
+    # Parse comma-separated numbers
+    selected: list[str] = []
+    for item in selection.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        try:
+            idx = int(item) - 1
+            if 0 <= idx < len(all_skills):
+                selected.append(all_skills[idx])
+            else:
+                print(f"Warning: {item} is out of range, skipping")
+        except ValueError:
+            # Try to match as skill name
+            if item in all_skills:
+                selected.append(item)
+            else:
+                print(f"Warning: '{item}' not found, skipping")
+
+    if not selected:
+        print("No valid skills selected.")
+        return None
+
+    return selected
 
 
 def main() -> None:
@@ -247,33 +329,47 @@ Discovers repos in ~/.cache/checkouts/ and manages their skills.
 Examples:
   sync-agent-skills status
   sync-agent-skills check
-  sync-agent-skills sync
-        """
+  sync-agent-skills sync                    # sync all skills
+  sync-agent-skills sync skill1 skill2      # sync specific skills
+  sync-agent-skills select                  # interactively choose skills
+        """,
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Commands")
-    
+
     _ = subparsers.add_parser("status", help="Show discovered repos and skills")
     _ = subparsers.add_parser("check", help="Check for skill updates")
-    _ = subparsers.add_parser("sync", help="Sync skills and commit")
-    
+
+    sync_parser = subparsers.add_parser("sync", help="Sync skills and commit")
+    _ = sync_parser.add_argument(
+        "skills", nargs="*", help="Specific skills to sync (default: all)"
+    )
+
+    _ = subparsers.add_parser("select", help="Interactively select skills to sync")
+
     args = parser.parse_args()
-    
+
     command = cast(str | None, args.command)
+    skills = cast(list[str], args.skills)
     if not command:
         parser.print_help()
         sys.exit(1)
-    
+
     if not DOTFILES_SKILLS.exists():
         print(f"Error: Dotfiles skills directory not found: {DOTFILES_SKILLS}")
         sys.exit(1)
-    
+
     if command == "status":
         cmd_status()
     elif command == "check":
         cmd_check()
     elif command == "sync":
-        cmd_sync()
+        specific_skills = skills if skills else None
+        cmd_sync(specific_skills)
+    elif command == "select":
+        selected = cmd_select()
+        if selected:
+            cmd_sync(selected)
 
 
 if __name__ == "__main__":
