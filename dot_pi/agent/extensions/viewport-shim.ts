@@ -11,10 +11,8 @@ export interface ViewportState {
   lastTranscriptHeight: number;
   lastTranscriptLineCount: number;
   lastTermWidth: number;
-  mouseEnabled: boolean;
   // Save Pi's original root renderer so we can restore it on shutdown/reload.
   originalRender?: TUI["render"];
-  uninstallTerminalInput?: () => void;
   requestRender?: () => void;
   tui?: TUI;
   notifyWarning?: (message: string) => void;
@@ -24,13 +22,6 @@ export interface ViewportState {
 export interface LayoutSections {
   transcript: Component[];
   dock: Component[];
-}
-
-export interface ParsedSgrMouseEvent {
-  code: number;
-  col: number;
-  row: number;
-  release: boolean;
 }
 
 export interface ComposeViewportLinesParams {
@@ -43,9 +34,6 @@ export interface ComposeViewportLinesParams {
 
 const EXPECTED_TOP_LEVEL_CHILD_COUNT = 8;
 const TRANSCRIPT_CHILD_COUNT = 2;
-const WHEEL_SCROLL_LINES = 3;
-const MOUSE_ENABLE = "\x1b[?1000h\x1b[?1006h";
-const MOUSE_DISABLE = "\x1b[?1000l\x1b[?1006l";
 const WARNING_PREFIX = "Viewport shim disabled:";
 
 // Equivalent to pi's CustomEditor, copied locally so the extension does not rely
@@ -118,7 +106,6 @@ export function createViewportState(): ViewportState {
     lastTranscriptHeight: 0,
     lastTranscriptLineCount: 0,
     lastTermWidth: 0,
-    mouseEnabled: false,
   };
 }
 
@@ -222,32 +209,6 @@ export function scrollViewportBy(state: ViewportState, deltaLines: number): bool
   return changed;
 }
 
-export function parseSgrMouse(data: string): ParsedSgrMouseEvent | null {
-  const match = data.match(/^\x1b\[<(\d+);(\d+);(\d+)([Mm])$/);
-  if (!match) return null;
-
-  return {
-    code: Number.parseInt(match[1]!, 10),
-    col: Number.parseInt(match[2]!, 10),
-    row: Number.parseInt(match[3]!, 10),
-    release: match[4] === "m",
-  };
-}
-
-export function normalizeMouseCode(code: number): number {
-  // SGR mouse codes include modifier bits. We keep just the button/wheel bits so
-  // wheel-up stays 64 and wheel-down stays 65 even when modifiers are pressed.
-  return code & 0b11000011;
-}
-
-export function enableMouseMode(tui: Pick<TUI, "terminal">): void {
-  tui.terminal.write(MOUSE_ENABLE);
-}
-
-export function disableMouseMode(tui: Pick<TUI, "terminal">): void {
-  tui.terminal.write(MOUSE_DISABLE);
-}
-
 function warnOnce(state: ViewportState, reason: string): void {
   const message = `${WARNING_PREFIX} ${reason}`;
   if (state.lastWarning === message) return;
@@ -265,16 +226,6 @@ function fallbackRender(tui: TUI, state: ViewportState, width: number): string[]
 function disableViewportRuntime(state: ViewportState, reason: string): void {
   const tui = state.tui;
   const requestRender = state.requestRender;
-
-  if (state.uninstallTerminalInput) {
-    state.uninstallTerminalInput();
-    state.uninstallTerminalInput = undefined;
-  }
-
-  if (tui && state.mouseEnabled) {
-    disableMouseMode(tui);
-    state.mouseEnabled = false;
-  }
 
   if (tui) {
     restoreRenderShim(tui, state);
@@ -343,21 +294,6 @@ export function restoreRenderShim(tui: TUI, state: ViewportState): void {
   }
 }
 
-export function handleTerminalInput(data: string, state: ViewportState): { consume?: boolean; data?: string } | undefined {
-  if (!state.installed) return undefined;
-
-  const mouse = parseSgrMouse(data);
-  if (!mouse || mouse.release) return undefined;
-
-  const code = normalizeMouseCode(mouse.code);
-  if (code !== 64 && code !== 65) return undefined;
-
-  if (mouse.row < 1 || mouse.row > state.lastTranscriptHeight) return undefined;
-
-  scrollViewportBy(state, code === 64 ? -WHEEL_SCROLL_LINES : WHEEL_SCROLL_LINES);
-  return { consume: true };
-}
-
 export class ViewportEditor extends CompatCustomEditor {
   private readonly viewportKeybindings: KeybindingsManager;
   private readonly viewportState: ViewportState;
@@ -392,16 +328,6 @@ export class ViewportEditor extends CompatCustomEditor {
 }
 
 function teardownViewport(ctx: ExtensionContext | undefined, state: ViewportState, restoreEditor: boolean): void {
-  if (state.uninstallTerminalInput) {
-    state.uninstallTerminalInput();
-    state.uninstallTerminalInput = undefined;
-  }
-
-  if (state.tui && state.mouseEnabled) {
-    disableMouseMode(state.tui);
-    state.mouseEnabled = false;
-  }
-
   if (state.tui) {
     restoreRenderShim(state.tui, state);
   }
@@ -431,15 +357,8 @@ function installViewportEditor(ctx: ExtensionContext, state: ViewportState): voi
       return new CompatCustomEditor(tui, theme, keybindings);
     }
 
-    if (!state.uninstallTerminalInput) {
-      state.uninstallTerminalInput = ctx.ui.onTerminalInput((data) => handleTerminalInput(data, state));
-    }
-
-    if (!state.mouseEnabled) {
-      enableMouseMode(tui);
-      state.mouseEnabled = true;
-    }
-
+    // Keep transcript paging keyboard-only so tmux/terminal-native mouse
+    // selection continues to work for copying text from the viewport.
     tui.requestRender();
     return new ViewportEditor(tui, theme, keybindings, state);
   });
