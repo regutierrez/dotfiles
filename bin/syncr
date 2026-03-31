@@ -166,31 +166,32 @@ def discover_cached_repos() -> list[Path]:
 
 
 def get_repo_skills(repo_path: Path) -> list[str]:
-    """Get list of skills available in any skills/ directory within the repo."""
-    skills: list[str] = []
+    """Get list of skills in the repo. A skill is any directory containing SKILL.md."""
+    skills: set[str] = set()
 
-    # Find all directories named "skills"
-    for skills_dir in repo_path.rglob("skills"):
-        if not skills_dir.is_dir():
-            continue
-        # Collect all subdirectories (each is a skill)
-        for skill_dir in sorted(skills_dir.iterdir()):
-            if skill_dir.is_dir():
-                skills.append(skill_dir.name)
+    # Walk through all directories looking for SKILL.md
+    for path in repo_path.rglob("SKILL.md"):
+        if path.is_file():
+            # The skill is the directory containing SKILL.md
+            skill_dir = path.parent
+            skills.add(skill_dir.name)
 
-    return skills
+    return sorted(skills)
 
 
 def find_skill_source(skill_name: str) -> Path | None:
-    """Find which cached repo has this skill (searches all skills/ directories)."""
+    """Find which cached repo has this skill (directory containing SKILL.md)."""
     repos = discover_cached_repos()
 
     for repo_path in repos:
-        # Search for skill in any skills/ directory
-        for skills_dir in repo_path.rglob("skills"):
-            skill_path = skills_dir / skill_name
-            if skill_path.exists() and skill_path.is_dir():
-                return skill_path
+        # Look for skill directory with SKILL.md
+        skill_path = repo_path / skill_name / "SKILL.md"
+        if skill_path.exists() and skill_path.is_file():
+            return repo_path / skill_name
+        # Also search recursively
+        for skill_file in repo_path.rglob("SKILL.md"):
+            if skill_file.parent.name == skill_name:
+                return skill_file.parent
 
     return None
 
