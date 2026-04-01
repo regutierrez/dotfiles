@@ -85,7 +85,7 @@ set -g @catppuccin_window_status_style 'rounded'
 set -g @catppuccin_pane_status_enabled 'no'
 set -g pane-border-status top
 set -g @catppuccin_pane_border_style 'fg=#{@thm_surface_0}'
-set -g @catppuccin_pane_active_border_style 'fg=#{@thm_lavender}'
+set -g @catppuccin_pane_active_border_style ''
 
 # auto-install TPM if missing
 if "test ! -d ~/.tmux/plugins/tpm" \
@@ -100,6 +100,19 @@ if-shell "test -f ~/.tmux/plugins/tmux/catppuccin.tmux" \
 # subtle pane numbers in the top border, no background fill
 set -g pane-border-format '#{?pane_active,#[fg=#{@thm_lavender}],#[fg=#{@thm_surface_0}]}#{pane_index}'
 
+# pane border: red when panes are synced, lavender otherwise
+set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"
+set-hook -g client-session-changed 'set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"'
+set-hook -g after-select-window 'set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"'
+set-hook -g after-select-pane 'set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"'
+set-hook -g window-pane-changed 'set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"'
+
+# window title with zoom indicator (ZOOMED shows in red when zoomed)
+set -g @catppuccin_window_current_text " #W#{?window_zoomed_flag, #[fg=#{@thm_red}]ZOOMED,}"
+set -g @catppuccin_window_text " #W#{?window_zoomed_flag, #[fg=#{@thm_red}]ZOOMED,}"
+
+
+
 # remove tmux's default pane title on the right and use catppuccin modules instead
 set -g status-left ""
 set -ag status-left "#{E:@catppuccin_status_session}"
@@ -110,7 +123,7 @@ set -ag status-right "#{E:@catppuccin_status_uptime}"
 
 # custom commands
 bind o display-popup -E -w 50 -h 15 ~/bin/commando
-bind S setw synchronize-panes
+bind S setw synchronize-panes \; set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"
 set-option -g status-position top
 
 {{- if $cfg.tmux_plugins }}
