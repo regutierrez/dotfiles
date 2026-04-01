@@ -5,3 +5,4 @@ dot_config/btop/
 dot_pi/agent/node_modules/
 dot_pi/agent/package-lock.json
 package-lock.json
+.env
