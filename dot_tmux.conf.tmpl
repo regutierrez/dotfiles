@@ -116,7 +116,8 @@ set -g @catppuccin_window_text " #W#{?window_zoomed_flag, #[fg=#{@thm_red}]ZOOME
 # remove tmux's default pane title on the right and use catppuccin modules instead
 set -g status-left ""
 set -ag status-left "#{E:@catppuccin_status_session}"
-set -g status-right "#{E:@catppuccin_status_date_time}"
+set -g status-right "#{E:@catppuccin_status_host}"
+set -ag status-right "#{E:@catppuccin_status_date_time}"
 set -ag status-right "#{E:@catppuccin_status_uptime}"
 
 {{- end }}
@@ -128,4 +129,9 @@ set-option -g status-position top
 
 {{- if $cfg.tmux_plugins }}
 run '~/.tmux/plugins/tpm/tpm'
+{{- end }}
+
+# catppuccin green for copy mode selection and indicator (set after TPM to override catppuccin default)
+{{- if $cfg.tmux_plugins }}
+set -g mode-style "fg=#{@thm_bg},bg=#{@thm_green}"
 {{- end }}
