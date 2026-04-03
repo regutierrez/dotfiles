@@ -1,6 +1,7 @@
 ---
 name: update-pi
 description: Update Pi to the latest release, only applying changes when versions drift (global CLI + ~/.dotfiles/home/.pi/agent deps).
+disable-model-invocation: true
 ---
 
 # Update Pi Skill

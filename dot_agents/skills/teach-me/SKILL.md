@@ -1,6 +1,7 @@
 ---
 name: teach-me
 description: Socratic teaching skill that reads specs, PRDs, or plans and the codebase, then guides the user through building a mental model and implementation plan like a staff engineer mentoring a junior. Use when the user wants to understand an implementation, learn how to approach a task, or says "teach me".
+disable-model-invocation: true
 ---
 
 # Teach Me

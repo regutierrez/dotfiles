@@ -1,6 +1,7 @@
 ---
 name: build-skill
 description: Create effective skills for agents. Load FIRST before writing any SKILL.md. Provides required format, naming conventions, progressive disclosure patterns, and validation. Use when building, reviewing, or debugging skills.
+disable-model-invocation: true
 ---
 
 # Building Skills

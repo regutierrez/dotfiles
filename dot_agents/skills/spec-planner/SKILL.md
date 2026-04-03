@@ -3,6 +3,7 @@ name: spec-planner
 description: Produce implementation-ready specs through rigorous dialogue and
   honest trade-off analysis. Use when user wants to create a spec or want
   documentation on why/how to implement a change
+disable-model-invocation: true
 ---
 
 Produce implementation-ready specs through rigorous dialogue and honest trade-off analysis.

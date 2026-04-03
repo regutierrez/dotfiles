@@ -1,6 +1,7 @@
 ---
 name: commit
 description: Draft and create a conventional commit from the current changes. Use when the user asks to commit work, wants a commit message, or wants git changes summarized into a commit.
+disable-model-invocation: true
 ---
 
 # Commit

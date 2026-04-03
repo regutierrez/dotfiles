@@ -1,6 +1,7 @@
 ---
 name: tailwind-best-practices
 description: "Enforces Tailwind CSS v4 best practices in Vue and other frameworks. Use when writing, reviewing, or refactoring Tailwind utility classes."
+disable-model-invocation: true
 ---
 
 # Tailwind CSS v4 Best Practices

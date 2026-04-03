@@ -1,6 +1,7 @@
 ---
 name: akkio-api-expert
 description: Build and debug integrations against the Akkio public API, including v2 Chat Explore, Projects, Training, and legacy dataset/model endpoints. Use when implementing Akkio clients, polling async jobs, reconciling doc mismatches, or reasoning about Akkio datasets, projects, training, and deployment behavior.
+disable-model-invocation: true
 references:
   - references/overview.md
   - references/endpoints.md
