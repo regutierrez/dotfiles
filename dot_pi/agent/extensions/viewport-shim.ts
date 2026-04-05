@@ -1,5 +1,5 @@
 import type { ExtensionAPI, ExtensionContext, KeybindingsManager } from "@mariozechner/pi-coding-agent";
-import { Editor, TUI, type Component, type EditorTheme } from "@mariozechner/pi-tui";
+import { Editor, TUI, visibleWidth, type Component, type EditorTheme } from "@mariozechner/pi-tui";
 
 export type ViewportMode = "follow" | "detached";
 
@@ -144,6 +144,11 @@ export function resetViewportToFollow(state: ViewportState): void {
   state.scrollTop = 0;
 }
 
+function padLineToWidth(line: string, width: number): string {
+  const padding = Math.max(0, width - visibleWidth(line));
+  return padding > 0 ? `${line}${" ".repeat(padding)}` : line;
+}
+
 export function composeViewportLines({
   state,
   transcriptLines,
@@ -164,6 +169,8 @@ export function composeViewportLines({
   state.lastTranscriptLineCount = transcriptLines.length;
 
   const maxScrollTop = computeMaxScrollTop(transcriptLines.length, transcriptHeight);
+  const transcriptWidth = Math.max(0, termWidth - 1);
+  const shouldRenderScrollbar = transcriptWidth > 0 && transcriptLines.length > transcriptHeight;
   if (state.mode === "follow") {
     state.scrollTop = maxScrollTop;
   } else {
@@ -179,7 +186,29 @@ export function composeViewportLines({
     visibleTranscript.push("");
   }
 
-  return [...visibleTranscript, ...dockLines];
+  const scrollbarTrackHeight = transcriptHeight;
+  const scrollbarThumbHeight = shouldRenderScrollbar
+    ? Math.max(1, Math.round((transcriptHeight / transcriptLines.length) * scrollbarTrackHeight))
+    : 0;
+  const scrollbarThumbTop = shouldRenderScrollbar
+    ? maxScrollTop === 0
+      ? 0
+      : Math.min(
+          scrollbarTrackHeight - scrollbarThumbHeight,
+          Math.round((state.scrollTop / maxScrollTop) * (scrollbarTrackHeight - scrollbarThumbHeight)),
+        )
+    : 0;
+
+  const transcriptWithScrollbar = shouldRenderScrollbar
+    ? visibleTranscript.map((line, index) => {
+        const baseLine = padLineToWidth(line, transcriptWidth);
+        const isThumbLine =
+          index >= scrollbarThumbTop && index < scrollbarThumbTop + scrollbarThumbHeight;
+        return `${baseLine}${isThumbLine ? "█" : "│"}`;
+      })
+    : visibleTranscript.map((line) => `${padLineToWidth(line, transcriptWidth)} `);
+
+  return [...transcriptWithScrollbar, ...dockLines];
 }
 
 export function scrollViewportBy(state: ViewportState, deltaLines: number): boolean {
@@ -246,8 +275,9 @@ function renderViewportRoot(tui: TUI, width: number, state: ViewportState): stri
     return fallbackRender(tui, state, width);
   }
 
-  const transcriptLines = renderComponents(sections.transcript, width);
   const dockLines = renderComponents(sections.dock, width);
+  const transcriptWidth = Math.max(0, width - 1);
+  const transcriptLines = renderComponents(sections.transcript, transcriptWidth);
 
   return composeViewportLines({
     state,
@@ -308,9 +338,8 @@ export class ViewportEditor extends CompatCustomEditor {
     const interceptViewportKey = (direction: -1 | 1): boolean => {
       if (!this.viewportState.installed || this.isShowingAutocomplete()) return false;
 
-      // A page is exactly the current visible transcript height. That makes
-      // PageUp/PageDown feel like transcript paging instead of editor paging.
-      const pageSize = Math.max(1, this.viewportState.lastTranscriptHeight || 1);
+      // Move by 3/4 page so there is always context overlap between jumps.
+      const pageSize = Math.max(1, Math.floor((this.viewportState.lastTranscriptHeight || 1) * 0.75));
       scrollViewportBy(this.viewportState, direction * pageSize);
       return true;
     };
