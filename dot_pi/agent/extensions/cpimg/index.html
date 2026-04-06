@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Pi Image Composer</title>
+	<link rel="stylesheet" href="/cpimg/styles.css">
+</head>
+<body>
+	<div class="container">
+		<main>
+			<section class="prompt-section">
+				<label for="prompt-text">Prompt</label>
+				<textarea
+					id="prompt-text"
+					placeholder="Enter your prompt here. Reference images with @image-name (e.g. 'Compare @img-1 and @img-2')..."
+					rows="6"
+				></textarea>
+				<div class="hint">
+					Use <code>@name</code> to reference images in your prompt.
+					First reference inserts the image; later references stay as text.
+				</div>
+			</section>
+
+			<section class="upload-section">
+				<label>Images</label>
+				<div class="upload-area" id="upload-area">
+					<div class="upload-placeholder">
+						<p>Drag & drop images here</p>
+						<p>or</p>
+						<button type="button" id="file-picker-btn">Choose Files</button>
+						<p class="paste-hint">Or paste (Ctrl+V) from clipboard</p>
+					</div>
+					<input type="file" id="file-input" multiple accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+				</div>
+			</section>
+
+			<section class="images-section" id="images-section" style="display: none;">
+				<label>Uploaded Images</label>
+				<div class="images-list" id="images-list"></div>
+			</section>
+
+			<section class="status-section">
+				<div id="status" class="status"></div>
+			</section>
+		</main>
+
+		<footer>
+			<button type="button" id="submit-btn" class="submit-btn" disabled>Send to Pi</button>
+			<div class="session-info">Session expires in <span id="countdown">3:00</span></div>
+		</footer>
+	</div>
+
+	<script src="/cpimg/app.js"></script>
+</body>
+</html>
