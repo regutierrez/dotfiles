@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Commit
 
-Create one git commit for the user's current work.
+Create one git commit for the user's current work. ONLY RUN ONCE IN THE SESSION UNLESS INVOKED AGAIN.
 
 ## Core rules
 

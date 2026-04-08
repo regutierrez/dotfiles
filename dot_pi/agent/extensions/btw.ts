@@ -12,7 +12,8 @@ import {
   type ExtensionContext,
   type ResourceLoader,
 } from "@mariozechner/pi-coding-agent";
-import { type AssistantMessage, type Message, type ThinkingLevel as AiThinkingLevel } from "@mariozechner/pi-ai";
+import { type AgentMessage } from "@mariozechner/pi-agent-core";
+import { type AssistantMessage, type ThinkingLevel as AiThinkingLevel } from "@mariozechner/pi-ai";
 import {
   Container,
   Input,
@@ -95,7 +96,6 @@ function createBtwResourceLoader(ctx: ExtensionContext, appendSystemPrompt: stri
     getAgentsFiles: () => ({ agentsFiles: [] }),
     getSystemPrompt: () => systemPrompt,
     getAppendSystemPrompt: () => appendSystemPrompt,
-    getPathMetadata: () => new Map(),
     extendResources: () => { },
     reload: async () => { },
   };
@@ -139,8 +139,8 @@ function getLastAssistantMessage(session: AgentSession): AssistantMessage | null
   return null;
 }
 
-function buildSeedMessages(ctx: ExtensionContext, thread: BtwDetails[]): Message[] {
-  const seed: Message[] = [];
+function buildSeedMessages(ctx: ExtensionContext, thread: BtwDetails[]): AgentMessage[] {
+  const seed: AgentMessage[] = [];
 
   try {
     const contextMessages = buildSessionContext(ctx.sessionManager.getEntries(), ctx.sessionManager.getLeafId()).messages;
@@ -242,7 +242,7 @@ class BtwOverlay extends Container implements Focusable {
   }
 
   handleInput(data: string): void {
-    if (this.keybindings.matches(data, "selectCancel")) {
+    if (this.keybindings.matches(data, "tui.select.cancel")) {
       this.onDismissCallback();
       return;
     }
@@ -501,7 +501,7 @@ export default function (pi: ExtensionAPI) {
     }
   }
 
-  async function resetThread(ctx: ExtensionContext | ExtensionCommandContext, persist = true): Promise<void> {
+  async function resetThread(_ctx: ExtensionContext | ExtensionCommandContext, persist = true): Promise<void> {
     thread = [];
     pendingQuestion = null;
     pendingAnswer = "";
@@ -567,7 +567,7 @@ export default function (pi: ExtensionAPI) {
 
     const seedMessages = buildSeedMessages(ctx, thread);
     if (seedMessages.length > 0) {
-      session.agent.replaceMessages(seedMessages as typeof session.state.messages);
+      session.agent.state.messages = seedMessages;
     }
 
     const unsubscribe = session.subscribe((event: AgentSessionEvent) => {
@@ -740,9 +740,9 @@ export default function (pi: ExtensionAPI) {
       throw new Error("No active model selected.");
     }
 
-    const apiKey = await ctx.modelRegistry.getApiKey(model);
-    if (!apiKey) {
-      throw new Error(`No credentials available for ${model.provider}/${model.id}.`);
+    const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
+    if (!auth.ok) {
+      throw new Error(auth.error || `No credentials available for ${model.provider}/${model.id}.`);
     }
 
     const { session } = await createAgentSession({
@@ -825,9 +825,9 @@ export default function (pi: ExtensionAPI) {
       return;
     }
 
-    const apiKey = await ctx.modelRegistry.getApiKey(model);
-    if (!apiKey) {
-      const message = `No credentials available for ${model.provider}/${model.id}.`;
+    const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
+    if (!auth.ok) {
+      const message = auth.error || `No credentials available for ${model.provider}/${model.id}.`;
       setOverlayStatus(message);
       notify(ctx, message, "error");
       return;
@@ -946,10 +946,6 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.on("session_start", async (_event, ctx) => {
-    await restoreThread(ctx);
-  });
-
-  pi.on("session_switch", async (_event, ctx) => {
     await restoreThread(ctx);
   });
 
