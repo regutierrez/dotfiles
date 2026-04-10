@@ -29,6 +29,10 @@ import {
 const BTW_ENTRY_TYPE = "btw-thread-entry";
 const BTW_RESET_TYPE = "btw-thread-reset";
 
+// Scroll configuration
+const MAX_THREAD_HISTORY = 50; // Max items to keep in scrollback (increased from 6)
+const SCROLL_PAGE_SIZE = 5; // Lines to scroll per PageUp/PageDown
+
 const BTW_SYSTEM_PROMPT = [
   "You are BTW, a side-channel assistant embedded in the user's coding agent.",
   "You have access to the main conversation context — use it to give informed answers.",
@@ -205,6 +209,11 @@ class BtwOverlay extends Container implements Focusable {
   private readonly onDismissCallback: () => void;
   private _focused = false;
 
+  // Scroll state
+  private scrollOffset = 0;
+  private lastTranscriptLength = 0;
+  private scrollPageSize = SCROLL_PAGE_SIZE;
+
   get focused(): boolean {
     return this._focused;
   }
@@ -242,12 +251,45 @@ class BtwOverlay extends Container implements Focusable {
   }
 
   handleInput(data: string): void {
+    // Scroll up - PageUp
+    if (data === "\x1b[5~" || data === "\x1b[5;2~" || data === "\x1b[5;5~" || data === "\x1b[5^") {
+      this.scrollOffset += this.scrollPageSize;
+      this.tui.requestRender();
+      return;
+    }
+
+    // Scroll down - PageDown
+    if (data === "\x1b[6~" || data === "\x1b[6;2~" || data === "\x1b[6;5~" || data === "\x1b[6^") {
+      this.scrollOffset = Math.max(0, this.scrollOffset - this.scrollPageSize);
+      this.tui.requestRender();
+      return;
+    }
+
+    // Home - scroll to top (oldest content)
+    if (data === "\x1b[H" || data === "\x1b[1~" || data === "\x1bOH") {
+      this.scrollOffset = Infinity; // Will be capped in render
+      this.tui.requestRender();
+      return;
+    }
+
+    // End - scroll to bottom (newest content)
+    if (data === "\x1b[F" || data === "\x1b[4~" || data === "\x1bOF") {
+      this.scrollOffset = 0;
+      this.tui.requestRender();
+      return;
+    }
+
     if (this.keybindings.matches(data, "tui.select.cancel")) {
       this.onDismissCallback();
       return;
     }
 
     this.input.handleInput(data);
+  }
+
+  resetScroll(): void {
+    this.scrollOffset = 0;
+    this.tui.requestRender();
   }
 
   setDraft(value: string): void {
@@ -272,16 +314,42 @@ class BtwOverlay extends Container implements Focusable {
   }
 
   override render(width: number): string[] {
-    const dialogWidth = Math.max(56, Math.min(width, Math.floor(width * 0.9)));
+    // Use the full width provided by the overlay system (already sized by overlayOptions)
+    const dialogWidth = Math.max(56, width);
     const innerWidth = Math.max(40, dialogWidth - 2);
     const terminalRows = process.stdout.rows ?? 30;
     const dialogHeight = Math.max(16, Math.min(30, Math.floor(terminalRows * 0.75)));
     const chromeHeight = 7;
     const transcriptHeight = Math.max(6, dialogHeight - chromeHeight);
 
-    // Markdown renders to innerWidth already — no manual wrapping needed
+    // Get full transcript
     const transcript = this.getTranscript(innerWidth, this.theme);
-    const visibleTranscript = transcript.slice(-transcriptHeight);
+
+    // Detect transcript changes and cap scroll offset
+    const maxScroll = Math.max(0, transcript.length - transcriptHeight);
+    if (transcript.length !== this.lastTranscriptLength) {
+      // Content changed - if we were at bottom stay at bottom, otherwise stay relative
+      this.lastTranscriptLength = transcript.length;
+    }
+    this.scrollOffset = Math.max(0, Math.min(this.scrollOffset, maxScroll));
+
+    // Calculate visible slice based on scroll offset
+    // scrollOffset=0 shows bottom (newest), higher values show older content
+    let visibleTranscript: string[];
+    let showUpIndicator = false;
+    let showDownIndicator = false;
+
+    if (this.scrollOffset === 0 && transcript.length <= transcriptHeight) {
+      // Everything fits, no scrolling needed
+      visibleTranscript = transcript;
+    } else {
+      const endPos = transcript.length - this.scrollOffset;
+      const startPos = Math.max(0, endPos - transcriptHeight);
+      visibleTranscript = transcript.slice(startPos, endPos);
+      showUpIndicator = startPos > 0; // There's older content above
+      showDownIndicator = endPos < transcript.length; // There's newer content below
+    }
+
     const transcriptPadding = Math.max(0, transcriptHeight - visibleTranscript.length);
 
     const status = this.getStatus();
@@ -298,7 +366,15 @@ class BtwOverlay extends Container implements Focusable {
       this.theme.fg("borderMuted", `├${"─".repeat(innerWidth)}┤`),
     ];
 
-    for (const line of visibleTranscript) {
+    // Render transcript with scroll indicators on first/last lines when needed
+    for (let i = 0; i < visibleTranscript.length; i++) {
+      let line = visibleTranscript[i];
+      // Add subtle scroll indicators
+      if (i === 0 && showUpIndicator) {
+        line = "↑ " + line;
+      } else if (i === visibleTranscript.length - 1 && showDownIndicator && transcriptPadding === 0) {
+        line = "↓ " + line;
+      }
       lines.push(this.frameLine(line, innerWidth));
     }
     for (let i = 0; i < transcriptPadding; i++) {
@@ -398,7 +474,7 @@ export default function (pi: ExtensionAPI) {
     }
 
     const lines: string[] = [];
-    for (const item of thread.slice(-6)) {
+    for (const item of thread.slice(-MAX_THREAD_HISTORY)) {
       // User message
       const userText = item.question.trim().split("\n")[0];
       lines.push(theme.fg("accent", theme.bold("You: ")) + truncateToWidth(userText, width - 5, "…"));
@@ -676,7 +752,9 @@ export default function (pi: ExtensionAPI) {
         async (tui, theme, keybindings, done) => {
           runtime.finish = () => done();
 
-          const overlay = new BtwOverlay(
+          // Use let so we can reference overlay in callbacks
+          let overlay: BtwOverlay;
+          overlay = new BtwOverlay(
             tui,
             theme,
             keybindings,
@@ -684,6 +762,7 @@ export default function (pi: ExtensionAPI) {
             () => overlayStatus,
             (value) => {
               void submitFromOverlay(ctx, value);
+              overlay.resetScroll(); // Reset scroll when submitting new question
             },
             () => {
               void closeOverlayFlow(ctx);

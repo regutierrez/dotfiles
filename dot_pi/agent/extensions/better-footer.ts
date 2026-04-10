@@ -1,6 +1,6 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { truncateToWidth } from "@mariozechner/pi-tui";
+import { truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
 import { spawn } from "node:child_process";
 import { homedir } from "node:os";
 
@@ -29,6 +29,9 @@ let gitFetchCwd: string | null = null;
 // Stored when the footer is mounted so non-render events (tool results, model
 // changes, user bash) can ask the UI to redraw.
 let currentRequestRender: (() => void) | null = null;
+let lastMessageStart = 0;
+let lastMessageEnd = 0;
+let lastMessageOutput = 0;
 
 function invalidateGit() {
   gitCache = null;
@@ -239,6 +242,16 @@ export default function betterFooter(pi: ExtensionAPI) {
           const thinkingLevel = ctx.model?.reasoning ? pi.getThinkingLevel() : null;
           const thinkingLabel = thinkingLevel ? theme.fg(THINKING_COLORS[thinkingLevel] ?? "muted", `think:${thinkingLevel}`) : "";
 
+          let tpsLabel = "";
+          if (lastMessageStart > 0 && lastMessageOutput > 0) {
+            const end = lastMessageEnd || Date.now();
+            const duration = (end - lastMessageStart) / 1000;
+            if (duration > 0) {
+              const tps = lastMessageOutput / duration;
+              tpsLabel = theme.fg("dim", `${tps.toFixed(1)} tps`);
+            }
+          }
+
           // Statuses come from other extensions calling ctx.ui.setStatus().
           // Sort for stable output, then sanitize so one extension cannot break
           // the footer layout with embedded newlines or tabs.
@@ -249,19 +262,34 @@ export default function betterFooter(pi: ExtensionAPI) {
             if (cleaned) statusParts.push(cleaned);
           }
 
-          const parts = [
+          const row1Parts = [
             theme.fg("text", formatDir(ctx.cwd)),
             sessionName ? theme.fg("accent", sessionName) : "",
             gitLabel,
             theme.fg("accent", modelLabel),
             thinkingLabel,
+          ].filter(Boolean);
+
+          const row2Parts = [
             theme.fg("muted", ioParts.join(" ")),
+            tpsLabel,
             costSummary,
             contextText,
             ...statusParts,
-          ];
+          ].filter(Boolean);
 
-          return [truncateToWidth(parts.filter(Boolean).join(theme.fg("dim", " · ")), width, theme.fg("dim", "…"))];
+          const separator = theme.fg("dim", " · ");
+          const fullLine = [...row1Parts, ...row2Parts].join(separator);
+
+          if (visibleWidth(fullLine) <= width) {
+            return [truncateToWidth(fullLine, width, theme.fg("dim", "…"))];
+          }
+
+          const lines = [truncateToWidth(row1Parts.join(separator), width, theme.fg("dim", "…"))];
+          if (row2Parts.length > 0) {
+            lines.push(truncateToWidth(row2Parts.join(separator), width, theme.fg("dim", "…")));
+          }
+          return lines;
         },
       };
     });
@@ -290,5 +318,25 @@ export default function betterFooter(pi: ExtensionAPI) {
   });
   pi.on("model_select", async () => {
     currentRequestRender?.();
+  });
+  pi.on("message_start", async (event) => {
+    if (event.message.role === "assistant") {
+      lastMessageStart = Date.now();
+      lastMessageEnd = 0;
+      lastMessageOutput = 0;
+    }
+  });
+  pi.on("message_update", async (event) => {
+    if (event.message.role === "assistant") {
+      lastMessageOutput = (event.message as AssistantMessage).usage?.output ?? 0;
+      currentRequestRender?.();
+    }
+  });
+  pi.on("message_end", async (event) => {
+    if (event.message.role === "assistant") {
+      lastMessageEnd = Date.now();
+      lastMessageOutput = (event.message as AssistantMessage).usage?.output ?? 0;
+      currentRequestRender?.();
+    }
   });
 }
