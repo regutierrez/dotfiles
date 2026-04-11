@@ -2,6 +2,9 @@
 # INITIALIZATION
 # ============================================================================
 
+# uncomment to profile zsh startup, along with zprof (end of line)
+# zmodload zsh/zprof
+
 eval "$(starship init zsh)"
 
 # Homebrew setup
@@ -146,3 +149,7 @@ npx()  { nvm --version >/dev/null 2>&1; unset -f npx;  npx "$@"; }
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+
+# uncomment to profile zsh startup, along with zprof (end of line)
+# zprof

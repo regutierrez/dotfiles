@@ -2,6 +2,10 @@
 
 Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Zsh + Tmux + age encryption. Two profiles: `desktop` (default) and `server`.
 
+## SKILLS
+
+- Load `.agents/skills/chezmoi/SKILL.md` whenever a task touches dotfiles, chezmoi-managed files, source-state prefixes (`dot_`, `private_`, `encrypted_`, `executable_`), `.chezmoi*` files, templates, profiles, secrets, or `chezmoi` commands.
+
 ## STRUCTURE
 
 ```
