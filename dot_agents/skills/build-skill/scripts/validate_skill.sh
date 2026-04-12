@@ -213,6 +213,14 @@ if [[ -d "$SKILL_DIR/references" ]]; then
     done < <(find "$SKILL_DIR/references" -name "*.md" -print0 2>/dev/null)
 fi
 
+# Check mcp.json if present
+MCP_JSON="$SKILL_DIR/mcp.json"
+if [[ -f "$MCP_JSON" ]]; then
+    if ! grep -q '"includeTools"' "$MCP_JSON"; then
+        log_warning "mcp.json is missing includeTools (filter MCP tools to reduce token cost)"
+    fi
+fi
+
 # Check internal links
 LINK_PATTERN=']\(([^)]+)\)'
 while IFS= read -r link; do

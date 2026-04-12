@@ -1,6 +1,6 @@
 ---
 name: build-skill
-description: Create effective skills for agents. Load FIRST before writing any SKILL.md. Provides required format, naming conventions, progressive disclosure patterns, and validation. Use when building, reviewing, or debugging skills.
+description: Create effective skills for agents. Load FIRST before writing any SKILL.md. Provides required format, naming conventions, progressive disclosure patterns, MCP/toolbox scoping, activation description guidance, and validation. Use when building, reviewing, or debugging skills.
 disable-model-invocation: true
 ---
 
@@ -69,19 +69,21 @@ Create a skill when:
 
 ## Reading Order
 
-| Task                    | Files to Read               |
-| ----------------------- | --------------------------- |
-| New skill from scratch  | anatomy.md → frontmatter.md |
-| Optimize existing skill | progressive-disclosure.md   |
-| Add scripts/resources   | bundled-resources.md        |
-| Find skill pattern      | patterns.md                 |
-| Debug/fix skill         | gotchas.md                  |
+| Task                         | Files to Read               |
+| ---------------------------- | --------------------------- |
+| New skill from scratch       | anatomy.md → frontmatter.md |
+| Optimize existing skill      | progressive-disclosure.md   |
+| Tune activation/discovery    | activation.md               |
+| Add scripts/resources/tools  | bundled-resources.md        |
+| Find skill pattern           | patterns.md                 |
+| Debug/fix skill              | gotchas.md                  |
 
 ## In This Reference
 
 | File                                                                | Purpose                        |
 | ------------------------------------------------------------------- | ------------------------------ |
 | [anatomy.md](./references/anatomy.md)                               | Skill directory structures     |
+| [activation.md](./references/activation.md)                         | Triggering and description design |
 | [frontmatter.md](./references/frontmatter.md)                       | YAML spec, naming, validation  |
 | [progressive-disclosure.md](./references/progressive-disclosure.md) | Token-efficient design         |
 | [bundled-resources.md](./references/bundled-resources.md)           | scripts/, references/, assets/ |
@@ -103,8 +105,11 @@ Before using a skill:
 - [ ] SKILL.md starts with `---` (line 1, no blank lines)
 - [ ] `name:` field present, matches directory name
 - [ ] `description:` includes what + when to use
+- [ ] `description:` names concrete capabilities, not generic filler
+- [ ] `description:` includes out-of-scope cases if false positives are likely
 - [ ] Closing `---` after frontmatter
 - [ ] SKILL.md under 200 lines (use references/ for more)
+- [ ] `mcp.json` uses `includeTools` if bundling MCP tools
 - [ ] All internal links resolve
 
 Run: `./scripts/validate_skill.sh ./my-skill`

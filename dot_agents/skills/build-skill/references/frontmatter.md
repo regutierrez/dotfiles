@@ -63,6 +63,7 @@ description: What this skill does and when to use it.
 - Include WHAT the skill does
 - Include WHEN to use it (activation triggers)
 - Be specific with key terms
+- If false positives are plausible, mention what the skill does **not** cover in natural prose
 
 **Good descriptions:**
 
@@ -85,6 +86,8 @@ description: I can help you with data  # Wrong POV
 description: PDF tool                  # No trigger context
 description: Useful utility            # Meaningless
 ```
+
+See [activation.md](./activation.md) for a compact checklist on improving skill discovery without turning the description into keyword spam.
 
 ## Optional Fields
 
