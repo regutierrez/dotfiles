@@ -32,7 +32,7 @@ APT_PACKAGES=(
   golang-go
   jq
   neovim
-  nvm
+  mise
   openssh-client
   openssh-server
   python3-pymupdf
