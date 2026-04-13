@@ -13,7 +13,7 @@ Commands:
   status          Show discovered repos and their skills
   check           Check which skills need updating
   pull            Pull latest changes for all cached repos
-  sync            Sync skills to dotfiles and commit
+  sync            Sync skills to dotfiles
   select          Interactively select which skills to sync
 """
 
@@ -132,7 +132,8 @@ def cmd_pull() -> None:
             )
             print("    ✓ Updated")
         except subprocess.CalledProcessError as e:
-            print(f"    ✗ Update failed: {e.stderr.strip()}")
+            err_msg: str = getattr(e, "stderr", "") or ""
+            print(f"    ✗ Update failed: {err_msg.strip()}")
 
 
 def cmd_add(repo_url: str) -> None:
@@ -353,12 +354,12 @@ def cmd_check() -> None:
 
 
 def cmd_sync(specific_skills: list[str] | None = None) -> None:
-    """Sync skills and commit to dotfiles."""
+    """Sync skills to dotfiles."""
     if not specific_skills:
         print("Error: No skills specified. Use 'sync <skill1> <skill2>...' or 'select'.")
         return
 
-    all_skills = set()
+    all_skills: set[str] = set()
     for s in specific_skills:
         if "/" in s:
             src = find_skill_source(s)
@@ -409,55 +410,13 @@ def cmd_sync(specific_skills: list[str] | None = None) -> None:
         print("\nNo skills were synced.")
         return
 
-    # Git operations
-    print("\nCommitting to dotfiles...")
-    try:
-        _ = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(DOTFILES_SKILLS.parent.parent),
-                "add",
-                "dot_agents/skills",
-            ],
-            check=True,
-        )
-
-        skill_list = ", ".join(synced)
-        commit_msg = (
-            f"Update skills: {skill_list}"
-            if len(synced) <= 3
-            else f"Update {len(synced)} skills"
-        )
-
-        result = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(DOTFILES_SKILLS.parent.parent),
-                "commit",
-                "-m",
-                commit_msg,
-            ],
-            capture_output=True,
-            text=True,
-        )
-
-        if result.returncode == 0:
-            print(f"  ✓ Committed: {commit_msg}")
-        else:
-            if "nothing to commit" in result.stderr.lower():
-                print("  (no changes to commit)")
-            else:
-                print(f"  ✗ Commit failed: {result.stderr}")
-    except subprocess.CalledProcessError as e:
-        print(f"  ✗ Git operation failed: {e}")
+    print("\nSync complete.")
 
 
 def get_all_skills_with_source() -> list[str]:
     """Collect all skills as org/repo/skill strings."""
     repos = discover_cached_repos()
-    all_skills = []
+    all_skills: list[str] = []
 
     for repo_path in repos:
         skills = get_repo_skills(repo_path)
@@ -557,7 +516,7 @@ Examples:
     _ = subparsers.add_parser("check", help="Check for skill updates")
     _ = subparsers.add_parser("pull", help="Pull changes from remotes for all cached repos")
 
-    sync_parser = subparsers.add_parser("sync", help="Sync skills and commit")
+    sync_parser = subparsers.add_parser("sync", help="Sync skills to dotfiles")
     _ = sync_parser.add_argument(
         "skills", nargs="*", help="Specific skills to sync"
     )
@@ -565,8 +524,9 @@ Examples:
     _ = subparsers.add_parser("select", help="Interactively select skills to sync")
 
     args = parser.parse_args()
+    parsed_args = vars(args)
 
-    command = cast(str | None, args.command)
+    command = cast(str | None, parsed_args.get("command"))
     if not command:
         parser.print_help()
         sys.exit(1)
@@ -576,7 +536,7 @@ Examples:
         sys.exit(1)
 
     if command == "add":
-        repo_input = cast(str, args.repo)
+        repo_input = cast(str, parsed_args.get("repo"))
         cmd_add(repo_input)
     elif command == "status":
         cmd_status()
@@ -585,7 +545,7 @@ Examples:
     elif command == "pull":
         cmd_pull()
     elif command == "sync":
-        skills_arg = cast(list[str], args.skills)
+        skills_arg = cast(list[str] | None, parsed_args.get("skills"))
         specific_skills = skills_arg if skills_arg else None
         cmd_sync(specific_skills)
     elif command == "select":
