@@ -192,21 +192,47 @@ def get_repo_skills(repo_path: Path) -> list[str]:
     return sorted(skills)
 
 
-def find_skill_source(skill_name: str) -> Path | None:
-    """Find which cached repo has this skill (directory containing SKILL.md)."""
+def find_skill_sources(skill_name: str) -> list[Path]:
+    """Find all cached repos that have this skill (directory containing SKILL.md)."""
     repos = discover_cached_repos()
+    sources: list[Path] = []
 
     for repo_path in repos:
         # Look for skill directory with SKILL.md
         skill_path = repo_path / skill_name / "SKILL.md"
         if skill_path.exists() and skill_path.is_file():
-            return repo_path / skill_name
+            sources.append(repo_path / skill_name)
+            continue
         # Also search recursively
         for skill_file in repo_path.rglob("SKILL.md"):
             if skill_file.parent.name == skill_name:
-                return skill_file.parent
+                sources.append(skill_file.parent)
+                break
 
-    return None
+    return sources
+
+def find_skill_source(skill_name: str) -> Path | None:
+    """Find which cached repo has this skill."""
+    # If the user provided org/repo/skill
+    if "/" in skill_name:
+        parts = skill_name.rsplit("/", 1)
+        if len(parts) == 2:
+            repo_part, actual_skill = parts
+            sources = find_skill_sources(actual_skill)
+            for src in sources:
+                if repo_part in str(src):
+                    return src
+            return None
+
+    sources = find_skill_sources(skill_name)
+    if not sources:
+        return None
+    if len(sources) > 1:
+        # For non-interactive usage, we'll try to find the one that matches the current dotfiles content
+        # Or just return the most recently modified one? Let's just return the first one but maybe we should warn?
+        # Actually, if we're in `needs_update` or `sync_skill`, we'll handle this.
+        pass
+    return sources[0]
 
 
 def get_skill_mtime(skill_path: Path) -> float:
@@ -217,17 +243,31 @@ def get_skill_mtime(skill_path: Path) -> float:
 
 
 def needs_update(skill_name: str) -> bool:
-    """Check if skill in dotfiles is outdated compared to source."""
+    """Check if skill in dotfiles differs from source."""
     source_path = find_skill_source(skill_name)
     if not source_path:
         return False
 
-    dotfiles_path = DOTFILES_SKILLS / skill_name
+    actual_skill = skill_name.rsplit("/", 1)[-1] if "/" in skill_name else skill_name
+    dotfiles_path = DOTFILES_SKILLS / actual_skill
 
-    source_mtime = get_skill_mtime(source_path)
-    dotfiles_mtime = get_skill_mtime(dotfiles_path) if dotfiles_path.exists() else 0
+    if not dotfiles_path.exists():
+        return True
 
-    return source_mtime > dotfiles_mtime
+    source_files = {f.relative_to(source_path): f for f in source_path.rglob("*") if f.is_file() and ".git" not in f.parts}
+    dotfiles_files = {f.relative_to(dotfiles_path): f for f in dotfiles_path.rglob("*") if f.is_file() and ".git" not in f.parts}
+
+    if set(source_files.keys()) != set(dotfiles_files.keys()):
+        return True
+
+    for rel_path in source_files:
+        try:
+            if source_files[rel_path].read_bytes() != dotfiles_files[rel_path].read_bytes():
+                return True
+        except Exception:
+            return True
+
+    return False
 
 
 def sync_skill(skill_name: str) -> bool:
@@ -237,7 +277,8 @@ def sync_skill(skill_name: str) -> bool:
         print(f"  ✗ Source not found: {skill_name}")
         return False
 
-    dest = DOTFILES_SKILLS / skill_name
+    actual_skill = skill_name.rsplit("/", 1)[-1] if "/" in skill_name else skill_name
+    dest = DOTFILES_SKILLS / actual_skill
 
     # Remove old and copy new
     if dest.exists():
@@ -254,16 +295,7 @@ def sync_skill(skill_name: str) -> bool:
     return True
 
 
-def get_all_unique_skills() -> set[str]:
-    """Collect all unique skills from all cached repos."""
-    repos = discover_cached_repos()
-    all_skills: set[str] = set()
 
-    for repo_path in repos:
-        skills = get_repo_skills(repo_path)
-        all_skills.update(skills)
-
-    return all_skills
 
 
 def cmd_status() -> None:
@@ -293,7 +325,7 @@ def cmd_status() -> None:
 
 def cmd_check() -> None:
     """Check which skills need updating."""
-    all_skills = get_all_unique_skills()
+    all_skills = get_all_skills_with_source()
 
     if not all_skills:
         print("No skills found in cached repos.")
@@ -326,7 +358,32 @@ def cmd_sync(specific_skills: list[str] | None = None) -> None:
         print("Error: No skills specified. Use 'sync <skill1> <skill2>...' or 'select'.")
         return
 
-    all_skills = set(specific_skills)
+    all_skills = set()
+    for s in specific_skills:
+        if "/" in s:
+            src = find_skill_source(s)
+            sources = [src] if src else []
+        else:
+            sources = find_skill_sources(s)
+
+        if len(sources) > 1:
+            print(f"Warning: Multiple sources found for '{s}':")
+            for src in sources:
+                try:
+                    rel = src.relative_to(CACHE_ROOT)
+                    parts = rel.parts
+                    source_str = f"{parts[0]}/{parts[1]}/{s}" if len(parts) >= 2 else f"{str(rel)}/{s}"
+                    print(f"  - {source_str}")
+                except ValueError:
+                    print(f"  - {src}")
+            print("Please specify the exact source to sync (e.g., syncr sync owner/repo/skill)")
+            return
+        elif len(sources) == 1:
+            all_skills.add(s)
+        else:
+            print(f"Error: Source not found for '{s}'")
+            return
+
     print(f"Syncing {len(all_skills)} specified skill(s)...\n")
 
     if not all_skills:
@@ -397,9 +454,28 @@ def cmd_sync(specific_skills: list[str] | None = None) -> None:
         print(f"  ✗ Git operation failed: {e}")
 
 
+def get_all_skills_with_source() -> list[str]:
+    """Collect all skills as org/repo/skill strings."""
+    repos = discover_cached_repos()
+    all_skills = []
+
+    for repo_path in repos:
+        skills = get_repo_skills(repo_path)
+        try:
+            rel = repo_path.relative_to(CACHE_ROOT)
+            parts = rel.parts
+            prefix = f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else str(rel)
+        except ValueError:
+            prefix = str(repo_path.name)
+        
+        for skill in skills:
+            all_skills.append(f"{prefix}/{skill}")
+
+    return sorted(all_skills)
+
 def cmd_select() -> list[str] | None:
     """Interactively select skills to sync. Returns list of selected skill names."""
-    all_skills = sorted(get_all_unique_skills())
+    all_skills = get_all_skills_with_source()
 
     if not all_skills:
         print("No skills found in cached repos.")
@@ -407,24 +483,11 @@ def cmd_select() -> list[str] | None:
 
     print(f"\nFound {len(all_skills)} skill(s):\n")
 
-    for i, skill in enumerate(all_skills, 1):
-        source = find_skill_source(skill)
-        if source:
-            # Extract org/repo from path: ~/.cache/syncr/<org>/<repo>/...
-            try:
-                source_rel = source.relative_to(CACHE_ROOT)
-                # Get first two parts (org/repo)
-                parts = source_rel.parts
-                source_str = (
-                    f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else str(source_rel)
-                )
-            except ValueError:
-                source_str = str(source)
-        else:
-            source_str = "unknown"
-        dotfiles_path = DOTFILES_SKILLS / skill
+    for i, full_skill in enumerate(all_skills, 1):
+        skill_name = full_skill.split("/")[-1]
+        dotfiles_path = DOTFILES_SKILLS / skill_name
         status = "✓" if dotfiles_path.exists() else "?"
-        print(f"  {i}. [{status}] {skill} (from {source_str})")
+        print(f"  {i}. [{status}] {full_skill}")
 
     print("\nEnter skill numbers to sync (comma-separated, e.g., 1,3,5)")
     print("Or press Enter to cancel:")
