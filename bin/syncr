@@ -12,6 +12,7 @@ Commands:
   add <repo-url>  Clone a repo to the cache
   status          Show discovered repos and their skills
   check           Check which skills need updating
+  pull            Pull latest changes for all cached repos
   sync            Sync skills to dotfiles and commit
   select          Interactively select which skills to sync
 """
@@ -108,6 +109,30 @@ def clone_repo(host: str, org: str, repo: str) -> Path:
     print("  ✓ Cloned")
 
     return checkout_path
+
+
+def cmd_pull() -> None:
+    """Pull latest changes for all cached repos."""
+    repos = discover_cached_repos()
+
+    if not repos:
+        print(f"No cached repos found in {CACHE_ROOT}")
+        return
+
+    print(f"Pulling latest changes for {len(repos)} repo(s)...\n")
+
+    for repo_path in repos:
+        print(f"  Updating {repo_path}...")
+        try:
+            _ = subprocess.run(
+                ["git", "-C", str(repo_path), "pull"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            print("    ✓ Updated")
+        except subprocess.CalledProcessError as e:
+            print(f"    ✗ Update failed: {e.stderr.strip()}")
 
 
 def cmd_add(repo_url: str) -> None:
@@ -219,6 +244,12 @@ def sync_skill(skill_name: str) -> bool:
         _ = subprocess.run(["rm", "-rf", str(dest)], check=True)
 
     _ = subprocess.run(["cp", "-a", str(src), str(dest)], check=True)
+
+    # Remove .git if it was copied (e.g. if skill is at repo root)
+    dot_git = dest / ".git"
+    if dot_git.exists():
+        _ = subprocess.run(["rm", "-rf", str(dot_git)], check=True)
+
     print(f"  ✓ Synced: {skill_name}")
     return True
 
@@ -284,21 +315,19 @@ def cmd_check() -> None:
             print(f"  ✓ {skill}: up to date")
 
     if outdated:
-        print(f"\n{len(outdated)} skill(s) need updating. Run 'sync' to update.")
+        print(f"\n{len(outdated)} skill(s) need updating. Run 'sync <skill>' to update.")
     else:
         print("\nAll skills are up to date.")
 
 
 def cmd_sync(specific_skills: list[str] | None = None) -> None:
     """Sync skills and commit to dotfiles."""
-    if specific_skills:
-        # Use provided skills
-        all_skills = set(specific_skills)
-        print(f"Syncing {len(all_skills)} specified skill(s)...\n")
-    else:
-        # Auto-discover all skills
-        all_skills = get_all_unique_skills()
-        print(f"Syncing all discovered skills ({len(all_skills)})...\n")
+    if not specific_skills:
+        print("Error: No skills specified. Use 'sync <skill1> <skill2>...' or 'select'.")
+        return
+
+    all_skills = set(specific_skills)
+    print(f"Syncing {len(all_skills)} specified skill(s)...\n")
 
     if not all_skills:
         print("No skills to sync.")
@@ -308,7 +337,7 @@ def cmd_sync(specific_skills: list[str] | None = None) -> None:
     outdated: list[str] = [s for s in all_skills if needs_update(s)]
 
     if not outdated:
-        print("All skills are already up to date.")
+        print("All specified skills are already up to date.")
         return
 
     print(f"Found {len(outdated)} skill(s) to update...\n")
@@ -398,7 +427,7 @@ def cmd_select() -> list[str] | None:
         print(f"  {i}. [{status}] {skill} (from {source_str})")
 
     print("\nEnter skill numbers to sync (comma-separated, e.g., 1,3,5)")
-    print("Or 'all' to sync everything, or press Enter to cancel:")
+    print("Or press Enter to cancel:")
 
     try:
         selection = input("> ").strip()
@@ -409,9 +438,6 @@ def cmd_select() -> list[str] | None:
     if not selection:
         print("Cancelled.")
         return None
-
-    if selection.lower() == "all":
-        return list(all_skills)
 
     # Parse comma-separated numbers
     selected: list[str] = []
@@ -450,7 +476,7 @@ Examples:
   syncr add owner/repo           # clone a repo
   syncr status                   # show all repos and skills
   syncr check                    # check what needs updating
-  syncr sync                     # sync all skills
+  syncr pull                     # pull latest changes for all repos
   syncr sync skill1 skill2       # sync specific skills
   syncr select                   # interactively choose skills
         """,
@@ -466,10 +492,11 @@ Examples:
 
     _ = subparsers.add_parser("status", help="Show discovered repos and skills")
     _ = subparsers.add_parser("check", help="Check for skill updates")
+    _ = subparsers.add_parser("pull", help="Pull changes from remotes for all cached repos")
 
     sync_parser = subparsers.add_parser("sync", help="Sync skills and commit")
     _ = sync_parser.add_argument(
-        "skills", nargs="*", help="Specific skills to sync (default: all)"
+        "skills", nargs="*", help="Specific skills to sync"
     )
 
     _ = subparsers.add_parser("select", help="Interactively select skills to sync")
@@ -492,6 +519,8 @@ Examples:
         cmd_status()
     elif command == "check":
         cmd_check()
+    elif command == "pull":
+        cmd_pull()
     elif command == "sync":
         skills_arg = cast(list[str], args.skills)
         specific_skills = skills_arg if skills_arg else None
