@@ -1,5 +1,5 @@
 ---
-name: walkthrough
+name: codebase-walkthrough
 description: "Generate a standalone interactive HTML walkthrough diagram for a codebase. Use when asked to visualize architecture, walk through code flows, or create an interactive diagram file."
 ---
 
@@ -54,16 +54,16 @@ Save as `walkthrough.html` in the repo root (or wherever the user specifies).
       }
 
       :root {
-        --bg: #0d1117;
-        --surface: #161b22;
-        --border: #30363d;
-        --text: #e6edf3;
-        --text-muted: #8b949e;
-        --accent: #58a6ff;
-        --accent-hover: #79c0ff;
-        --node-bg: #1f2937;
-        --node-border: #374151;
-        --code-bg: #1c2128;
+        --bg: #282828;
+        --surface: #32302f;
+        --border: #504945;
+        --text: #ebdbb2;
+        --text-muted: #a89984;
+        --accent: #d79921;
+        --accent-hover: #fabd2f;
+        --node-bg: #3c3836;
+        --node-border: #665c54;
+        --code-bg: #1d2021;
       }
 
       html {
@@ -274,14 +274,14 @@ MERMAID_CODE_HERE
       // ── Mermaid init ───────────────────────────────────────
       mermaid.initialize({
         startOnLoad: true,
-        theme: "dark",
+        theme: "base",
         themeVariables: {
-          primaryColor: "#1f2937",
-          primaryTextColor: "#e6edf3",
-          primaryBorderColor: "#374151",
-          lineColor: "#58a6ff",
-          secondaryColor: "#161b22",
-          tertiaryColor: "#0d1117",
+          primaryColor: "#3c3836",
+          primaryTextColor: "#ebdbb2",
+          primaryBorderColor: "#665c54",
+          lineColor: "#d79921",
+          secondaryColor: "#32302f",
+          tertiaryColor: "#282828",
           fontFamily:
             "-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif",
           fontSize: "14px",
@@ -348,18 +348,9 @@ MERMAID_CODE_HERE
         pane.classList.add("has-content");
       }
 
-      // Attach click handlers after mermaid renders
-      document.addEventListener("DOMContentLoaded", () => {
-        setTimeout(() => {
-          document.querySelectorAll(".node").forEach((el) => {
-            const id = el.id?.replace(/^flowchart-/, "").replace(/-\d+$/, "");
-            if (id && NODES[id]) {
-              el.style.cursor = "pointer";
-              el.addEventListener("click", () => showDetail(id));
-            }
-          });
-        }, 500);
-      });
+      window.callback = function (nodeId) {
+        showDetail(nodeId);
+      };
     </script>
   </body>
 </html>
@@ -368,9 +359,14 @@ MERMAID_CODE_HERE
 ## Rules
 
 - **One file, zero dependencies** except the Mermaid CDN script tag.
-- Keep the dark theme. Do not add a light mode toggle.
+- Use a **Gruvbox dark** palette for the page and Mermaid theme variables unless the user asks for a different theme.
 - Do not add colors or classDefs to the Mermaid code — let the theme handle it.
 - Replace `TITLE_HERE`, `SUMMARY_HERE`, `MERMAID_CODE_HERE`, and the `NODES` object with real data.
 - Use relative paths for file links (e.g., `./src/auth.ts`).
 - Keep descriptions concise but informative — aim for 3–8 lines of markdown per node.
+- Wire node interaction with Mermaid `click NODE_ID callback "NODE_ID"` directives plus `window.callback = function (nodeId) { ... }`. Do **not** rely on Mermaid-generated DOM ids or post-render `.node` queries.
+- When embedding code snippets inside JavaScript template literals, escape any literal `${` sequences as `\${` so shell examples like `${HOME}` do not break the page.
+- Before finishing, validate the generated file for both classes of bugs:
+  - search for unescaped `${` inside snippet/template content
+  - confirm every clickable Mermaid node has a matching `NODES` entry and `click ... callback` line
 - After creating the file, tell the user to open it in a browser.
