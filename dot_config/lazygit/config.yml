@@ -6,20 +6,9 @@ gui:
   showBottomLine: true
 
 git:
-  paging:
-    colorArg: always
-    pager: >-
-      delta --dark
-      --paging=never
-      --true-color=always
-      --line-numbers
-      --side-by-side
-      --syntax-theme="Catppuccin Frappe"
-      --plus-style="syntax #12261e"
-      --minus-style="syntax #2a1215"
-      --zero-style="syntax"
-      --hyperlinks
-      --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+  pagers:
+    - colorArg: always
+      pager: delta --dark --paging=never --true-color=always --line-numbers --syntax-theme="Catppuccin Frappe" --plus-style="syntax auto" --minus-style="syntax auto" --zero-style="syntax" --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
 os:
   editPreset: nvim
   # On headless SSH sessions, use tmux's clipboard integration (-w) to forward copies to the local terminal clipboard.
