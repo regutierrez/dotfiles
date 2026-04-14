@@ -1,0 +1,31 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+set -eu
+
+src="$HOME/.config/lazygit"
+dst="$HOME/Library/Application Support/lazygit"
+
+mkdir -p "$src"
+mkdir -p "$HOME/Library/Application Support"
+
+if [ -L "$dst" ]; then
+  current="$(readlink "$dst")"
+  if [ "$current" = "$src" ]; then
+    exit 0
+  fi
+
+  printf '%s\n' "chezmoi: refusing to replace existing lazygit symlink: $dst -> $current" >&2
+  exit 1
+fi
+
+if [ -e "$dst" ]; then
+  if [ -d "$dst" ] && [ -z "$(find "$dst" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
+    rmdir "$dst"
+  else
+    printf '%s\n' "chezmoi: refusing to replace existing path at $dst; move it aside first" >&2
+    exit 1
+  fi
+fi
+
+ln -s "$src" "$dst"
+{{- end }}
