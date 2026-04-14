@@ -1,5 +1,4 @@
 encryption = "age"
-sourceDir = {{ .chezmoi.sourceDir | quote }}
 
 [age]
     identity = "~/.config/chezmoi/key.txt"
@@ -8,3 +7,6 @@ sourceDir = {{ .chezmoi.sourceDir | quote }}
 [edit]
     apply = true
     watch = true
+
+[update]
+    apply = true
