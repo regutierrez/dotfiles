@@ -153,25 +153,6 @@ apply defaults write com.apple.dock showhidden -bool true
 # Enable the 'reduce transparency' option. Save GPU cycles.
 apply defaults write com.apple.universalaccess reduceTransparency -bool true
 
-# Hot corners
-# Possible values:
-#  0: no-op
-#  2: Mission Control
-#  3: Show application windows
-#  4: Desktop
-#  5: Start screen saver
-#  6: Disable screen saver
-#  7: Dashboard
-# 10: Put display to sleep
-# 11: Launchpad
-# 12: Notification Center
-# Bottom right screen corner → Mission Control
-apply defaults write com.apple.dock wvous-br-corner -int 2
-apply defaults write com.apple.dock wvous-br-modifier -int 0
-# Top right screen corner → Put display to sleep
-apply defaults write com.apple.dock wvous-tr-corner -int 10
-apply defaults write com.apple.dock wvous-tr-modifier -int 0
-
 ###############################################################################
 # Safari & WebKit                                                             #
 ###############################################################################

@@ -1,0 +1,42 @@
+BREW_PACKAGES=(
+  asciinema
+  bat
+  btop
+  starship
+  ripgrep
+  uv
+  tailscale
+  fd
+  ffmpeg
+  rust
+  neovim
+  tmux
+  eza
+  zoxide
+  fzf
+  go
+  tree-sitter-cli
+  lazygit
+  pandoc
+  direnv
+  mise
+  mingw-w64
+  # docker stuff
+  docker
+  docker-compose
+  docker-completion
+  colima
+)
+
+BREW_CASKS=(
+  aldente
+  shottr
+  google-chrome
+  helium-browser
+  zen
+  homerow
+  obsidian
+  raycast
+  ghostty
+  karabiner-elements
+)

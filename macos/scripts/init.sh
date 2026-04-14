@@ -4,11 +4,18 @@ set -e -u
 # Mac initialization script - works both remotely and locally
 # Usage (remote): curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/init.sh | bash
 # Usage (local):  bash macos/scripts/init.sh
+# Overrides:
+#   cat > ~/.config/dotfiles/bootstrap.sh <<'EOF'
+#   BREW_PACKAGES=(ripgrep fd tmux)
+#   BREW_CASKS=(ghostty raycast)
+#   EOF
+#   BOOTSTRAP_CONFIG=~/.config/dotfiles/bootstrap.sh bash macos/scripts/init.sh
 
 DOTFILES_DIR="$HOME/.local/share/chezmoi"
 GHUSER="regutierrez"
 EMAIL="rpegutierrez@gmail.com"
 AGE_IDENTITY_FILE="$HOME/.config/chezmoi/key.txt"
+BOOTSTRAP_CONFIG="${BOOTSTRAP_CONFIG:-$HOME/.config/dotfiles/bootstrap.sh}" # for work
 
 echo "=== Mac Initialization ==="
 echo ""
@@ -42,17 +49,24 @@ BREW_PACKAGES=(
 BREW_CASKS=(
   aldente
   shottr
-  stats
+  parsec
   homerow
   iina
   obsidian
-  parsec
   raycast
-  zed
-  arc
   ghostty
   karabiner-elements
 )
+
+load_bootstrap_config() {
+  if [[ -f "$BOOTSTRAP_CONFIG" ]]; then
+    echo "Loading bootstrap config: $BOOTSTRAP_CONFIG"
+    # shellcheck disable=SC1090
+    source "$BOOTSTRAP_CONFIG"
+  else
+    echo "Using default packages..."
+  fi
+}
 
 # MAS_APPS=(
 #   1352778147 # bitwarden
@@ -208,6 +222,7 @@ set_git_config() {
 # Main execution
 main() {
   install_xcode
+  load_bootstrap_config
   install_homebrew
   set_git_config
   ensure_age_identity
