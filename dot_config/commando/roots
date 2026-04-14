@@ -1,0 +1,7 @@
+# label<TAB>path
+# Commando scans one level under each root and injects those directories into
+# the sesh picker as generated config sessions.
+
+repos	~/repos
+playground	~/playground
+config	~/.config

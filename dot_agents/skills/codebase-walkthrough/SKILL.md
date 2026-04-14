@@ -1,6 +1,7 @@
 ---
 name: codebase-walkthrough
 description: "Generate a standalone interactive HTML walkthrough diagram for a codebase. Use when asked to visualize architecture, walk through code flows, or create an interactive diagram file."
+disable-model-invocation: true
 ---
 
 # Walkthrough Skill

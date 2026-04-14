@@ -1,0 +1,13 @@
+# Base sesh config.
+# Commando builds a temporary config that imports generated sessions for your
+# watched roots, then launches `sesh picker` with that merged config.
+
+dir_length = 2
+
+[default_session]
+preview_command = "eza --all --git --icons --color=always {}"
+
+# Keep one-off sessions here if they live outside commando's watched roots.
+[[session]]
+name = "dotfiles"
+path = "~/.local/share/chezmoi"

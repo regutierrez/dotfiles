@@ -2,6 +2,8 @@
 {{- $cfg := ((index .profiles $profile) | default (index .profiles "desktop")) -}}
 
 README.md
+AGENTS.md
+TODO.md
 LICENSE
 archive/
 macos/

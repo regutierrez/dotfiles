@@ -9,6 +9,7 @@ BREW_PACKAGES=(
   fd
   ffmpeg
   rust
+  delta
   neovim
   tmux
   eza

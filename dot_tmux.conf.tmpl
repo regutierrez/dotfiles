@@ -123,7 +123,7 @@ set -ag status-right "#{E:@catppuccin_status_uptime}"
 {{- end }}
 
 # custom commands
-bind o display-popup -E -w 50 -h 15 ~/bin/commando
+bind o run-shell '~/bin/commando --fzf-tmux'
 bind S setw synchronize-panes \; set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"
 set-option -g status-position top
 
