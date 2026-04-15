@@ -1,14 +1,14 @@
-{{- $profile := (index . "profile" | default "personal") -}}
+{{- $profile := (index . "profile" | default "personal") }}
 
-{{- if ne $profile "work" -}}
+{{- if ne $profile "work" }}
 encryption = "age"
 
 [age]
     identity = "~/.config/chezmoi/key.txt"
     recipient = "age1jjprr9qsy2maxva7f3g2ll0z8px58343z0chunj3ljkjnw60kdhs5ypcjt"
-{{- else -}}
+{{- else }}
 encryption = ""
-{{- end -}}
+{{- end }}
 
 [edit]
     apply = true
