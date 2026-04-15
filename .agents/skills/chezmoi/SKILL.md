@@ -37,7 +37,8 @@ Examples:
 - `.chezmoi.toml.tmpl` configures `age` encryption and sets `[edit] apply = true` and `watch = true`.
 - Current bootstrap:
   - personal: `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez`
-  - server: `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --override-data '{"profile":"server"}' regutierrez`
+  - work: `CHEZMOI_PROFILE=work sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez`
+  - server: `CHEZMOI_PROFILE=server sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez`
 
 ## Daily workflow
 
@@ -87,7 +88,7 @@ Examples:
   - `.chezmoi.*` built-ins like `.chezmoi.os`, `.chezmoi.arch`, `.chezmoi.hostname`
   - `.chezmoidata.*` static data
   - config-file `[data]` values
-- In this repo, profiles are driven from `.chezmoidata.toml` plus user-provided `profile` data.
+- In this repo, profiles are driven from `.chezmoidata.toml` plus local config `[data].profile`.
 - `chezmoi data` is the fastest way to see what a template can read.
 - Empty template output removes the target unless the source uses `empty_`.
 - Shared template fragments belong in `.chezmoitemplates`; external vendored content belongs in `.chezmoiexternal.*` when appropriate.

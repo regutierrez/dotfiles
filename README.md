@@ -9,17 +9,20 @@ Use the official installer wrapper to init + apply in one shot.
 ### Personal profile
 
 ```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --override-data '{"profile":"personal"}' "regutierrez"
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "regutierrez"
 ```
 
 ### Work profile
 
 ```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --override-data '{"profile":"work"}' "regutierrez"
+CHEZMOI_PROFILE=work sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "regutierrez"
 ```
 
 ### Server profile
 
+```bash
+CHEZMOI_PROFILE=server sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "regutierrez"
+```
 
 You can replace `$GITHUB_USERNAME` with a full repo URL, e.g. `"https://github.com/regutierrez/dotfiles.git"`.
 
@@ -59,6 +62,8 @@ Set profile per machine in local config (`~/.config/chezmoi/chezmoi.toml`):
 profile = "server"
 ```
 
+For first-time `init`, use `CHEZMOI_PROFILE` so `.chezmoi.toml.tmpl` can write the correct local profile before `apply` runs.
+
 ## Safe preview / dry run
 
 ```bash
@@ -68,6 +73,8 @@ chezmoi apply -n --override-data '{"profile":"server"}'
 chezmoi apply -n --override-data '{"profile":"personal"}'
 chezmoi apply -n --override-data '{"profile":"work"}'
 ```
+
+After `init`, the selected profile is stored in the local chezmoi config, so plain `chezmoi apply` uses it automatically.
 
 ## arch bootstrap
 > you probably need to re-fix partitions, but other than that should be good to go.
@@ -86,10 +93,18 @@ curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scr
 
 > Do not pipe into `sudo bash` — user-scoped tools (Homebrew, SSH keys) must install as your user. The script calls `sudo` internally only when needed.
 
-The script generates a new SSH key and prints the public key. Add it to GitHub, then apply dotfiles:
+The script generates a new SSH key and prints the public key. Add it to GitHub, then apply dotfiles.
+
+Personal:
 
 ```bash
 chezmoi init --apply regutierrez
+```
+
+Work:
+
+```bash
+CHEZMOI_PROFILE=work chezmoi init --apply regutierrez
 ```
 
 To use the work package set from the repo (`macos/scripts/bootstrap.sh`):

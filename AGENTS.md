@@ -61,7 +61,8 @@ Defined in `.chezmoidata.toml`, set per machine in `~/.config/chezmoi/chezmoi.to
 ```bash
 # Bootstrap
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --override-data '{"profile":"server"}' regutierrez
+CHEZMOI_PROFILE=work sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
+CHEZMOI_PROFILE=server sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
 
 # Daily
 chezmoi edit ~/.zshrc         # edit + auto-apply
