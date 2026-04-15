@@ -1,5 +1,19 @@
-{{- $profile := .profile | default "personal" -}}
-{{- $cfg := index .profiles $profile -}}
+{{- $profile := (index . "profile" | default "personal") -}}
+
+{{- /* Define default config in case .profiles is not available during init */ -}}
+{{- $cfg := (dict "use_age" true "manage_bashrc" false "manage_vimrc" false "manage_bin" true "manage_dot_config" true "manage_agents" true "tmux_plugins" true) -}}
+{{- if eq $profile "server" -}}
+{{-   $cfg = (dict "use_age" true "manage_bashrc" true "manage_vimrc" true "manage_bin" false "manage_dot_config" false "manage_agents" false "tmux_plugins" false) -}}
+{{- else if eq $profile "work" -}}
+{{-   $cfg = (dict "use_age" false "manage_bashrc" false "manage_vimrc" false "manage_bin" true "manage_dot_config" true "manage_agents" true "tmux_plugins" true) -}}
+{{- end -}}
+
+{{- /* Override with actual profile data if available */ -}}
+{{- if index . "profiles" -}}
+{{-   $cfg = (index .profiles $profile) -}}
+{{- end -}}
+
+{{- $use_age := $cfg.use_age -}}
 
 README.md
 AGENTS.md
@@ -18,9 +32,9 @@ srv/
 .config/zed
 {{- end }}
 
-{{- if not $cfg.use_age }}
-**/encrypted_*
-**/private_dot_ssh/encrypted_*
+{{- if not $use_age }}
+**/*.age
+**/*.age.tmpl
 {{- end }}
 
 {{- if not $cfg.manage_bashrc }}
