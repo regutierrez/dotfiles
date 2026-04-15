@@ -212,6 +212,7 @@ def find_skill_sources(skill_name: str) -> list[Path]:
 
     return sources
 
+
 def find_skill_source(skill_name: str) -> Path | None:
     """Find which cached repo has this skill."""
     # If the user provided org/repo/skill
@@ -255,15 +256,26 @@ def needs_update(skill_name: str) -> bool:
     if not dotfiles_path.exists():
         return True
 
-    source_files = {f.relative_to(source_path): f for f in source_path.rglob("*") if f.is_file() and ".git" not in f.parts}
-    dotfiles_files = {f.relative_to(dotfiles_path): f for f in dotfiles_path.rglob("*") if f.is_file() and ".git" not in f.parts}
+    source_files = {
+        f.relative_to(source_path): f
+        for f in source_path.rglob("*")
+        if f.is_file() and ".git" not in f.parts
+    }
+    dotfiles_files = {
+        f.relative_to(dotfiles_path): f
+        for f in dotfiles_path.rglob("*")
+        if f.is_file() and ".git" not in f.parts
+    }
 
     if set(source_files.keys()) != set(dotfiles_files.keys()):
         return True
 
     for rel_path in source_files:
         try:
-            if source_files[rel_path].read_bytes() != dotfiles_files[rel_path].read_bytes():
+            if (
+                source_files[rel_path].read_bytes()
+                != dotfiles_files[rel_path].read_bytes()
+            ):
                 return True
         except Exception:
             return True
@@ -294,9 +306,6 @@ def sync_skill(skill_name: str) -> bool:
 
     print(f"  ✓ Synced: {skill_name}")
     return True
-
-
-
 
 
 def cmd_status() -> None:
@@ -348,7 +357,9 @@ def cmd_check() -> None:
             print(f"  ✓ {skill}: up to date")
 
     if outdated:
-        print(f"\n{len(outdated)} skill(s) need updating. Run 'sync <skill>' to update.")
+        print(
+            f"\n{len(outdated)} skill(s) need updating. Run 'sync <skill>' to update."
+        )
     else:
         print("\nAll skills are up to date.")
 
@@ -356,7 +367,9 @@ def cmd_check() -> None:
 def cmd_sync(specific_skills: list[str] | None = None) -> None:
     """Sync skills to dotfiles."""
     if not specific_skills:
-        print("Error: No skills specified. Use 'sync <skill1> <skill2>...' or 'select'.")
+        print(
+            "Error: No skills specified. Use 'sync <skill1> <skill2>...' or 'select'."
+        )
         return
 
     all_skills: set[str] = set()
@@ -373,11 +386,17 @@ def cmd_sync(specific_skills: list[str] | None = None) -> None:
                 try:
                     rel = src.relative_to(CACHE_ROOT)
                     parts = rel.parts
-                    source_str = f"{parts[0]}/{parts[1]}/{s}" if len(parts) >= 2 else f"{str(rel)}/{s}"
+                    source_str = (
+                        f"{parts[0]}/{parts[1]}/{s}"
+                        if len(parts) >= 2
+                        else f"{str(rel)}/{s}"
+                    )
                     print(f"  - {source_str}")
                 except ValueError:
                     print(f"  - {src}")
-            print("Please specify the exact source to sync (e.g., syncr sync owner/repo/skill)")
+            print(
+                "Please specify the exact source to sync (e.g., syncr sync owner/repo/skill)"
+            )
             return
         elif len(sources) == 1:
             all_skills.add(s)
@@ -426,11 +445,12 @@ def get_all_skills_with_source() -> list[str]:
             prefix = f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else str(rel)
         except ValueError:
             prefix = str(repo_path.name)
-        
+
         for skill in skills:
             all_skills.append(f"{prefix}/{skill}")
 
     return sorted(all_skills)
+
 
 def cmd_select() -> list[str] | None:
     """Interactively select skills to sync. Returns list of selected skill names."""
@@ -514,12 +534,12 @@ Examples:
 
     _ = subparsers.add_parser("status", help="Show discovered repos and skills")
     _ = subparsers.add_parser("check", help="Check for skill updates")
-    _ = subparsers.add_parser("pull", help="Pull changes from remotes for all cached repos")
+    _ = subparsers.add_parser(
+        "pull", help="Pull changes from remotes for all cached repos"
+    )
 
     sync_parser = subparsers.add_parser("sync", help="Sync skills to dotfiles")
-    _ = sync_parser.add_argument(
-        "skills", nargs="*", help="Specific skills to sync"
-    )
+    _ = sync_parser.add_argument("skills", nargs="*", help="Specific skills to sync")
 
     _ = subparsers.add_parser("select", help="Interactively select skills to sync")
 
