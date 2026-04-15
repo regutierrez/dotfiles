@@ -29,9 +29,9 @@ let gitFetchCwd: string | null = null;
 // Stored when the footer is mounted so non-render events (tool results, model
 // changes, user bash) can ask the UI to redraw.
 let currentRequestRender: (() => void) | null = null;
-let lastMessageStart = 0;
-let lastMessageEnd = 0;
-let lastMessageOutput = 0;
+let turnStart = 0;
+let turnEnd = 0;
+let turnTokens = 0;
 
 function invalidateGit() {
   gitCache = null;
@@ -243,11 +243,10 @@ export default function betterFooter(pi: ExtensionAPI) {
           const thinkingLabel = thinkingLevel ? theme.fg(THINKING_COLORS[thinkingLevel] ?? "muted", `think:${thinkingLevel}`) : "";
 
           let tpsLabel = "";
-          if (lastMessageStart > 0 && lastMessageOutput > 0) {
-            const end = lastMessageEnd || Date.now();
-            const duration = (end - lastMessageStart) / 1000;
+          if (turnStart > 0 && turnEnd > 0 && turnTokens > 0) {
+            const duration = (turnEnd - turnStart) / 1000;
             if (duration > 0) {
-              const tps = lastMessageOutput / duration;
+              const tps = turnTokens / duration;
               tpsLabel = theme.fg("dim", `${tps.toFixed(1)} tps`);
             }
           }
@@ -319,23 +318,23 @@ export default function betterFooter(pi: ExtensionAPI) {
   pi.on("model_select", async () => {
     currentRequestRender?.();
   });
-  pi.on("message_start", async (event) => {
-    if (event.message.role === "assistant") {
-      lastMessageStart = Date.now();
-      lastMessageEnd = 0;
-      lastMessageOutput = 0;
+  pi.on("agent_start", async () => {
+    turnStart = Date.now();
+    turnEnd = 0;
+    turnTokens = 0;
+  });
+  pi.on("agent_end", async (event) => {
+    turnEnd = Date.now();
+    turnTokens = 0;
+    for (const message of event.messages) {
+      if (message.role === "assistant") {
+        turnTokens += (message as AssistantMessage).usage?.output ?? 0;
+      }
     }
+    currentRequestRender?.();
   });
   pi.on("message_update", async (event) => {
     if (event.message.role === "assistant") {
-      lastMessageOutput = (event.message as AssistantMessage).usage?.output ?? 0;
-      currentRequestRender?.();
-    }
-  });
-  pi.on("message_end", async (event) => {
-    if (event.message.role === "assistant") {
-      lastMessageEnd = Date.now();
-      lastMessageOutput = (event.message as AssistantMessage).usage?.output ?? 0;
       currentRequestRender?.();
     }
   });
