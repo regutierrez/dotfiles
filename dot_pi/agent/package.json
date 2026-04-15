@@ -7,5 +7,8 @@
     "@mariozechner/pi-coding-agent": "^0.67.2",
     "@mariozechner/pi-tui": "^0.67.2",
     "diff": "^8.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

@@ -23,9 +23,9 @@ command -v sesh >/dev/null 2>&1 || {
 
 default_roots() {
   printf '%s\t%s\n' \
-    'repos' '~/repos' \
-    'playground' '~/playground' \
-    'config' '~/.config'
+    'repos' "$HOME/repos" \
+    'playground' "$HOME/playground" \
+    'config' "$HOME/.config"
 }
 
 load_roots() {
@@ -54,7 +54,7 @@ expand_home() {
     '~')
       printf '%s\n' "$HOME"
       ;;
-    "~/"*)
+    \~/*)
       printf '%s\n' "$HOME/${path:2}"
       ;;
     *)
@@ -152,7 +152,7 @@ run_fzf_tmux_picker() {
   config_dirs_cmd="${configs_cmd} | rg 'config/'"
   dotfiles_cmd="${configs_cmd} | rg 'dotfiles'"
   zoxide_cmd="sesh -C ${config_quoted} list -z --icons -d -H"
-  find_cmd="fd -H -d 2 -t d -E .Trash . ~"
+  find_cmd="fd -H -d 2 -t d -E .Trash . ${HOME}"
 
   selected="$(eval "$all_cmd" | fzf-tmux -p 80%,70% \
     --no-sort --ansi --border-label ' commando + sesh ' --prompt '⚡  ' \

@@ -406,10 +406,6 @@ export default function viewportShim(pi: ExtensionAPI): void {
     install(ctx);
   });
 
-  pi.on("session_switch", async (_event, ctx) => {
-    install(ctx);
-  });
-
   pi.on("session_shutdown", async (_event, ctx) => {
     teardownViewport(ctx, state, true);
   });
