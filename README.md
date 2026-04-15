@@ -63,14 +63,15 @@ archinstall --config-url https://raw.githubusercontent.com/regutierrez/dotfiles/
 
 ## macOS bootstrap
 
-1. Restore age identity key to `~/.config/chezmoi/key.txt` and ensure it has correct permissions (`chmod 600`).
-2. Run:
-
 ```bash
 curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/init.sh | sudo bash
 ```
 
-> `sudo` is required to install Xcode CLI Tools and Homebrew on a fresh machine. The script validates the age key is present before applying dotfiles and exits with a clear error if it's missing.
+> `sudo` is required to install Xcode CLI Tools and Homebrew on a fresh machine. The script generates a new SSH key and prints the public key — add it to GitHub, then apply dotfiles:
+
+```bash
+chezmoi init --apply regutierrez
+```
 
 To use the work package set from the repo (`macos/scripts/bootstrap.sh`):
 

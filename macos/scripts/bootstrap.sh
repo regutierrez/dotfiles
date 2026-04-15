@@ -1,4 +1,7 @@
 # WORK STUFF
+GHUSER="regutierrez"
+EMAIL="rpegutierrez@gmail.com"
+
 BREW_PACKAGES=(
   asciinema
   bat

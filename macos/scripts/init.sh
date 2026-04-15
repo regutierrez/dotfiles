@@ -11,17 +11,16 @@ set -e -u
 #   EOF
 #   BOOTSTRAP_CONFIG=~/.config/dotfiles/bootstrap.sh bash macos/scripts/init.sh
 
-DOTFILES_DIR="$HOME/.local/share/chezmoi"
-GHUSER="regutierrez"
-EMAIL="rpegutierrez@gmail.com"
-AGE_IDENTITY_FILE="$HOME/.config/chezmoi/key.txt"
 BOOTSTRAP_CONFIG="${BOOTSTRAP_CONFIG:-$HOME/.config/dotfiles/bootstrap.sh}" # for work
 
 echo "=== Mac Initialization ==="
 echo ""
 
+# Default config
+GHUSER="regutierrez"
+EMAIL="rpegutierrez@gmail.com"
+
 # Default packages
-echo "Using default packages..."
 BREW_PACKAGES=(
   asciinema
   starship
@@ -71,14 +70,6 @@ load_bootstrap_config() {
 # MAS_APPS=(
 #   1352778147 # bitwarden
 # )
-
-# Show configuration
-echo ""
-echo "Configuration:"
-echo "  GitHub user: $GHUSER"
-echo "  Email: $EMAIL"
-echo "  Packages: ${#BREW_PACKAGES[@]} brew, ${#BREW_CASKS[@]} casks"
-echo ""
 
 # Install Xcode Command Line Tools
 install_xcode() {
@@ -150,37 +141,26 @@ install_homebrew() {
   brew cleanup
 }
 
-# Setup dotfiles using chezmoi
-setup_dotfiles() {
-  echo ""
-  echo "=== Setting Up Dotfiles ==="
-  echo ""
+# Generate SSH key if one doesn't exist
+create_ssh_key() {
+  local ssh_key="$HOME/.ssh/id_ed25519"
 
-  local repo_url="https://github.com/$GHUSER/dotfiles.git"
-
-  if [[ -d "$DOTFILES_DIR" ]]; then
-    echo "Dotfiles source already exists, updating and applying..."
-    chezmoi update --init
-  else
-    chezmoi init --apply "$repo_url"
-  fi
-
-  echo "Dotfiles applied successfully."
-}
-
-# Ensure age identity is available before applying encrypted files
-ensure_age_identity() {
-  if [[ -f "$AGE_IDENTITY_FILE" ]]; then
-    chmod 600 "$AGE_IDENTITY_FILE" 2>/dev/null || true
+  if [[ -f "$ssh_key" ]]; then
+    echo "SSH key already exists at $ssh_key, skipping..."
     return
   fi
 
   echo ""
-  echo "Error: age identity file not found: $AGE_IDENTITY_FILE"
-  echo "Restore your age key before running dotfiles setup."
-  echo "Expected public recipient: age1jjprr9qsy2maxva7f3g2ll0z8px58343z0chunj3ljkjnw60kdhs5ypcjt"
+  echo "=== Generating SSH Key ==="
+  mkdir -p "$HOME/.ssh"
+  chmod 700 "$HOME/.ssh"
+  ssh-keygen -t ed25519 -C "$EMAIL" -f "$ssh_key" -N ""
+  chmod 600 "$ssh_key"
   echo ""
-  exit 1
+  echo "SSH key generated. Add this public key to GitHub:"
+  echo ""
+  cat "${ssh_key}.pub"
+  echo ""
 }
 
 # Add SSH key to macOS keychain so passphrase is remembered
@@ -223,18 +203,24 @@ set_git_config() {
 main() {
   install_xcode
   load_bootstrap_config
+  echo ""
+  echo "Configuration:"
+  echo "  GitHub user: $GHUSER"
+  echo "  Email: $EMAIL"
+  echo "  Packages: ${#BREW_PACKAGES[@]} brew, ${#BREW_CASKS[@]} casks"
+  echo ""
   install_homebrew
   set_git_config
-  ensure_age_identity
-  setup_dotfiles
+  create_ssh_key
   setup_ssh_keychain
 
   echo ""
   echo "=== Setup Complete ==="
   echo ""
   echo "Next steps:"
-  echo "  1. Restart your terminal (or run: source ~/.zshrc)"
-  echo "  2. Reboot machine for everything to take effect"
+  echo "  1. Run: chezmoi init --apply regutierrez"
+  echo "  2. Restart your terminal (or run: source ~/.zshrc)"
+  echo "  3. Reboot machine for everything to take effect"
   echo ""
 }
 
