@@ -1,5 +1,5 @@
-{{- $profile := (index . "profile" | default "desktop") -}}
-{{- $cfg := ((index .profiles $profile) | default (index .profiles "desktop")) -}}
+{{- $profile := (index . "profile" | default "personal") -}}
+{{- $cfg := ((index .profiles $profile) | default (index .profiles "personal")) -}}
 
 # Add binding to reload tmux.conf
 bind r source-file ~/.tmux.conf \; display ".conf reloaded"

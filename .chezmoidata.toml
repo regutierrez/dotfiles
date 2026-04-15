@@ -1,10 +1,20 @@
-[profiles.desktop]
+[profiles.personal]
 tmux_plugins = true
 manage_bashrc = false
 manage_vimrc = false
 manage_bin = true
 manage_dot_config = true
 manage_agents = true
+use_age = true
+
+[profiles.work]
+tmux_plugins = true
+manage_bashrc = false
+manage_vimrc = false
+manage_bin = true
+manage_dot_config = true
+manage_agents = true
+use_age = false
 
 [profiles.server]
 tmux_plugins = false
@@ -13,3 +23,4 @@ manage_vimrc = true
 manage_bin = false
 manage_dot_config = false
 manage_agents = false
+use_age = true

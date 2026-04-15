@@ -1,6 +1,6 @@
 # DOTFILES
 
-Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Zsh + Tmux + age encryption. Two profiles: `desktop` (default) and `server`.
+Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Zsh + Tmux + age encryption. Three profiles: `personal` (default), `work`, and `server`.
 
 ## SKILLS
 
@@ -11,21 +11,21 @@ Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Zsh + Tmux + a
 ```
 .
 ├── .chezmoi.toml.tmpl       # Config template (age encryption, editor prefs)
-├── .chezmoidata.toml        # Profile definitions (desktop vs server)
+├── .chezmoidata.toml        # Profile definitions (personal/work vs server)
 ├── .chezmoiignore           # Conditional ignore rules by profile/OS
 ├── dot_zshrc                # → ~/.zshrc
 ├── dot_bashrc               # → ~/.bashrc (server only)
 ├── dot_vimrc                # → ~/.vimrc (server only)
 ├── dot_tmux.conf.tmpl       # → ~/.tmux.conf (templated, plugins toggle by profile)
-├── dot_config/              # → ~/.config/ (desktop only)
+├── dot_config/              # → ~/.config/ (personal/work only)
 │   ├── ghostty/             #   Terminal
 │   ├── karabiner/           #   macOS key remapping
 │   ├── lazygit/             #   Git TUI
 │   ├── opencode/            #   AI agent config + commands/skills
 │   └── zed/                 #   Editor (macOS only)
-├── dot_agents/              # → ~/.agents/ (desktop only) — AI coding skills
+├── dot_agents/              # → ~/.agents/ (personal/work only) — AI coding skills
 ├── dot_pi/                  # → ~/.pi/ — Pi agent config, extensions, specs
-├── bin/                     # → ~/bin/ (desktop only) — custom scripts
+├── bin/                     # → ~/bin/ (personal/work only) — custom scripts
 ├── private_dot_ssh/         # → ~/.ssh/ (0700) — age-encrypted private key
 ├── macos/                   # NOT managed — bootstrap & settings scripts
 ├── linux/                   # NOT managed — Arch/Debian provisioning
@@ -46,14 +46,15 @@ Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Zsh + Tmux + a
 
 Defined in `.chezmoidata.toml`, set per machine in `~/.config/chezmoi/chezmoi.toml`:
 
-| Flag | `desktop` | `server` |
-|------|-----------|----------|
-| `tmux_plugins` | ✅ | ❌ |
-| `manage_bashrc` | ❌ | ✅ |
-| `manage_vimrc` | ❌ | ✅ |
-| `manage_bin` | ✅ | ❌ |
-| `manage_dot_config` | ✅ | ❌ |
-| `manage_agents` | ✅ | ❌ |
+| Flag | `personal` | `work` | `server` |
+|------|------------|--------|----------|
+| `tmux_plugins` | ✅ | ✅ | ❌ |
+| `manage_bashrc` | ❌ | ❌ | ✅ |
+| `manage_vimrc` | ❌ | ❌ | ✅ |
+| `manage_bin` | ✅ | ✅ | ❌ |
+| `manage_dot_config` | ✅ | ✅ | ❌ |
+| `manage_agents` | ✅ | ✅ | ❌ |
+| `use_age` | ✅ | ❌ | ✅ |
 
 ## COMMANDS
 

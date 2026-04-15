@@ -1,6 +1,6 @@
 # WORK STUFF
-GHUSER="regutierrez"
-EMAIL="rpegutierrez@gmail.com"
+# GHUSER="regutierrez"
+# EMAIL="rpegutierrez@gmail.com"
 
 BREW_PACKAGES=(
   asciinema
@@ -36,9 +36,7 @@ BREW_PACKAGES=(
 BREW_CASKS=(
   shottr
   google-chrome
-  homerow
   obsidian
   raycast
   ghostty
-  karabiner-elements
 )

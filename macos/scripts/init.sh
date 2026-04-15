@@ -5,11 +5,8 @@ set -e -u
 # Usage (remote): curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/init.sh | bash
 # Usage (local):  bash macos/scripts/init.sh
 # Overrides:
-#   cat > ~/.config/dotfiles/bootstrap.sh <<'EOF'
-#   BREW_PACKAGES=(ripgrep fd tmux)
-#   BREW_CASKS=(ghostty raycast)
-#   EOF
-#   BOOTSTRAP_CONFIG=~/.config/dotfiles/bootstrap.sh bash macos/scripts/init.sh
+#   BOOTSTRAP_CONFIG=/path/to/bootstrap.sh bash macos/scripts/init.sh
+#   bootstrap.sh can set: GHUSER, EMAIL, BREW_PACKAGES, BREW_CASKS
 
 BOOTSTRAP_CONFIG="${BOOTSTRAP_CONFIG:-$HOME/.config/dotfiles/bootstrap.sh}" # for work
 

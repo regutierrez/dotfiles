@@ -49,11 +49,23 @@ apply osascript -e 'tell application "Finder" to set desktop picture to POSIX fi
 # Trackpad, mouse, keyboard, Bluetooth accessories, and input                 #
 ###############################################################################
 
-# Trackpad: Haptic feedback (light, silent clicking)
+# Trackpad: light click force, haptic feedback enabled
 apply defaults write com.apple.AppleMultitouchTrackpad FirstClickThreshold -int 0
 apply defaults write com.apple.AppleMultitouchTrackpad SecondClickThreshold -int 0
-apply defaults write com.apple.AppleMultitouchTrackpad ActuationStrength -int 0
+apply defaults write com.apple.AppleMultitouchTrackpad ActuationStrength -int 1
+
+# Trackpad: tap-to-click (no physical press required)
+apply defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
+apply defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+apply defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+# Trackpad: three-finger drag (disable conflicting swipe gestures)
 apply defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true
+apply defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerHorizSwipeGesture -int 0
+apply defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerVertSwipeGesture -int 0
+apply defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
+apply defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerHorizSwipeGesture -int 0
+apply defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerVertSwipeGesture -int 0
 
 # Disable press-and-hold for keys in favor of key repeat
 apply defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false

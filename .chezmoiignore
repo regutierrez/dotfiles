@@ -1,5 +1,5 @@
-{{- $profile := (index . "profile" | default "desktop") -}}
-{{- $cfg := ((index .profiles $profile) | default (index .profiles "desktop")) -}}
+{{- $profile := .profile | default "personal" -}}
+{{- $cfg := index .profiles $profile -}}
 
 README.md
 AGENTS.md
@@ -16,6 +16,11 @@ srv/
 .ssh/config
 .config/karabiner
 .config/zed
+{{- end }}
+
+{{- if not $cfg.use_age }}
+**/encrypted_*
+**/private_dot_ssh/encrypted_*
 {{- end }}
 
 {{- if not $cfg.manage_bashrc }}

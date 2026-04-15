@@ -32,11 +32,11 @@ Examples:
 
 ## Repo-specific facts
 
-- Profiles live in `.chezmoidata.toml`: `desktop` default, `server` optional.
+- Profiles live in `.chezmoidata.toml`: `personal` (default), `work`, `server`.
 - `.chezmoiignore` is templated and gates files by OS/profile; patterns match **target paths**, not source paths.
 - `.chezmoi.toml.tmpl` configures `age` encryption and sets `[edit] apply = true` and `watch = true`.
 - Current bootstrap:
-  - desktop: `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez`
+  - personal: `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez`
   - server: `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --override-data '{"profile":"server"}' regutierrez`
 
 ## Daily workflow
