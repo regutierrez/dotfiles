@@ -63,19 +63,28 @@ archinstall --config-url https://raw.githubusercontent.com/regutierrez/dotfiles/
 
 ## macOS bootstrap
 
-1. Restore age identity key to `~/.config/chezmoi/key.txt`
-2. `chmod 600 ~/.config/chezmoi/key.txt`
-3. Run:
+1. Restore age identity key to `~/.config/chezmoi/key.txt` and ensure it has correct permissions (`chmod 600`).
+2. Run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/init.sh | bash
+curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/init.sh | sudo bash
+```
+
+> `sudo` is required to install Xcode CLI Tools and Homebrew on a fresh machine. The script validates the age key is present before applying dotfiles and exits with a clear error if it's missing.
+
+To use the work package set from the repo (`macos/scripts/bootstrap.sh`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/bootstrap.sh > /tmp/bootstrap.sh && curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/init.sh | sudo BOOTSTRAP_CONFIG=/tmp/bootstrap.sh bash
 ```
 
 ## Apply macOS settings
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/settings.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/settings.sh | bash
 ```
+
+> Run with `sudo bash` to apply settings that require root (e.g. `systemsetup -setrestartfreeze`). The script works without sudo but skips those steps.
 
 ## Daily use
 

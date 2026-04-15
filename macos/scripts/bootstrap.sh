@@ -1,3 +1,4 @@
+# WORK STUFF
 BREW_PACKAGES=(
   asciinema
   bat
@@ -20,7 +21,7 @@ BREW_PACKAGES=(
   lazygit
   pandoc
   direnv
-  mise
+  fnm
   mingw-w64
   # docker stuff
   docker
@@ -30,11 +31,8 @@ BREW_PACKAGES=(
 )
 
 BREW_CASKS=(
-  aldente
   shottr
   google-chrome
-  helium-browser
-  zen
   homerow
   obsidian
   raycast
