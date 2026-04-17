@@ -7,6 +7,8 @@ Vendored from:
 
 These extensions live under `~/.pi/agent/` when applied via chezmoi.
 
+Included extensions now also contain `answer.ts`, which adds `/answer` and `ctrl+.` for extracting questions from the last assistant reply into an interactive Q&A TUI.
+
 `multi-edit.ts` depends on the npm package `diff`, so after syncing dotfiles you must install dependencies in:
 
 ```bash
