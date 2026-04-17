@@ -1,2 +1,0 @@
-- modify pi system prompt to use caveman language (https://github.com/JuliusBrussee/caveman/blob/main/plugins/caveman/skills/caveman/SKILL.md)
-- test and improve index-knowledge skill. Check if you can use similar concepts for indexing, making onboarding docs (overview.md?) for huge codebases
