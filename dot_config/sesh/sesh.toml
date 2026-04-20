@@ -16,3 +16,8 @@ path = "~/.local/share/chezmoi"
 [[session]]
 name = "nvim"
 path = "~/.config/nvim"
+
+
+[[session]]
+name = "Akkio"
+path = "~/Akkio/"

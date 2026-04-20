@@ -94,6 +94,7 @@ export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/.opencode/bin
 export PATH=$PATH:$HOME/.cargo/bin/ # my helper scripts
 export PATH=/opt/homebrew/share/google-cloud-sdk/bin:"$PATH"
+# export AKKIO_REPOSITORY_PATH=$HOME/repos/Akkio/
 
 # Environment variables
 export GOOGLE_CLOUD_PROJECT="pael-project"
@@ -106,11 +107,12 @@ export EDITOR=nvim
 
 alias ls='eza'
 alias lg='lazygit'
+alias ld='lazydocker'
 alias v='nvim'
 alias o='opencode'
 alias ff='fastfetch'
 alias t='tmux'
-alias c='commando'
+alias c='claude --dangerously-skip-permissions'
 alias noco='ssh -t noco tmux -u a'
 alias golgra='ssh -t golgra tmux -u a'
 alias sbs='ssh -t sbs@sbs-apps tmux -u a'
@@ -131,9 +133,9 @@ alias gds='git --no-pager diff --stat HEAD'
 # Added by Antigravity
 export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
 
-# fnm
-if command -v fnm >/dev/null 2>&1; then
-  eval "$(fnm env --use-on-cd --shell zsh)"
+# mise
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
 fi
 
 # bun completions
