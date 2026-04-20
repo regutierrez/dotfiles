@@ -24,8 +24,7 @@ command -v sesh >/dev/null 2>&1 || {
 default_roots() {
   printf '%s\t%s\n' \
     'repos' "$HOME/repos" \
-    'playground' "$HOME/playground" \
-    'config' "$HOME/.config"
+    'playground' "$HOME/playground"
 }
 
 load_roots() {
@@ -41,7 +40,7 @@ load_roots() {
       [[ -n "${label:-}" && -n "${path:-}" ]] || continue
 
       printf '%s\t%s\n' "$label" "$path"
-    done < "$source"
+    done <"$source"
   else
     default_roots
   fi
@@ -51,15 +50,15 @@ expand_home() {
   local path="$1"
 
   case "$path" in
-    '~')
-      printf '%s\n' "$HOME"
-      ;;
-    \~/*)
-      printf '%s\n' "$HOME/${path:2}"
-      ;;
-    *)
-      printf '%s\n' "$path"
-      ;;
+  '~')
+    printf '%s\n' "$HOME"
+    ;;
+  \~/*)
+    printf '%s\n' "$HOME/${path:2}"
+    ;;
+  *)
+    printf '%s\n' "$path"
+    ;;
   esac
 }
 
@@ -101,7 +100,7 @@ write_generated_sessions() {
         write_generated_session_entry "$name" "$path"
       done
     done < <(load_roots)
-  } > "$GENERATED_SESSIONS"
+  } >"$GENERATED_SESSIONS"
 }
 
 write_generated_config() {
@@ -118,7 +117,7 @@ write_generated_config() {
       printf '[default_session]\n'
       printf 'preview_command = "eza --all --git --icons --color=always {}"\n'
     fi
-  } > "$GENERATED_CONFIG"
+  } >"$GENERATED_CONFIG"
 }
 
 prepare_generated_config() {
@@ -141,7 +140,7 @@ run_fzf_tmux_picker() {
   }
 
   local config_quoted selected
-  local all_cmd tmux_cmd configs_cmd repos_cmd playground_cmd config_dirs_cmd dotfiles_cmd zoxide_cmd find_cmd
+  local all_cmd tmux_cmd configs_cmd repos_cmd playground_cmd config_dirs_cmd zoxide_cmd find_cmd
 
   config_quoted="$(printf '%q' "$GENERATED_CONFIG")"
   all_cmd="sesh -C ${config_quoted} list --icons -d -H"
@@ -149,22 +148,20 @@ run_fzf_tmux_picker() {
   configs_cmd="sesh -C ${config_quoted} list -c --icons -d -H"
   repos_cmd="${configs_cmd} | rg 'repos/'"
   playground_cmd="${configs_cmd} | rg 'playground/'"
-  config_dirs_cmd="${configs_cmd} | rg 'config/'"
-  dotfiles_cmd="${configs_cmd} | rg 'dotfiles'"
+  config_dirs_cmd="${configs_cmd} | rg -i 'dotfiles|nvim'"
   zoxide_cmd="sesh -C ${config_quoted} list -z --icons -d -H"
   find_cmd="fd -H -d 2 -t d -E .Trash . ${HOME}"
 
   selected="$(eval "$all_cmd" | fzf-tmux -p 80%,70% \
     --no-sort --ansi --border-label ' commando + sesh ' --prompt '⚡  ' \
-    --header '  ^a all ^t tmux ^r repos ^p playground ^c config ^d dotfiles ^z zoxide ^x tmux kill ^f find' \
+    --header '  ^a all ^t tmux ^w work ^p play ^c config ^r zoxide ^x tmux kill ^f find' \
     --bind 'tab:down,btab:up' \
     --bind "ctrl-a:change-prompt(⚡  )+reload(${all_cmd})" \
     --bind "ctrl-t:change-prompt(🪟  )+reload(${tmux_cmd})" \
-    --bind "ctrl-r:change-prompt(📦  )+reload(${repos_cmd})" \
+    --bind "ctrl-w:change-prompt(📦  )+reload(${repos_cmd})" \
     --bind "ctrl-p:change-prompt(🧪  )+reload(${playground_cmd})" \
-    --bind "ctrl-c:change-prompt(⚙️  )+reload(${config_dirs_cmd})" \
-    --bind "ctrl-d:change-prompt(🏠  )+reload(${dotfiles_cmd})" \
-    --bind "ctrl-z:change-prompt(📁  )+reload(${zoxide_cmd})" \
+    --bind "ctrl-c:change-prompt(🏠  )+reload(${config_dirs_cmd})" \
+    --bind "ctrl-r:change-prompt(📁  )+reload(${zoxide_cmd})" \
     --bind "ctrl-f:change-prompt(🔎  )+reload(${find_cmd})" \
     --bind "ctrl-x:execute(tmux kill-session -t {2..})+change-prompt(⚡  )+reload(${all_cmd})" \
     --preview-window 'right:55%' \
@@ -175,20 +172,20 @@ run_fzf_tmux_picker() {
 }
 
 case "${1:-}" in
-  --prepare)
-    prepare_generated_config
-    exit 0
-    ;;
-  --config-path)
-    prepare_generated_config
-    printf '%s\n' "$GENERATED_CONFIG"
-    exit 0
-    ;;
-  --fzf-tmux)
-    prepare_generated_config
-    run_fzf_tmux_picker
-    exit 0
-    ;;
+--prepare)
+  prepare_generated_config
+  exit 0
+  ;;
+--config-path)
+  prepare_generated_config
+  printf '%s\n' "$GENERATED_CONFIG"
+  exit 0
+  ;;
+--fzf-tmux)
+  prepare_generated_config
+  run_fzf_tmux_picker
+  exit 0
+  ;;
 esac
 
 prepare_generated_config

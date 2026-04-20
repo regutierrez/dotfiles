@@ -11,3 +11,8 @@ preview_command = "eza --all --git --icons --color=always {}"
 [[session]]
 name = "dotfiles"
 path = "~/.local/share/chezmoi"
+
+# I only want to show nvim in the .config dir for now.
+[[session]]
+name = "nvim"
+path = "~/.config/nvim"
