@@ -26,7 +26,19 @@ from typing import cast
 
 # Configuration
 CACHE_ROOT = Path.home() / ".cache" / "syncr"
-DOTFILES_SKILLS = Path.home() / "repos" / "dotfiles" / "dot_agents" / "skills"
+
+
+def _chezmoi_source_path() -> Path:
+    result = subprocess.run(
+        ["chezmoi", "source-path"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return Path(result.stdout.strip())
+
+
+DOTFILES_SKILLS = _chezmoi_source_path() / "dot_agents" / "skills"
 
 
 def parse_repo_url(repo_input: str) -> tuple[str, str, str] | None:
