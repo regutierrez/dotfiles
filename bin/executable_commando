@@ -23,7 +23,6 @@ command -v sesh >/dev/null 2>&1 || {
 
 default_roots() {
   printf '%s\t%s\n' \
-    'repos' "$HOME/repos" \
     'playground' "$HOME/playground"
 }
 
@@ -140,13 +139,12 @@ run_fzf_tmux_picker() {
   }
 
   local config_quoted selected
-  local all_cmd tmux_cmd configs_cmd repos_cmd playground_cmd config_dirs_cmd zoxide_cmd find_cmd
+  local all_cmd tmux_cmd configs_cmd playground_cmd config_dirs_cmd zoxide_cmd find_cmd
 
   config_quoted="$(printf '%q' "$GENERATED_CONFIG")"
   all_cmd="sesh -C ${config_quoted} list --icons -d -H"
   tmux_cmd="sesh -C ${config_quoted} list -t --icons -d -H"
   configs_cmd="sesh -C ${config_quoted} list -c --icons -d -H"
-  repos_cmd="${configs_cmd} | rg 'repos/'"
   playground_cmd="${configs_cmd} | rg 'playground/'"
   config_dirs_cmd="${configs_cmd} | rg -i 'dotfiles|nvim'"
   zoxide_cmd="sesh -C ${config_quoted} list -z --icons -d -H"
@@ -154,11 +152,10 @@ run_fzf_tmux_picker() {
 
   selected="$(eval "$all_cmd" | fzf-tmux -p 80%,70% \
     --no-sort --ansi --border-label ' commando + sesh ' --prompt '⚡  ' \
-    --header '  ^a all ^t tmux ^w work ^p play ^c config ^r zoxide ^x tmux kill ^f find' \
+    --header '  ^a all ^t tmux ^p play ^c config ^r zoxide ^x tmux kill ^f find' \
     --bind 'tab:down,btab:up' \
     --bind "ctrl-a:change-prompt(⚡  )+reload(${all_cmd})" \
     --bind "ctrl-t:change-prompt(🪟  )+reload(${tmux_cmd})" \
-    --bind "ctrl-w:change-prompt(📦  )+reload(${repos_cmd})" \
     --bind "ctrl-p:change-prompt(🧪  )+reload(${playground_cmd})" \
     --bind "ctrl-c:change-prompt(🏠  )+reload(${config_dirs_cmd})" \
     --bind "ctrl-r:change-prompt(📁  )+reload(${zoxide_cmd})" \

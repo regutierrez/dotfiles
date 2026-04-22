@@ -34,17 +34,17 @@ path = "~/Akkio/"
 #   exec leftcmd
 # Pinning with `-t "$TMUX_PANE"` makes the split race-immune — sesh's
 # active-window state is irrelevant because we target this pane directly.
-# The captured `$P` is the new pane's ID, so send-keys lands in it reliably.
-startup_command = "P=$(tmux split-window -hd -P -F '#{pane_id}' -t \"$TMUX_PANE\"); tmux send-keys -t \"$P\" 'c' Enter; exec nvim"
-windows = ["gh", "akkio-services"]
-
-[[window]]
-name = "gh"
-startup_script = "exec gh dash"
-
-[[window]]
-name = "akkio-services"
-startup_script = "P=$(tmux split-window -hd -P -F '#{pane_id}' -t \"$TMUX_PANE\"); tmux send-keys -t \"$P\" 'lazydocker' Enter; exec process-compose"
+# # The captured `$P` is the new pane's ID, so send-keys lands in it reliably.
+# startup_command = "P=$(tmux split-window -hd -P -F '#{pane_id}' -t \"$TMUX_PANE\"); tmux send-keys -t \"$P\" 'c' Enter; exec nvim"
+# windows = ["gh", "akkio-services"]
+#
+# [[window]]
+# name = "gh"
+# startup_script = "exec gh dash"
+#
+# [[window]]
+# name = "akkio-services"
+# startup_script = "P=$(tmux split-window -hd -P -F '#{pane_id}' -t \"$TMUX_PANE\"); tmux send-keys -t \"$P\" 'lazydocker' Enter; exec process-compose"
 
 
 [[session]]
