@@ -21,30 +21,32 @@ path = "~/.config/nvim"
 [[session]]
 name = "Akkio"
 path = "~/Akkio/"
-# On launch, build a 3-window layout. Pane 0 of window 1 is where this
-# command runs, so we assemble everything else with tmux, then `exec nvim`
-# to take over that original pane.
+# Layout built on launch:
+#   window 1 (primary):  nvim             | c            — via startup_command below
+#   window 2:            gh dash                         — [[window]] "gh"
+#   window 3:            process-compose  | lazydocker   — [[window]] "akkio-services"
 #
-#   window 1:  nvim            | c
-#   window 2:  gh dash
-#   window 3:  process-compose | lazydocker
-#
-# `-hd` on split-window = horizontal split, detached (don't steal focus).
-# `send-keys` is used for gh dash / process-compose so Ctrl-C drops back
-# to a shell instead of closing the pane (which is what
-# `new-window 'cmd'` / `split-window 'cmd'` would do).
-startup_command = '''
-tmux split-window -hd 'c' \; \
-     new-window \; \
-     send-keys -t :2 'gh dash' Enter \; \
-     new-window \; \
-     split-window -hd 'lazydocker' \; \
-     send-keys -t :3.0 'process-compose' Enter \; \
-     select-window -t :1
-exec nvim
-'''
+# sesh injects each of these as keystrokes into the new window's first pane
+# (via `tmux send-keys`), so they're shell command lines. For any window
+# that needs two panes, we use the same idiom:
+#   P=$(tmux split-window -hd -P -F '#{pane_id}' -t "$TMUX_PANE")
+#   tmux send-keys -t "$P" 'rightcmd' Enter
+#   exec leftcmd
+# Pinning with `-t "$TMUX_PANE"` makes the split race-immune — sesh's
+# active-window state is irrelevant because we target this pane directly.
+# The captured `$P` is the new pane's ID, so send-keys lands in it reliably.
+startup_command = "P=$(tmux split-window -hd -P -F '#{pane_id}' -t \"$TMUX_PANE\"); tmux send-keys -t \"$P\" 'c' Enter; exec nvim"
+windows = ["gh", "akkio-services"]
+
+[[window]]
+name = "gh"
+startup_script = "exec gh dash"
+
+[[window]]
+name = "akkio-services"
+startup_script = "P=$(tmux split-window -hd -P -F '#{pane_id}' -t \"$TMUX_PANE\"); tmux send-keys -t \"$P\" 'lazydocker' Enter; exec process-compose"
 
 
 [[session]]
-name = "akkio-doc"
+name = "akkio-docs"
 path = "~/Documents/pael-notes/akkio/akkio-monorepo/"
