@@ -1,0 +1,122 @@
+shortcuts:
+  # --- search / filter (vim: / n N) -------------------------------------
+  find:
+    description: Find
+    shortcut: "/"
+  find_next:
+    description: Next
+    shortcut: "n"
+  find_prev:
+    description: Prev
+    shortcut: "N"
+  find_exit:
+    description: Exit Search
+    shortcut: Esc
+  proc_filter:
+    description: Filter Procs
+    shortcut: "f"
+  ns_filter:
+    description: Namespace Filter
+    shortcut: "g"
+
+  # --- focus / layout (Tab to cycle, z to zoom) -------------------------
+  focus_change:
+    description: Focus
+    shortcut: Tab
+  full_screen:
+    toggle_description:
+      true: Unzoom
+      false: Zoom
+    shortcut: "z"
+  log_screen:
+    toggle_description:
+      true: Proc List
+      false: Log Full
+    shortcut: "l"
+  process_screen:
+    toggle_description:
+      true: Hide Proc Info
+      false: Proc Info
+    shortcut: "P"
+
+  # --- process actions --------------------------------------------------
+  process_info:
+    description: Info
+    shortcut: "i"
+  process_start:
+    description: Start
+    shortcut: "s"
+  process_stop:
+    description: Stop
+    shortcut: "x"
+  process_restart:
+    description: Restart
+    shortcut: "r"
+  process_scale:
+    description: Scale
+    shortcut: "="
+  process_signal:
+    description: Signal
+    shortcut: "K"
+  edit_process:
+    description: Edit
+    shortcut: "e"
+
+  # --- log pane ---------------------------------------------------------
+  log_follow:
+    toggle_description:
+      true: Follow On
+      false: Follow Off
+    shortcut: "F"
+  log_wrap:
+    toggle_description:
+      true: Wrap On
+      false: Wrap Off
+    shortcut: "w"
+  log_select:
+    toggle_description:
+      true: Select On
+      false: Select Off
+    shortcut: "v"
+  log_pretty_print:
+    toggle_description:
+      true: Pretty On
+      false: Pretty Off
+    shortcut: "p"
+  clear_log:
+    description: Clear
+    shortcut: "c"
+  mark_log:
+    description: Mark
+    shortcut: "m"
+
+  # --- misc -------------------------------------------------------------
+  help:
+    description: Help
+    shortcut: "?"
+  theme_selector:
+    description: Theme
+    shortcut: "t"
+  reload_config:
+    description: Reload
+    shortcut: "R"
+  hide_disabled:
+    toggle_description:
+      true: Show Disabled
+      false: Hide Disabled
+    shortcut: "H"
+  dependency_graph:
+    description: Dep Graph
+    shortcut: "G"
+  namespace_ops:
+    description: Namespace
+    shortcut: "o"
+  send_to_background:
+    description: Background
+    shortcut: "b"
+  term_exit:
+    description: Term Exit
+    shortcut: "Q"
+  quit:
+    description: Quit
+    shortcut: "q"

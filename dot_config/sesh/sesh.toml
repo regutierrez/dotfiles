@@ -21,3 +21,30 @@ path = "~/.config/nvim"
 [[session]]
 name = "Akkio"
 path = "~/Akkio/"
+# On launch, build a 3-window layout. Pane 0 of window 1 is where this
+# command runs, so we assemble everything else with tmux, then `exec nvim`
+# to take over that original pane.
+#
+#   window 1:  nvim            | c
+#   window 2:  gh dash
+#   window 3:  process-compose | lazydocker
+#
+# `-hd` on split-window = horizontal split, detached (don't steal focus).
+# `send-keys` is used for gh dash / process-compose so Ctrl-C drops back
+# to a shell instead of closing the pane (which is what
+# `new-window 'cmd'` / `split-window 'cmd'` would do).
+startup_command = '''
+tmux split-window -hd 'c' \; \
+     new-window \; \
+     send-keys -t :2 'gh dash' Enter \; \
+     new-window \; \
+     split-window -hd 'lazydocker' \; \
+     send-keys -t :3.0 'process-compose' Enter \; \
+     select-window -t :1
+exec nvim
+'''
+
+
+[[session]]
+name = "akkio-doc"
+path = "~/Documents/pael-notes/akkio/akkio-monorepo/"
