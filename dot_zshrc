@@ -92,8 +92,8 @@ export PATH=$PATH:$HOME/.local/bin/
 export PATH=$PATH:$HOME/bin/
 export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/.cargo/bin/
+export PATH=$HOME/.npm-global/bin:$PATH
 export PATH=/opt/homebrew/share/google-cloud-sdk/bin:"$PATH"
-# export AKKIO_REPOSITORY_PATH=$HOME/repos/Akkio/
 
 export EDITOR=nvim
 
@@ -115,7 +115,7 @@ alias ff='fastfetch'
 alias t='tmux'
 alias c='claude --dangerously-skip-permissions'
 alias gds='git --no-pager diff --stat HEAD'
-alias chrome-debug='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222'
+alias chrome-debug='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-perf-profile > /tmp/chrome.log 2>&1 &'
 # alias ag='Xvfb :100 -screen 0 1920x1080x24 & sleep 1 && DISPLAY=:100 autocutsel -fork & DISPLAY=:100 antigravity --ozone-platform=x11 & sleep 2 && x11vnc -display :100 -forever -rfbauth ~/.vnc/passwd -listen 0.0.0.0 -rfbport 5900 -noxdamage -clipboard'
 
 

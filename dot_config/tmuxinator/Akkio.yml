@@ -1,0 +1,15 @@
+name: Akkio
+root: ~/Akkio/
+
+windows:
+  - primary:
+      layout: even-horizontal
+      panes:
+        - nvim
+        - c
+  - gh: gh dash
+  - services:
+      layout: even-horizontal
+      panes:
+        - process-compose
+        - lazydocker

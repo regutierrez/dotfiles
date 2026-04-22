@@ -139,7 +139,7 @@ run_fzf_tmux_picker() {
   }
 
   local config_quoted selected
-  local all_cmd tmux_cmd configs_cmd playground_cmd config_dirs_cmd zoxide_cmd find_cmd
+  local all_cmd tmux_cmd configs_cmd playground_cmd config_dirs_cmd zoxide_cmd mux_cmd find_cmd
 
   config_quoted="$(printf '%q' "$GENERATED_CONFIG")"
   all_cmd="sesh -C ${config_quoted} list --icons -d -H"
@@ -148,17 +148,19 @@ run_fzf_tmux_picker() {
   playground_cmd="${configs_cmd} | rg 'playground/'"
   config_dirs_cmd="${configs_cmd} | rg -i 'dotfiles|nvim'"
   zoxide_cmd="sesh -C ${config_quoted} list -z --icons -d -H"
+  mux_cmd="sesh -C ${config_quoted} list -T --icons -d -H"
   find_cmd="fd -H -d 2 -t d -E .Trash . ${HOME}"
 
   selected="$(eval "$all_cmd" | fzf-tmux -p 80%,70% \
     --no-sort --ansi --border-label ' commando + sesh ' --prompt '⚡  ' \
-    --header '  ^a all ^t tmux ^p play ^c config ^r zoxide ^x tmux kill ^f find' \
+    --header '  ^a all ^t tmux ^p play ^c config ^r zoxide ^l mux ^x tmux kill ^f find' \
     --bind 'tab:down,btab:up' \
     --bind "ctrl-a:change-prompt(⚡  )+reload(${all_cmd})" \
     --bind "ctrl-t:change-prompt(🪟  )+reload(${tmux_cmd})" \
     --bind "ctrl-p:change-prompt(🧪  )+reload(${playground_cmd})" \
     --bind "ctrl-c:change-prompt(🏠  )+reload(${config_dirs_cmd})" \
     --bind "ctrl-r:change-prompt(📁  )+reload(${zoxide_cmd})" \
+    --bind "ctrl-l:change-prompt(📐  )+reload(${mux_cmd})" \
     --bind "ctrl-f:change-prompt(🔎  )+reload(${find_cmd})" \
     --bind "ctrl-x:execute(tmux kill-session -t {2..})+change-prompt(⚡  )+reload(${all_cmd})" \
     --preview-window 'right:55%' \

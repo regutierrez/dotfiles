@@ -19,34 +19,5 @@ path = "~/.config/nvim"
 
 
 [[session]]
-name = "Akkio"
-path = "~/Akkio/"
-# Layout built on launch:
-#   window 1 (primary):  nvim             | c            — via startup_command below
-#   window 2:            gh dash                         — [[window]] "gh"
-#   window 3:            process-compose  | lazydocker   — [[window]] "akkio-services"
-#
-# sesh injects each of these as keystrokes into the new window's first pane
-# (via `tmux send-keys`), so they're shell command lines. For any window
-# that needs two panes, we use the same idiom:
-#   P=$(tmux split-window -hd -P -F '#{pane_id}' -t "$TMUX_PANE")
-#   tmux send-keys -t "$P" 'rightcmd' Enter
-#   exec leftcmd
-# Pinning with `-t "$TMUX_PANE"` makes the split race-immune — sesh's
-# active-window state is irrelevant because we target this pane directly.
-# # The captured `$P` is the new pane's ID, so send-keys lands in it reliably.
-# startup_command = "P=$(tmux split-window -hd -P -F '#{pane_id}' -t \"$TMUX_PANE\"); tmux send-keys -t \"$P\" 'c' Enter; exec nvim"
-# windows = ["gh", "akkio-services"]
-#
-# [[window]]
-# name = "gh"
-# startup_script = "exec gh dash"
-#
-# [[window]]
-# name = "akkio-services"
-# startup_script = "P=$(tmux split-window -hd -P -F '#{pane_id}' -t \"$TMUX_PANE\"); tmux send-keys -t \"$P\" 'lazydocker' Enter; exec process-compose"
-
-
-[[session]]
 name = "akkio-docs"
 path = "~/Documents/pael-notes/akkio/akkio-monorepo/"
