@@ -19,6 +19,38 @@ const isLocal = (url) =>
   url.hostname === "127.0.0.1" ||
   url.hostname === "0.0.0.0";
 
+// Goja has no atob; hand-rolled base64url decoder for JWT payloads.
+const b64urlDecode = (s) => {
+  const t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  let out = "", buf = 0, bits = 0;
+  for (const c of s) {
+    const v = t.indexOf(c);
+    if (v < 0) continue;
+    buf = (buf << 6) | v;
+    bits += 6;
+    if (bits >= 8) { bits -= 8; out += String.fromCharCode((buf >> bits) & 0xff); }
+  }
+  return out;
+};
+
+// Slack's OIDC login_initiate_redirect wraps the real destination inside a
+// signed JWT (login_hint claim). Decode it so we can route on the real target
+// instead of the slack.com entry point. Signature is NOT verified — read-only.
+const slackTargetUri = (url) => {
+  if (url.hostname !== "slack.com") return null;
+  if (!url.pathname.includes("login_initiate_redirect")) return null;
+  const hint = url.searchParams.get("login_hint");
+  if (!hint) return null;
+  try {
+    const payload = JSON.parse(b64urlDecode(hint.split(".")[1]));
+    return payload["https://slack.com/target_uri"] || null;
+  } catch { return null; }
+};
+
+const isHorizonUrl = (s) =>
+  /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|blu\.sky\.horizonmedia\.com\/(?!ratings-chat))/.test(s);
+
 export default {
   defaultBrowser: "Arc",
   rewrite: [
@@ -36,6 +68,13 @@ export default {
     },
     {
       match: "spirehorizon.atlassian.net/*",
+      url: tagSpace("horizon"),
+    },
+    {
+      match: (url) => {
+        const t = slackTargetUri(url);
+        return t && isHorizonUrl(t);
+      },
       url: tagSpace("horizon"),
     },
     {
