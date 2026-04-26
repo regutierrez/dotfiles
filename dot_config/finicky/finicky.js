@@ -49,7 +49,7 @@ const slackTargetUri = (url) => {
 };
 
 const isHorizonUrl = (s) =>
-  /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|blu\.sky\.horizonmedia\.com\/(?!ratings-chat))/.test(s);
+  /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|([a-z0-9-]+\.)*datadoghq\.com)/.test(s);
 
 export default {
   defaultBrowser: "Arc",
@@ -68,6 +68,10 @@ export default {
     },
     {
       match: "spirehorizon.atlassian.net/*",
+      url: tagSpace("horizon"),
+    },
+    {
+      match: ["datadoghq.com/*", "*.datadoghq.com/*"],
       url: tagSpace("horizon"),
     },
     {
