@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "datadog": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp"
+      ]
+    }
+  }
+}
