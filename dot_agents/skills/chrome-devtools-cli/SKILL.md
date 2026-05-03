@@ -5,6 +5,21 @@ description: Use this skill to write shell scripts or run shell commands to auto
 
 The `chrome-devtools-mcp` CLI lets you interact with the browser from your terminal.
 
+## MUST: New Tab For Each Browser Task
+
+When starting any new browser task, **MUST create a new tab before doing browser work**.
+
+- **MUST** start each new browser task by creating a fresh tab with `chrome-devtools new_page "<url>"`.
+- **MUST** use only that newly created/selected tab for that task.
+- **MUST NOT** reuse, navigate, reload, close, click in, or otherwise modify existing tabs unless the user explicitly asks.
+- This preserves shared auth while avoiding conflicts between unrelated tasks or multiple agents connected to the same Chrome instance.
+
+If no URL is provided for the task, create a blank tab first:
+
+```bash
+chrome-devtools new_page "about:blank"
+```
+
 ## AI Workflow
 
 1. **Execute**: Run tools directly (e.g., `chrome-devtools list_pages`). The background server starts implicitly; **do not** run `start`/`status`/`stop` before each use.
