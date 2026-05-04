@@ -12,6 +12,7 @@ When starting any new browser task, **MUST create a new tab before doing browser
 - **MUST** start each new browser task by creating a fresh tab with `chrome-devtools new_page "<url>"`.
 - **MUST** use only that newly created/selected tab for that task.
 - **MUST NOT** reuse, navigate, reload, close, click in, or otherwise modify existing tabs unless the user explicitly asks.
+- **MUST NOT** run the Chrome session in headless mode unless the user explicitly asks.
 - This preserves shared auth while avoiding conflicts between unrelated tasks or multiple agents connected to the same Chrome instance.
 
 If no URL is provided for the task, create a blank tab first:
