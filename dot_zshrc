@@ -118,6 +118,7 @@ alias co='commando'
 alias ca='chezmoi apply'
 alias gds='git --no-pager diff --stat HEAD'
 alias chrome-debug='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-perf-profile > /tmp/chrome.log 2>&1 &'
+alias dbui='nvim -c DBUI'
 # alias ag='Xvfb :100 -screen 0 1920x1080x24 & sleep 1 && DISPLAY=:100 autocutsel -fork & DISPLAY=:100 antigravity --ozone-platform=x11 & sleep 2 && x11vnc -display :100 -forever -rfbauth ~/.vnc/passwd -listen 0.0.0.0 -rfbport 5900 -noxdamage -clipboard'
 
 

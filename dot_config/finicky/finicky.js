@@ -75,6 +75,10 @@ export default {
       url: tagSpace("horizon"),
     },
     {
+      match: (url) => /oidc.*amazonaws/i.test(url.href),
+      url: tagSpace("horizon"),
+    },
+    {
       match: (url) => {
         const t = slackTargetUri(url);
         return t && isHorizonUrl(t);
