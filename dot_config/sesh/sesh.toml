@@ -17,6 +17,9 @@ path = "~/.local/share/chezmoi"
 name = "nvim"
 path = "~/.config/nvim"
 
+[[session]]
+name = "blushift DBT"
+path = "~/blushift/"
 
 [[session]]
 name = "akkio-docs"

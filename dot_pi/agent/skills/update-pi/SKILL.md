@@ -12,7 +12,7 @@ Use this skill when the user asks to upgrade Pi itself.
 
 1. Finds the latest Pi version from npm.
 2. Compares the global CLI version and updates it only if needed.
-3. Syncs `@mariozechner/pi-*` deps in the chezmoi source `~/.pi/agent/package.json` only if needed.
+3. Syncs `@earendil-works/pi-*` deps in the chezmoi source `~/.pi/agent/package.json` only if needed.
 4. Runs `bun install`, or falls back to `npm install` if `bun` is unavailable, in the chezmoi source only when `package.json` changed.
 5. Detects whether the live target `~/.pi/agent` has drift in managed files.
 6. Applies the updated source to the live target only when source changed or target drift exists.
@@ -25,7 +25,7 @@ Use this skill when the user asks to upgrade Pi itself.
 set -euo pipefail
 
 # 1) Resolve latest version once
-LATEST="$(npm view @mariozechner/pi-coding-agent version)"
+LATEST="$(npm view @earendil-works/pi-coding-agent version)"
 TARGET_RANGE="^${LATEST}"
 SOURCE_DIR="$(chezmoi source-path)/dot_pi/agent"
 TARGET_DIR="${HOME}/.pi/agent"
@@ -40,7 +40,7 @@ const input = fs.readFileSync(0, "utf8");
 let v = "";
 try {
   const j = JSON.parse(input);
-  v = j.dependencies?.["@mariozechner/pi-coding-agent"]?.version || "";
+  v = j.dependencies?.["@earendil-works/pi-coding-agent"]?.version || "";
 } catch {}
 process.stdout.write(v);
 ')"
@@ -48,7 +48,7 @@ process.stdout.write(v);
 GLOBAL_UPDATED=no
 if [ "${GLOBAL_CURRENT}" != "${LATEST}" ]; then
   echo "Updating global pi-coding-agent: ${GLOBAL_CURRENT:-<none>} -> ${LATEST}"
-  npm install -g "@mariozechner/pi-coding-agent@${LATEST}"
+  npm install -g "@earendil-works/pi-coding-agent@${LATEST}"
   GLOBAL_UPDATED=yes
 else
   echo "Global pi-coding-agent already at ${LATEST}; skipping npm install -g"
@@ -64,9 +64,9 @@ const target = process.env.TARGET_RANGE;
 const pkg = JSON.parse(fs.readFileSync(path, "utf8"));
 const deps = pkg.dependencies || {};
 const names = [
-  "@mariozechner/pi-ai",
-  "@mariozechner/pi-coding-agent",
-  "@mariozechner/pi-tui"
+  "@earendil-works/pi-ai",
+  "@earendil-works/pi-coding-agent",
+  "@earendil-works/pi-tui"
 ];
 let changed = false;
 for (const name of names) {
@@ -143,7 +143,7 @@ fi
 
 # 9) Verify + concise summary
 echo "--- Verification ---"
-npm list -g --depth=0 | rg '@mariozechner/pi-coding-agent'
+npm list -g --depth=0 | rg '@earendil-works/pi-coding-agent'
 echo "Source dependencies:"
 cd "${SOURCE_DIR}"
 node -e 'const p=require("./package.json"); console.log(JSON.stringify(p.dependencies, null, 2))'
@@ -164,7 +164,8 @@ echo "targetInstallRan=${TARGET_INSTALL_RAN}"
 
 ## Notes
 
-- Keep the three `@mariozechner/pi-*` dependency versions aligned.
+- Keep the three `@earendil-works/pi-*` dependency versions aligned.
+- Pi source now lives in `earendil-works/pi-mono` (packages published under `@earendil-works/*`).
 - Treat the chezmoi source as canonical. Update the live target by applying source changes, not by editing `~/.pi/agent/package.json` directly.
 - This skill is idempotent: if already up to date, it should do no-op work and report skips clearly.
 - Prefer `bun install` when `bun` exists. Fall back to `npm install` when it does not.
