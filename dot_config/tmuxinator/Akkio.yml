@@ -7,7 +7,6 @@ windows:
       panes:
         - nvim
         - c
-  - gh: gh dash
   - services:
       layout: even-horizontal
       panes:

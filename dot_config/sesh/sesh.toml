@@ -22,7 +22,3 @@ path = "~/.config/nvim"
 name = "akkio-docs"
 path = "~/Documents/pael-notes/akkio/akkio-monorepo/"
 
-
-[[session]]
-name = "Horizon Bugs"
-path = "~/repos/horizon-bugs-investigations/"
