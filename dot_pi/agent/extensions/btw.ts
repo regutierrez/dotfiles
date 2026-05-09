@@ -11,9 +11,9 @@ import {
   type ExtensionCommandContext,
   type ExtensionContext,
   type ResourceLoader,
-} from "@mariozechner/pi-coding-agent";
-import { type AgentMessage } from "@mariozechner/pi-agent-core";
-import { type AssistantMessage, type ThinkingLevel as AiThinkingLevel } from "@mariozechner/pi-ai";
+} from "@earendil-works/pi-coding-agent";
+import { type AgentMessage } from "@earendil-works/pi-agent-core";
+import { type AssistantMessage, type ThinkingLevel as AiThinkingLevel } from "@earendil-works/pi-ai";
 import {
   Container,
   Input,
@@ -24,7 +24,7 @@ import {
   type KeybindingsManager,
   type OverlayHandle,
   type TUI,
-} from "@mariozechner/pi-tui";
+} from "@earendil-works/pi-tui";
 
 const BTW_ENTRY_TYPE = "btw-thread-entry";
 const BTW_RESET_TYPE = "btw-thread-reset";

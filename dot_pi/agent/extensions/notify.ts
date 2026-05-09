@@ -9,8 +9,8 @@
  * Not supported: Kitty (uses OSC 99), Terminal.app, Windows Terminal, Alacritty
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { Markdown, type MarkdownTheme } from "@mariozechner/pi-tui";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { Markdown, type MarkdownTheme } from "@earendil-works/pi-tui";
 
 /**
  * Strip control characters and OSC delimiters that would break the terminal
