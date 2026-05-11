@@ -7,18 +7,31 @@ description: Author deep investigation writeups for the Investigatr Astro site. 
 
 Global skill for writing evidence-backed investigation MDX. Target repo is always `/Users/pakkio/playground/investigatr`; use absolute paths or `cd` there before file edits, tests, or content creation. Application code lives in `~/Akkio/`.
 
+## Required CLIs
+
+- Use `linear-cli` for all Linear reads. Do not use Linear MCP tools when `linear-cli` is available.
+- Use `pup` for all Datadog reads. Do not use Datadog MCP tools when `pup` is available.
+- Prefer `--output json --compact --fields ...` for `linear-cli` and `--output=json --limit=N` for `pup`; parse with `jq`, `uv`, or small scripts instead of eyeballing large output.
+- If either CLI returns an auth/config error, stop and report the missing access. Do not start interactive auth flows (`linear-cli auth`, `pup auth login`) unless the user explicitly asks.
+
 ## Goal / Success Criteria
 
 A successful investigation lets an engineer understand what happened, why it happened or what remains unknown, who/what was affected, how to reproduce or validate it, and where to inspect or fix next. Every major claim must be backed by Linear, Datadog, code, or production data evidence.
 
 ## Investigation Workflow
 
-1. **Resolve Linear ticket.** Use Linear MCP:
-   - `linear_get_issue` for title, body, metadata, labels, team/project, dates, URL, assignee, creator/reporter.
-   - `linear_list_comments` for discussion, updates, logs, repro notes, impact, links, screenshots, attachments.
-   - Fetch linked docs/images/attachments when useful.
+1. **Resolve Linear ticket with `linear-cli`.** Use machine-readable output and narrow fields when possible:
+   - `linear-cli issues get <TICKET-ID> --output json --compact` for title, body, metadata, labels, team/project, dates, URL, assignee, creator/reporter.
+   - `linear-cli comments list <TICKET-ID> --output json --compact --all` for discussion, updates, logs, repro notes, impact, links, screenshots, attachments.
+   - `linear-cli attachments list <TICKET-ID> --output json --compact --all` and `linear-cli uploads ...` for linked docs/images/attachments when useful.
+   - `linear-cli api --output json` only when typed subcommands do not expose a needed field.
 2. **Extract anchors.** Collect searchable IDs/terms: user email/ID, org/customer, project/resource/deployment IDs, trace IDs, request paths, service/env, timestamps, error text, feature names, affected entity IDs.
-3. **Investigate Datadog deeply.** Search logs/spans around the reported time, then widen. Use `datadog_search_datadog_logs`, `datadog_analyze_datadog_logs`, and `datadog_get_datadog_trace`; add RUM/events/metrics/monitors/incidents when relevant. If no trace ID exists, discover candidates from strongest anchors and inspect only traces connected to the reported action/resource. Capture scoped Datadog URLs.
+3. **Investigate Datadog deeply with `pup`.** Search logs/spans around the reported time, then widen. Start with aggregates, then fetch small representative samples:
+   - `pup logs aggregate --query='<scoped query>' --from=<range> --compute=count --group-by=<field> --limit=20 --output=json`
+   - `pup logs search --query='<scoped query>' --from=<range> --to=<range> --limit=20 --output=json`
+   - `pup traces search --query='trace_id:<trace_id>' --from=<range> --output=json`
+   - Add `pup rum`, `pup events`, `pup metrics`, `pup monitors`, or `pup incidents` queries when relevant.
+   If no trace ID exists, discover candidates from strongest anchors and inspect only traces connected to the reported action/resource. Capture scoped Datadog URLs.
 4. **Correlate evidence.** Build an ET timeline from Linear + Datadog + code/data. Mark `Unknown`, assumptions, and hypotheses explicitly.
 5. **Verify root cause before claiming it.** Confirm production entity IDs, persisted fields/state, user-authored input/config, read/write code paths, start time, frequency, blast radius, recurrence, and ruled-out hypotheses. Do not say `likely bad data` unless the data was directly inspected.
 6. **Reproduce or document limits.** Every investigation needs `## Reproduction steps`. Use exact browser/API/CLI steps, prerequisites, expected visible result/error, and screenshots/video when the user asks to reproduce. If unsafe or impossible, provide the closest safe partial repro and explain exactly what prevents full reproduction. Use `chrome-devtools-cli` when asked to reproduce; Chrome MCP is fallback.
@@ -140,7 +153,7 @@ Optional when useful:
 - Could a junior engineer tell where to look next?
 - Are required lookup IDs included: user, org, project, resource, deployment group, trace, job, downstream IDs?
 - Are customer-visible symptom, production state, user-authored input/config, and code path quoted or summarized accurately?
-- Are conclusions backed by direct Linear/Datadog/code/data evidence with URLs or file references?
+- Are conclusions backed by direct Linear/Datadog/code/data evidence with URLs, file references, or the exact `linear-cli`/`pup` commands used?
 - Are missing facts labeled `Unknown` with the exact next query/tool needed?
 - Did you avoid recommending a data fix when code semantics are wrong?
 - Does the MDX include mandatory reproduction and validation steps?
