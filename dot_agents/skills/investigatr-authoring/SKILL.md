@@ -9,34 +9,50 @@ Global skill for writing evidence-backed investigation MDX. Target repo is alway
 
 ## Required CLIs
 
-- Use `linear-cli` for all Linear reads. Do not use Linear MCP tools when `linear-cli` is available.
-- Use `pup` for all Datadog reads. Do not use Datadog MCP tools when `pup` is available.
-- Prefer `--output json --compact --fields ...` for `linear-cli` and `--output=json --limit=N` for `pup`; parse with `jq`, `uv`, or small scripts instead of eyeballing large output.
+- Use `linear-cli` for all Linear reads. ONLY use Linear MCP if `linear-cli` is not available.
+- Use `pup` for all Datadog reads. ONLY use Datadog MCP tools when `pup` is not available.
+- Prefer `--output json --compact --fields ...` for `linear-cli` and `--output=json --limit=N` for `pup`; parse with `jq`.
 - If either CLI returns an auth/config error, stop and report the missing access. Do not start interactive auth flows (`linear-cli auth`, `pup auth login`) unless the user explicitly asks.
 
 ## Goal / Success Criteria
 
 A successful investigation lets an engineer understand what happened, why it happened or what remains unknown, who/what was affected, how to reproduce or validate it, and where to inspect or fix next. Every major claim must be backed by Linear, Datadog, code, or production data evidence.
 
+## Evidence Discipline
+
+- Every claim needs a link, query, command, file path, or trace ID. No claim, no statement.
+- Unverified reporter/user claims: tag `reported-unverified`. Never restate as fact.
+- Reporter's suspected cause is input, not conclusion. Hunt for symptoms that break their framing.
+- No evidence against ≠ evidence for. Survival needs a positive observable.
+- Root cause needs a repro, a deploy counterfactual, or an exclusive trace/code path.
+
+## Problem Gate
+
+Before suggesting a fix, ask: should this problem exist at all? Real requirement, or accident of a dead path, junk integration, avoidable state, confused abstraction? If it should not exist, recommend delete/simplify/redesign before patching symptoms.
+
 ## Investigation Workflow
 
-1. **Resolve Linear ticket with `linear-cli`.** Use machine-readable output and narrow fields when possible:
+1. **Frame.** Before pulling Linear/Datadog, jot down:
+   - Scope: systems, tenants, routes, jobs, time range, user actions in. What's out.
+   - Access map: for each source (logs, traces, dashboards, code, DB, queue, flag, deploy), mark `available`, `partial`, `missing`, `unknown`. Declare gaps now, not at writeup.
+   - Timebox: 20 min per hypothesis check unless user says otherwise.
+2. **Resolve Linear ticket with `linear-cli`.** Use machine-readable output and narrow fields when possible:
    - `linear-cli issues get <TICKET-ID> --output json --compact` for title, body, metadata, labels, team/project, dates, URL, assignee, creator/reporter.
    - `linear-cli comments list <TICKET-ID> --output json --compact --all` for discussion, updates, logs, repro notes, impact, links, screenshots, attachments.
    - `linear-cli attachments list <TICKET-ID> --output json --compact --all` and `linear-cli uploads ...` for linked docs/images/attachments when useful.
    - `linear-cli api --output json` only when typed subcommands do not expose a needed field.
-2. **Extract anchors.** Collect searchable IDs/terms: user email/ID, org/customer, project/resource/deployment IDs, trace IDs, request paths, service/env, timestamps, error text, feature names, affected entity IDs.
-3. **Investigate Datadog deeply with `pup`.** Search logs/spans around the reported time, then widen. Start with aggregates, then fetch small representative samples:
+3. **Extract anchors.** Collect searchable IDs/terms: user email/ID, org/customer, project/resource/deployment IDs, trace IDs, request paths, service/env, timestamps, error text, feature names, affected entity IDs.
+4. **Investigate Datadog deeply with `pup`.** Search logs/spans around the reported time, then widen. Start with aggregates, then fetch small representative samples:
    - `pup logs aggregate --query='<scoped query>' --from=<range> --compute=count --group-by=<field> --limit=20 --output=json`
    - `pup logs search --query='<scoped query>' --from=<range> --to=<range> --limit=20 --output=json`
    - `pup traces search --query='trace_id:<trace_id>' --from=<range> --output=json`
    - Add `pup rum`, `pup events`, `pup metrics`, `pup monitors`, or `pup incidents` queries when relevant.
    If no trace ID exists, discover candidates from strongest anchors and inspect only traces connected to the reported action/resource. Capture scoped Datadog URLs.
-4. **Correlate evidence.** Build an ET timeline from Linear + Datadog + code/data. Mark `Unknown`, assumptions, and hypotheses explicitly.
-5. **Verify root cause before claiming it.** Confirm production entity IDs, persisted fields/state, user-authored input/config, read/write code paths, start time, frequency, blast radius, recurrence, and ruled-out hypotheses. Do not say `likely bad data` unless the data was directly inspected.
-6. **Reproduce or document limits.** Every investigation needs `## Reproduction steps`. Use exact browser/API/CLI steps, prerequisites, expected visible result/error, and screenshots/video when the user asks to reproduce. If unsafe or impossible, provide the closest safe partial repro and explain exactly what prevents full reproduction. Use `chrome-devtools-cli` when asked to reproduce; Chrome MCP is fallback.
-7. **Explain for newcomers.** Define codebase-specific services, queues, cron jobs, integrations, tables, features, and acronyms in plain language.
-8. **Write and validate MDX.** Keep under 200 lines when possible. Run `npm run build` after content changes when feasible. If access to Linear/Datadog/data/code is missing, state exactly what is unavailable instead of guessing.
+5. **Correlate evidence.** Build an ET timeline from Linear + Datadog + code/data. Mark `Unknown`, assumptions, and hypotheses explicitly.
+6. **Verify root cause before claiming it.** Confirm production entity IDs, persisted fields/state, user-authored input/config, read/write code paths, start time, frequency, blast radius, recurrence, and ruled-out hypotheses. Do not say `likely bad data` unless the data was directly inspected.
+7. **Reproduce or document limits.** Every investigation needs `## Reproduction steps`. Use exact browser/API/CLI steps, prerequisites, expected visible result/error, and screenshots/video when the user asks to reproduce. If unsafe or impossible, provide the closest safe partial repro and explain exactly what prevents full reproduction. Use `chrome-devtools-cli` when asked to reproduce; Chrome MCP is fallback.
+8. **Explain for newcomers.** Define codebase-specific services, queues, cron jobs, integrations, tables, features, and acronyms in plain language.
+9. **Write and validate MDX.** Keep under 200 lines when possible. Run `npm run build` after content changes when feasible. If access to Linear/Datadog/data/code is missing, state exactly what is unavailable instead of guessing.
 
 ## Extra Depth Requirements
 
@@ -139,7 +155,18 @@ After `## Summary`, include:
 - `## Root cause` — concise causal explanation with code/log/data references, or `Unknown` plus the remaining evidence gap.
 - `## Reproduction steps` — exact reproducible steps. If full reproduction is impossible, include a safe partial repro and explain exactly what prevents full reproduction. Attach the assets in the .mdx file.
 - `## Validation steps` — concrete checks to confirm finding/fix, e.g. Postgres, Snowflake, Firestore, UI checks.
-- `## Other potential causes considered (and ruled out)` — each hypothesis and evidence against it.
+- `## Other potential causes considered (and ruled out)` — one card per hypothesis. Concrete mechanism, not "bad config" or "race condition". No variants of the same mechanism. Template:
+
+  ```
+  - Hypothesis: <mechanism>
+  - If true, expect: <log / trace / metric / state>
+  - Disproved by: <absence or contradiction>
+  - Check: <pup/rg/sql/linear-cli command or link>
+  - Result: <observed>
+  - Verdict: survived | falsified | untestable | blocked
+  ```
+
+  `untestable` and `blocked` are not rule-outs. Spell out what telemetry, access, or repro the next person needs.
 
 Optional when useful:
 
@@ -157,6 +184,9 @@ Optional when useful:
 - Are missing facts labeled `Unknown` with the exact next query/tool needed?
 - Did you avoid recommending a data fix when code semantics are wrong?
 - Does the MDX include mandatory reproduction and validation steps?
+- Passed Problem Gate? Should this problem even exist?
+- Root cause claim backed by repro, deploy counterfactual, or exclusive trace/code path? If not, say so and lower confidence.
+- Unverified reporter claims tagged `reported-unverified`, not restated as fact?
 - Did `npm run build` pass?
 
 ## Writing Standards
