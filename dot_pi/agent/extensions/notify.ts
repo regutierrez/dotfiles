@@ -2,13 +2,17 @@
  * Desktop Notification Extension
  *
  * Sends a native desktop notification when the agent finishes and is waiting for input.
- * Uses terminal escape sequences so notifications can still appear on the
- * local machine when Pi is running remotely over SSH.
+ * Uses macOS Notification Center when running on a Mac. Falls back to terminal
+ * escape sequences so notifications can still appear on the local machine when
+ * Pi is running remotely over SSH.
  *
- * Supported terminals: Ghostty, iTerm2, WezTerm, rxvt-unicode
+ * Terminal fallback support: Ghostty, iTerm2, WezTerm, rxvt-unicode
  * Not supported: Kitty (uses OSC 99), Terminal.app, Windows Terminal, Alacritty
  */
 
+import { execFile } from "node:child_process";
+import { closeSync, openSync, writeSync } from "node:fs";
+import { promisify } from "node:util";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Markdown, type MarkdownTheme } from "@earendil-works/pi-tui";
 
@@ -22,6 +26,31 @@ const sanitizeOscField = (value: string): string =>
 		.replace(/;/g, ":")
 		.replace(/\s+/g, " ")
 		.trim();
+
+const execFileAsync = promisify(execFile);
+
+const appleScriptString = (value: string): string => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+
+/**
+ * Send a real macOS Notification Center toast. Disable with
+ * PI_NOTIFY_MACOS=false to force the terminal OSC fallback.
+ */
+const notifyViaMacOs = async (title: string, body: string, sound: boolean): Promise<boolean> => {
+	if (process.platform !== "darwin" || process.env.PI_NOTIFY_MACOS === "false") {
+		return false;
+	}
+
+	const notificationBody = body || title;
+	const notificationTitle = title === notificationBody ? "π" : title;
+	const script = `display notification ${appleScriptString(notificationBody)} with title ${appleScriptString(notificationTitle)}${sound ? ' sound name "Glass"' : ""}`;
+
+	try {
+		await execFileAsync("osascript", ["-e", script], { timeout: 2000 });
+		return true;
+	} catch {
+		return false;
+	}
+};
 
 /**
  * tmux swallows many OSC sequences unless they are wrapped in a DCS passthrough
@@ -37,17 +66,44 @@ const wrapForTmux = (sequence: string): string => {
 };
 
 /**
+ * Write terminal control bytes to the real terminal. Pi can run with stdout
+ * piped through RPC/websocket transports even when it still has a controlling
+ * terminal, so fall back to /dev/tty before giving up.
+ */
+const writeTerminalControl = (sequence: string): boolean => {
+	const payload = wrapForTmux(sequence);
+
+	if (process.stdout.isTTY) {
+		process.stdout.write(payload);
+		return true;
+	}
+
+	try {
+		const fd = openSync("/dev/tty", "w");
+		try {
+			writeSync(fd, payload);
+			return true;
+		} finally {
+			closeSync(fd);
+		}
+	} catch {
+		return false;
+	}
+};
+
+/**
  * Send a desktop notification via OSC 777 escape sequence.
  */
-const notifyViaTerminalOsc777 = (title: string, body: string, sound: boolean): void => {
+const notifyViaTerminalOsc777 = (title: string, body: string, sound: boolean): boolean => {
 	const safeTitle = sanitizeOscField(title);
 	const safeBody = sanitizeOscField(body);
 	// OSC 777 format: ESC ] 777 ; notify ; title ; body BEL
 	const sequence = `\x1b]777;notify;${safeTitle};${safeBody}\x07`;
-	process.stdout.write(wrapForTmux(sequence));
-	if (sound) {
-		process.stdout.write(wrapForTmux("\x07"));
+	const sent = writeTerminalControl(sequence);
+	if (sent && sound) {
+		writeTerminalControl("\x07");
 	}
+	return sent;
 };
 
 const isTextPart = (part: unknown): part is { type: "text"; text: string } =>
@@ -115,17 +171,20 @@ export default function (pi: ExtensionAPI) {
 		const lastText = extractLastAssistantText(event.messages ?? []);
 		const { title, body } = formatNotification(lastText);
 
-		// Interactive TTY mode: send a terminal-native desktop notification. This
-		// works over SSH because the escape sequence is interpreted by the local
-		// terminal emulator. tmux passthrough keeps it working inside remote tmux.
-		if (process.stdout.isTTY) {
-			const sound = process.env.PI_NOTIFY_SOUND !== "false";
-			notifyViaTerminalOsc777(title, body, sound);
+		const sound = process.env.PI_NOTIFY_SOUND !== "false";
+		if (await notifyViaMacOs(title, body, sound)) {
 			return;
 		}
 
-		// RPC mode / non-TTY fallback: route through Pi's extension UI protocol so
-		// a local client can decide how to surface the notification.
+		// Terminal fallback. This works over SSH because the escape sequence is
+		// interpreted by the local terminal emulator. tmux passthrough keeps it
+		// working inside remote tmux.
+		if (notifyViaTerminalOsc777(title, body, sound)) {
+			return;
+		}
+
+		// RPC mode / no controlling terminal fallback: route through Pi's extension
+		// UI protocol so a local client can decide how to surface the notification.
 		if (ctx.hasUI) {
 			ctx.ui.notify(body || title, "info");
 		}

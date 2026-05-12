@@ -25,3 +25,6 @@ path = "~/blushift/"
 name = "akkio-docs"
 path = "~/Documents/pael-notes/akkio/akkio-monorepo/"
 
+[[session]]
+name = "Akkio-master"
+path = "~/Akkio/"

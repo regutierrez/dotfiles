@@ -21,6 +21,9 @@ bind -n M-l select-pane -R
 bind N new-session -c "#{pane_current_path}"
 bind R command-prompt -p "rename session to:" "rename-session '%%'"
 
+# rename window with an empty prompt instead of pre-filling the current name
+bind , command-prompt -p "rename window to:" "rename-window '%%'"
+
 # clear old alt+arrow resize bindings (important on config reload)
 unbind -nq M-Left
 unbind -nq M-Down
@@ -67,8 +70,11 @@ bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
 bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
 
 set -g set-clipboard on
-set -g focus-events on
-set -g allow-passthrough on
+set-option -g focus-events on
+# Forward OSC/DCS sequences even from hidden panes so desktop notifications
+# still fire after switching away from a long-running Pi pane.
+set -gq allow-passthrough all
+set -g visual-activity off
 
 set -g status-left-length 100
 set -g status-right-length 100
