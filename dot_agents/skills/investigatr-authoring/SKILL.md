@@ -25,6 +25,8 @@ A successful investigation lets an engineer understand what happened, why it hap
 - Reporter's suspected cause is input, not conclusion. Hunt for symptoms that break their framing.
 - No evidence against ≠ evidence for. Survival needs a positive observable.
 - Root cause needs a repro, a deploy counterfactual, or an exclusive trace/code path.
+- **Show the log, not just the conclusion.** Every statement in `## Root cause` must be traceable to a concrete, quoted artifact in the doc: a Datadog log excerpt (with the `pup` query that found it and/or a scoped Datadog URL), a trace id, a code file:line, a SQL/Snowflake result, or a Linear comment. If a sentence in Root cause cannot be tied to one of those, either delete it or move it to a hypothesis under `## Other potential causes considered`. Prose reasoning without a cited artifact is not allowed in Root cause.
+- If a single log line drives the conclusion, **paste it inline** in `## Root cause` (fenced block) and then explicitly map each field in that log (path, status, response code, params, fbtrace_id, etc.) to what it proves and what it rules out — a table works well. Reviewers must be able to reconstruct the inference from the doc without re-running queries.
 
 ## Problem Gate
 
@@ -152,7 +154,12 @@ After `## Summary`, include:
 
 - `## TLDR` — 2–5 beginner-friendly bullets that state what the issue is.
 - `## Timeline (ET)` — numbered user action → backend/worker/downstream → symptom.
-- `## Root cause` — concise causal explanation with code/log/data references, or `Unknown` plus the remaining evidence gap.
+- `## Root cause` — concise causal explanation. **Every claim must be anchored to a quoted artifact in the doc.** Required shape:
+  1. Lead with the decisive log line(s) as a fenced code block, with the `pup` query that found them and (when possible) a scoped Datadog URL.
+  2. Either a field-by-field table (`Field in the log` → `What it tells us` → `What it rules out`) or inline annotations that show how each piece of the log supports each step of the inference.
+  3. Any cross-query that establishes scope/blast-radius (e.g. "same error on N other entities") shown with the exact `pup` command and a count.
+  4. Any code path referenced as part of the mechanism cited by `file:line` from `~/Akkio`.
+  5. If the root cause is `Unknown`, say so and list the specific log/trace/metric/state the next person needs to capture to close the gap. Do not write Root cause prose that is not backed by an inline artifact.
 - `## Reproduction steps` — exact reproducible steps. If full reproduction is impossible, include a safe partial repro and explain exactly what prevents full reproduction. Attach the assets in the .mdx file.
 - `## Validation steps` — concrete checks to confirm finding/fix, e.g. Postgres, Snowflake, Firestore, UI checks.
 - `## Other potential causes considered (and ruled out)` — one card per hypothesis. Concrete mechanism, not "bad config" or "race condition". No variants of the same mechanism. Template:
@@ -186,6 +193,7 @@ Optional when useful:
 - Does the MDX include mandatory reproduction and validation steps?
 - Passed Problem Gate? Should this problem even exist?
 - Root cause claim backed by repro, deploy counterfactual, or exclusive trace/code path? If not, say so and lower confidence.
+- Does `## Root cause` actually **show** the decisive log line(s) inline (fenced block) with the `pup` query / Datadog URL that produced them? Walk through each sentence of Root cause: every causal claim must point to a quoted log, trace id, `file:line`, SQL result, or Linear comment that is also in the doc. If any sentence has no anchor, fix or delete it.
 - Unverified reporter claims tagged `reported-unverified`, not restated as fact?
 - Did `npm run build` pass?
 
