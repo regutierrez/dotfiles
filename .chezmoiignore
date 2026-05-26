@@ -30,6 +30,7 @@ srv/
 .ssh/config
 .config/karabiner
 .config/zed
+Library/LaunchAgents/
 {{- end }}
 
 {{- if not $use_age }}

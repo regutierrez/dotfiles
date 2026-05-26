@@ -58,6 +58,12 @@ bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
 bindkey '^[w' kill-region
 
+# Tmux extended-keys sends Shift+Enter as CSI-u; make zsh treat it as Enter.
+if [[ -n "$TMUX" ]]; then
+  bindkey $'\e[13;2u' accept-line
+  bindkey $'\e[27;2;13~' accept-line
+fi
+
 # Other settings
 DISABLE_AUTO_TITLE=true
 
