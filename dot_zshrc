@@ -6,6 +6,7 @@
 # zmodload zsh/zprof
 
 eval "$(starship init zsh)"
+eval "$(atuin init zsh)"
 
 # Homebrew setup
 if [[ -f "/opt/homebrew/bin/brew" ]] then
