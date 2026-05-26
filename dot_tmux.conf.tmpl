@@ -78,8 +78,13 @@ bind -T copy-mode-vi v send-keys -X begin-selection
 bind -T copy-mode-vi V send-keys -X select-line
 bind -T copy-mode-vi Escape send-keys -X clear-selection
 bind -T copy-mode-vi 'C-v' send-keys -X rectangle-toggle
+{{- if eq .chezmoi.os "darwin" }}
+bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
+bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe "pbcopy"
+{{- else }}
 bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
 bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
+{{- end }}
 
 # Status/general
 set -g visual-activity off
@@ -100,6 +105,10 @@ set -g @plugin 'catppuccin/tmux#v2.1.3'
 # Resurrect / continuum
 set -g @resurrect-strategy-vim 'session'
 set -g @resurrect-strategy-nvim 'session'
+# tmux-resurrect stores both the foreground process (`node`) and the command
+# originally launched in the pane (`pi`). Restore matching uses the saved command,
+# so match `pi` and continue the latest project session.
+set -g @resurrect-processes '"pi->pi -c"'
 set -g @resurrect-capture-pane-contents 'on'
 set -g @continuum-restore 'on'
 set -g @continuum-save-interval '10'
@@ -112,13 +121,16 @@ set -g pane-border-status top
 set -g @catppuccin_pane_border_style 'fg=#{@thm_surface_0}'
 set -g @catppuccin_pane_active_border_style ''
 
+# Install mutable TPM checkouts outside the chezmoi-managed tree.
+set-environment -g TMUX_PLUGIN_MANAGER_PATH '~/.local/share/tmux/plugins'
+
 # Auto-install TPM
-if "test ! -d ~/.tmux/plugins/tpm" \
-   "run 'git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm && ~/.tmux/plugins/tpm/bin/install_plugins'"
+if "test ! -d ~/.local/share/tmux/plugins/tpm" \
+   "run 'mkdir -p ~/.local/share/tmux/plugins && git clone https://github.com/tmux-plugins/tpm ~/.local/share/tmux/plugins/tpm && ~/.local/share/tmux/plugins/tpm/bin/install_plugins'"
 
 # Load catppuccin before status config
-if-shell "test -f ~/.tmux/plugins/tmux/catppuccin.tmux" \
-  "run '~/.tmux/plugins/tmux/catppuccin.tmux'"
+if-shell "test -f ~/.local/share/tmux/plugins/tmux/catppuccin.tmux" \
+  "run '~/.local/share/tmux/plugins/tmux/catppuccin.tmux'"
 
 # Pane border/status
 set -g pane-border-format '#{?pane_active,#[fg=#{@thm_lavender}],#[fg=#{@thm_surface_0}]}#{pane_index}'
@@ -144,10 +156,11 @@ set -ag status-right "#{E:@catppuccin_status_uptime}"
 
 # Custom commands
 bind o run-shell '~/bin/commando --fzf-tmux'
+bind -r DC select-layout tiled
 bind S setw synchronize-panes \; set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"
 
 {{- if $cfg.tmux_plugins }}
-run '~/.tmux/plugins/tpm/tpm'
+run '~/.local/share/tmux/plugins/tpm/tpm'
 
 # Override theme copy-mode selection
 set -g mode-style "fg=#{@thm_bg},bg=#{@thm_green}"

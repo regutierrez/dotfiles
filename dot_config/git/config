@@ -1,0 +1,25 @@
+[branch]
+	sort = -committerdate
+
+[column]
+	ui = auto
+
+[fetch]
+	prune = true
+	writeCommitGraph = true
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[rebase]
+	updateRefs = true
+
+[rerere]
+	enabled = true
+
+[alias]
+	branch-age = "for-each-ref --sort=committerdate refs/heads/ --format=%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))"
+	nuke = "!git add --all && git stash && git stash clear"

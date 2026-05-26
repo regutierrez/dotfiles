@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 - <<'PY'
+import random
+import time
+alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+t = int(time.time() * 1000)
+ts = ''.join(alphabet[(t >> (45 - 5*i)) & 31] for i in range(10))
+rnd = ''.join(random.choice(alphabet) for _ in range(16))
+print(ts + rnd)
+PY

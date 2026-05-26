@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: gtest <command> [args...]" >&2
+  echo "Run a command against staged changes only." >&2
+  exit 1
+fi
+
+git rev-parse --git-dir >/dev/null
+
+stashed=false
+cleanup() {
+  status=$?
+  if [[ "$stashed" == true ]]; then
+    git reset -q || true
+    git restore . || true
+    git stash pop -q --index || true
+  fi
+  exit "$status"
+}
+trap cleanup EXIT
+
+git stash push -q --keep-index --include-untracked
+stashed=true
+"$@"

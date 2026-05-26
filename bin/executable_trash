@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: trash <file>..." >&2
+  exit 1
+fi
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  trash_dir="$HOME/.Trash"
+else
+  trash_dir="${XDG_DATA_HOME:-$HOME/.local/share}/Trash/files"
+fi
+mkdir -p "$trash_dir"
+
+for file in "$@"; do
+  if [[ ! -e "$file" ]]; then
+    echo "trash: '$file' does not exist" >&2
+    continue
+  fi
+  base=$(basename -- "$file")
+  dest="$trash_dir/$base"
+  if [[ -e "$dest" ]]; then
+    dest="$trash_dir/$base.$(date +%s)"
+  fi
+  mv -v -- "$file" "$dest"
+done
