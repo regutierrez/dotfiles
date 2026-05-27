@@ -11,6 +11,8 @@
 
 import { execFile } from "node:child_process";
 import { closeSync, openSync, writeSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
@@ -28,6 +30,57 @@ const sanitizeOscField = (value: string): string =>
 const execFileAsync = promisify(execFile);
 
 const appleScriptString = (value: string): string => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+
+const shellQuote = (value: string): string => `'${value.replace(/'/g, `'"'"'`)}'`;
+
+type TmuxOrigin = {
+	socketPath: string;
+	sessionId: string;
+	windowId: string;
+	paneId: string;
+};
+
+/**
+ * Capture the exact tmux location that produced the notification.
+ *
+ * Why this exists: macOS notifications can activate Ghostty/iTerm/etc., but
+ * activation alone only brings the terminal app forward. It does not know which
+ * tmux window or pane Pi was running in. terminal-notifier can run a command on
+ * click, so we stash tmux's stable IDs in the toast and hand them to a small
+ * helper script. Stable IDs (`$...` / `@...` / `%...`) survive renames better
+ * than human-facing session/window names.
+ */
+const getTmuxOrigin = async (): Promise<TmuxOrigin | null> => {
+	if (!process.env.TMUX) {
+		return null;
+	}
+
+	const args = ["display-message", "-p"];
+	if (process.env.TMUX_PANE) {
+		args.push("-t", process.env.TMUX_PANE);
+	}
+	args.push("#{socket_path}\t#{session_id}\t#{window_id}\t#{pane_id}");
+
+	try {
+		const { stdout } = await execFileAsync("tmux", args, { timeout: 1000 });
+		const [socketPath, sessionId, windowId, paneId] = stdout.trim().split("\t");
+		if (!socketPath || !sessionId || !windowId || !paneId) {
+			return null;
+		}
+		return { socketPath, sessionId, windowId, paneId };
+	} catch {
+		return null;
+	}
+};
+
+const getTmuxFocusCommand = (origin: TmuxOrigin | null): string | null => {
+	if (!origin) {
+		return null;
+	}
+
+	const helper = join(homedir(), ".pi", "agent", "bin", "focus-tmux-pane");
+	return [helper, origin.socketPath, origin.sessionId, origin.windowId, origin.paneId].map(shellQuote).join(" ");
+};
 
 const getMacOsNotificationBundleId = (): string | null => {
 	if (process.env.PI_NOTIFY_MACOS_BUNDLE_ID) {
@@ -50,12 +103,22 @@ const getMacOsNotificationBundleId = (): string | null => {
 	}
 };
 
-const notifyViaTerminalNotifier = async (title: string, body: string, bundleId: string | null): Promise<boolean> => {
+const notifyViaTerminalNotifier = async (
+	title: string,
+	body: string,
+	bundleId: string | null,
+	clickCommand: string | null,
+): Promise<boolean> => {
 	if (!bundleId) {
 		return false;
 	}
 
 	const args = ["-title", title, "-message", body || title, "-activate", bundleId, "-group", "pi-agent"];
+	if (clickCommand) {
+		// Match the known-working Claude hook shape: terminal-notifier activates
+		// the terminal app and also runs the tmux focus helper on click.
+		args.push("-execute", clickCommand);
+	}
 	for (const command of ["terminal-notifier", "/opt/homebrew/bin/terminal-notifier", "/usr/local/bin/terminal-notifier"]) {
 		try {
 			await execFileAsync(command, args, { timeout: 2000 });
@@ -75,13 +138,13 @@ const notifyViaTerminalNotifier = async (title: string, body: string, bundleId: 
  * Click-to-activate needs terminal-notifier. osascript can show a toast, but
  * macOS does not let it attach a reliable click action.
  */
-const notifyViaMacOs = async (title: string, body: string): Promise<boolean> => {
+const notifyViaMacOs = async (title: string, body: string, tmuxOrigin: TmuxOrigin | null): Promise<boolean> => {
 	if (process.platform !== "darwin" || process.env.PI_NOTIFY_NATIVE === "false") {
 		return false;
 	}
 
 	const bundleId = getMacOsNotificationBundleId();
-	if (await notifyViaTerminalNotifier(title, body, bundleId)) {
+	if (await notifyViaTerminalNotifier(title, body, bundleId, getTmuxFocusCommand(tmuxOrigin))) {
 		return true;
 	}
 
@@ -119,8 +182,8 @@ const notifyViaLinux = async (title: string, body: string): Promise<boolean> => 
 	}
 };
 
-const notifyViaNativeDesktop = async (title: string, body: string): Promise<boolean> =>
-	(await notifyViaMacOs(title, body)) || (await notifyViaLinux(title, body));
+const notifyViaNativeDesktop = async (title: string, body: string, tmuxOrigin: TmuxOrigin | null): Promise<boolean> =>
+	(await notifyViaMacOs(title, body, tmuxOrigin)) || (await notifyViaLinux(title, body));
 
 /**
  * tmux swallows many OSC sequences unless they are wrapped in a DCS passthrough
@@ -220,8 +283,9 @@ export default function (pi: ExtensionAPI) {
 	pi.on("agent_end", async (event, ctx: ExtensionContext) => {
 		const lastText = extractLastAssistantText(event.messages ?? []);
 		const { title, body } = formatNotification(lastText);
+		const tmuxOrigin = await getTmuxOrigin();
 
-		if (await notifyViaNativeDesktop(title, body)) {
+		if (await notifyViaNativeDesktop(title, body, tmuxOrigin)) {
 			return;
 		}
 
