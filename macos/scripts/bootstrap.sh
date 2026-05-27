@@ -23,6 +23,7 @@ BREW_PACKAGES=(
   tree-sitter-cli
   lazygit
   pandoc
+  worktrunk
   direnv
   fnm
   mingw-w64

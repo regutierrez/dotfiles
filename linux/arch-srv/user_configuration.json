@@ -22,6 +22,7 @@
         "pacman -U --noconfirm /home/pael/paru/paru-[0-9]*.pkg.tar.*",
         "chsh -s /bin/zsh pael",
         "su - pael -c 'TMPDIR=/var/tmp sh -c \"$(curl -fsLS get.chezmoi.io)\" -- init --apply regutierrez'",
+        "su - pael -c 'curl -fsSL https://github.com/max-sixty/worktrunk/releases/latest/download/worktrunk-installer.sh | sh'",
         "su - pael -c \"bash -lc 'export TMPDIR=/var/tmp; source /usr/share/nvm/init-nvm.sh && nvm install --lts && npm install -g @steipete/summarize'\"",
         "printf '[Match]\\nType=ether\\n\\n[Network]\\nDHCP=yes\\n' > /etc/systemd/network/20-wired.network"
     ],
