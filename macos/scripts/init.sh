@@ -36,6 +36,7 @@ BREW_PACKAGES=(
   tree-sitter-cli
   lazygit
   pandoc
+  worktrunk
   mas
   chezmoi
   nvm
