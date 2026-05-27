@@ -1,5 +1,5 @@
 ---
-name: analyzing-excel-files
+name: analyze-excel
 description: Analyzes Excel workbooks to identify structure, formulas, hidden behavior, macros, and exportable fixtures. Use when asked to inspect, compare, reverse-engineer, extract from, or document `.xlsx`, `.xlsm`, `.xls`, or `.xlsb` files.
 disable-model-invocation: false
 ---

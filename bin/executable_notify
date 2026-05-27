@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: notify <message> [title]" >&2
+  exit 1
+fi
+
+message=$1
+title=${2:-Notification}
+
+if command -v osascript >/dev/null 2>&1; then
+  osascript -e "display notification \"$message\" with title \"$title\""
+elif command -v notify-send >/dev/null 2>&1; then
+  notify-send "$title" "$message"
+else
+  printf '[%s] %s\n' "$title" "$message"
+fi

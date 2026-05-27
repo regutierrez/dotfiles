@@ -1,0 +1,5 @@
+# Search hidden files and directories by default.
+--hidden
+
+# Avoid accidentally scanning very large blobs.
+--max-filesize=5M

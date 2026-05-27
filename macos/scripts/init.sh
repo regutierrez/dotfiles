@@ -26,6 +26,7 @@ BREW_PACKAGES=(
   tailscale
   fd
   ffmpeg
+  gh
   rust
   neovim
   tmux

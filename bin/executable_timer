@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: timer <duration>" >&2
+  echo "Examples: timer 5s | timer 10m | timer 1h | timer 90" >&2
+  exit 1
+fi
+
+case "$1" in
+  *s) seconds=${1%s} ;;
+  *m) seconds=$(( ${1%m} * 60 )) ;;
+  *h) seconds=$(( ${1%h} * 3600 )) ;;
+  *[!0-9]*) echo "timer: invalid duration: $1" >&2; exit 1 ;;
+  *) seconds=$1 ;;
+esac
+
+[[ "$seconds" =~ ^[0-9]+$ ]] || { echo "timer: invalid duration: $1" >&2; exit 1; }
+
+echo "Timer started for ${seconds}s..."
+sleep "$seconds"
+echo "⏰ Time's up!"
+
+if command -v notify >/dev/null 2>&1; then
+  notify "Timer finished!" "⏰ Timer"
+elif command -v osascript >/dev/null 2>&1; then
+  osascript -e 'display notification "Timer finished!" with title "⏰ Timer"'
+fi
+
+if command -v afplay >/dev/null 2>&1; then
+  afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &
+elif command -v tput >/dev/null 2>&1; then
+  tput bel
+fi
