@@ -4,7 +4,6 @@ gui:
   border: rounded
   sidePanelWidth: 0.3333
   showBottomLine: true
-
 git:
   pagers:
     - colorArg: always
@@ -13,5 +12,34 @@ os:
   editPreset: nvim
   # On headless SSH sessions, use tmux's clipboard integration (-w) to forward copies to the local terminal clipboard.
   copyToClipboardCmd: 'tmux set-buffer -w -- {{text}}'
-
 promptToReturnFromSubprocess: false
+customCommands:
+  - key: 'W'
+    context: 'localBranches'
+    description: 'Create worktree from this branch (Worktrunk)'
+    prompts:
+      - type: 'input'
+        title: 'Worktree / branch name (Enter = use branch name)'
+        key: 'Name'
+        initialValue: '{{.SelectedLocalBranch.Name}}'
+    command: '{{ if eq .Form.Name .SelectedLocalBranch.Name }}wt switch {{.Form.Name | quote}} --no-cd{{ else }}wt switch --create {{.Form.Name | quote}} --base {{.SelectedLocalBranch.Name | quote}} --no-cd{{ end }}'
+    output: terminal
+  - key: 'W'
+    context: 'remoteBranches'
+    description: 'Create worktree from this remote branch (Worktrunk)'
+    prompts:
+      - type: 'input'
+        title: 'Worktree / branch name (Enter = use branch name)'
+        key: 'Name'
+        initialValue: '{{.SelectedRemoteBranch.Name}}'
+    command: 'wt switch --create {{.Form.Name | quote}} --base {{ printf "%s/%s" .SelectedRemoteBranch.RemoteName .SelectedRemoteBranch.Name | quote }} --no-cd'
+    output: terminal
+  - key: 'W'
+    context: 'global'
+    description: 'Create worktree from new branch (Worktrunk)'
+    prompts:
+      - type: 'input'
+        title: 'New branch / worktree name'
+        key: 'Name'
+    command: 'wt switch --create {{.Form.Name | quote}} --no-cd'
+    output: terminal
