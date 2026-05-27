@@ -12,6 +12,7 @@ BREW_PACKAGES=(
   tailscale
   fd
   ffmpeg
+  gh
   rust
   delta
   neovim
