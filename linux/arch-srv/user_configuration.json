@@ -45,22 +45,8 @@
                         "mount_options": [],
                         "mountpoint": "/boot",
                         "obj_id": "9a959131-0777-4531-8a79-eddb58095a4b",
-                        "size": {
-                            "sector_size": {
-                                "unit": "B",
-                                "value": 512
-                            },
-                            "unit": "GiB",
-                            "value": 1
-                        },
-                        "start": {
-                            "sector_size": {
-                                "unit": "B",
-                                "value": 512
-                            },
-                            "unit": "MiB",
-                            "value": 1
-                        },
+                        "size": "1GiB",
+                        "start": "1MiB",
                         "status": "create",
                         "type": "primary"
                     },
@@ -91,22 +77,8 @@
                         ],
                         "mountpoint": null,
                         "obj_id": "9fab49a3-3bbc-463c-b8ad-b13d210a709a",
-                        "size": {
-                            "sector_size": {
-                                "unit": "B",
-                                "value": 512
-                            },
-                            "unit": "B",
-                            "value": 213673574400
-                        },
-                        "start": {
-                            "sector_size": {
-                                "unit": "B",
-                                "value": 512
-                            },
-                            "unit": "B",
-                            "value": 1074790400
-                        },
+                        "size": "100%",
+                        "start": "1GiB",
                         "status": "create",
                         "type": "primary"
                     }
