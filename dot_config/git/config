@@ -1,3 +1,10 @@
+[user]
+	name = regutierrez
+	email = regutierrez@gmail.com
+
+[core]
+	pager = delta
+
 [branch]
 	sort = -committerdate
 
@@ -19,6 +26,20 @@
 
 [rerere]
 	enabled = true
+
+[interactive]
+	diffFilter = delta --color-only
+
+[diff]
+	colorMoved = default
+
+[delta]
+	navigate = true
+	line-numbers = true
+	side-by-side = true
+
+[merge]
+	conflictstyle = zdiff3
 
 [alias]
 	branch-age = "for-each-ref --sort=committerdate refs/heads/ --format=%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))"
