@@ -24,7 +24,7 @@ command -v sesh >/dev/null 2>&1 || {
 default_roots() {
   printf '%s\t%s\n' \
     'playground' "$HOME/playground" \
-    'Akkio wt' "$HOME/.wt/pakkio/Akkio/"
+    'Akkio wt' "$HOME/.wt/pakkio/Akkio"
 }
 
 load_roots() {
@@ -90,6 +90,7 @@ write_generated_sessions() {
       [[ -n "$label" && -n "$root" ]] || continue
 
       root="$(expand_home "$root")"
+      root="${root%/}"
       [[ -d "$root" ]] || continue
 
       for dir in "$root"/*; do
