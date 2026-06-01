@@ -43,8 +43,8 @@ zinit light Aloxaf/fzf-tab
 # fzf - fuzzy finder
 source <(fzf --zsh)
 
-# zoxide - smart cd
-eval "$(zoxide init --cmd cd zsh)"
+# zoxide - smart jump
+eval "$(zoxide init --cmd z zsh)"
 
 # ============================================================================
 # SHELL CONFIGURATION
