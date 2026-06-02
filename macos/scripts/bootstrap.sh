@@ -27,6 +27,8 @@ BREW_PACKAGES=(
   worktrunk
   direnv
   fnm
+  terminal-notifier
+  modem-dev/tap/hunk
   mingw-w64
   # docker stuff
   docker

@@ -41,6 +41,8 @@ BREW_PACKAGES=(
   mas
   chezmoi
   nvm
+  terminal-notifier
+  modem-dev/tap/hunk
   mingw-w64
 )
 
