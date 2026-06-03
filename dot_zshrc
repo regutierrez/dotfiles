@@ -100,12 +100,9 @@ export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/.opencode/bin
 export PATH=$PATH:$HOME/.cargo/bin/ # my helper scripts
 export PATH=/opt/homebrew/share/google-cloud-sdk/bin:"$PATH"
-
-# Environment variables
-export GOOGLE_CLOUD_PROJECT="pael-project"
-export GOOGLE_CLOUD_LOCATION="global"
 export EDITOR=nvim
 
+# Some env vars
 CLAUDE_CODE_NO_FLICKER=1
 
 # ============================================================================
@@ -120,8 +117,7 @@ alias ff='fastfetch'
 alias t='tmux'
 alias co='commando'
 alias noco='ssh -t noco tmux -u a'
-alias golgra='ssh -t golgra tmux -u a'
-alias sbs='ssh -t sbs@sbs-apps tmux -u a'
+alias sbs='ssh -t sbs@sbs-cloud tmux -u a'
 alias esquie='ssh -t esquie tmux -u a'
 alias gds='git --no-pager diff --stat HEAD'
 # alias ag='Xvfb :100 -screen 0 1920x1080x24 & sleep 1 && DISPLAY=:100 autocutsel -fork & DISPLAY=:100 antigravity --ozone-platform=x11 & sleep 2 && x11vnc -display :100 -forever -rfbauth ~/.vnc/passwd -listen 0.0.0.0 -rfbport 5900 -noxdamage -clipboard'
