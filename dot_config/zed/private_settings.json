@@ -24,7 +24,21 @@
     "dark": "Zed (Default)",
   },
   "ui_font_weight": 400.0,
+  "project_panel": {
+    "dock": "left",
+  },
+  "outline_panel": {
+    "dock": "left",
+  },
+  "git_panel": {
+    "dock": "left",
+  },
+  "collaboration_panel": {
+    "dock": "left",
+  },
   "agent": {
+    "dock": "right",
+    "sidebar_side": "right",
     "default_profile": "ask",
     "model_parameters": [],
   },

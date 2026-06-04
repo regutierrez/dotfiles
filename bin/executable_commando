@@ -24,6 +24,7 @@ command -v sesh >/dev/null 2>&1 || {
 default_roots() {
   printf '%s\t%s\n' \
     'playground' "$HOME/playground" \
+    'repos' "$HOME/repos" \
     'Akkio wt' "$HOME/.wt/pakkio/Akkio"
 }
 

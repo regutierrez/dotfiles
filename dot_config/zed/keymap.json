@@ -20,13 +20,35 @@
   },
   {
     "bindings": {
-      "cmd-`": "terminal_panel::ToggleFocus"
+      "cmd-`": "terminal_panel::ToggleFocus",
+      "cmd-\\": "workspace::ToggleLeftDock",
+      "cmd-?": "workspace::ToggleRightDock",
+      "cmd-|": "multi_workspace::ToggleWorkspaceSidebar",
+      "cmd-:": "multi_workspace::FocusWorkspaceSidebar",
+      "cmd-shift-g": "git_panel::ToggleFocus"
     }
   },
   {
     "context": "Editor",
+    "unbind": {
+      "cmd-\\": "pane::SplitRight",
+      "cmd-|": "editor::MoveToEnclosingBracket"
+    },
     "bindings": {
+      "cmd-\\": "workspace::ToggleLeftDock",
+      "cmd-?": "workspace::ToggleRightDock",
       "cmd-[": null
+    }
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "cmd-b": "workspace::ToggleLeftDock",
+      "cmd-r": "workspace::ToggleRightDock",
+      "cmd-alt-b": "workspace::ToggleRightDock",
+      "cmd-?": "agent::ToggleFocus",
+      "cmd-alt-j": "multi_workspace::ToggleWorkspaceSidebar",
+      "cmd-alt-;": "multi_workspace::FocusWorkspaceSidebar"
     }
   },
   {
