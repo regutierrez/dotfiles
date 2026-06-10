@@ -3,6 +3,9 @@ dot_config/nvim/
 dot_config/btop/
 
 dot_pi/agent/node_modules/
+dot_pi/todos/
+.pi/todos/
+**/.pi/todos/
 package-lock.json
 bun.lock
 .env

@@ -84,4 +84,5 @@ bin/
 
 .pi/agent/node_modules/
 .pi/agent/package-lock.json
+.pi/todos/
 package-lock.json
