@@ -117,12 +117,6 @@ export PATH=/opt/homebrew/opt/libpq/bin:"$PATH"
 {{- end }}
 
 export EDITOR=nvim
-{{- if ne .profile "work" }}
-
-# Personal gcloud defaults
-export GOOGLE_CLOUD_PROJECT="pael-project"
-export GOOGLE_CLOUD_LOCATION="global"
-{{- end }}
 {{- if eq .profile "work" }}
 
 # Akkio stuff
@@ -146,8 +140,7 @@ alias c='claude --dangerously-skip-permissions'
 alias co='commando'
 alias ca='chezmoi apply'
 alias noco='ssh -t noco tmux -u a'
-alias golgra='ssh -t golgra tmux -u a'
-alias sbs='ssh -t sbs@sbs-apps tmux -u a'
+alias sbs='ssh -t sbs@sbs-cloud tmux -u a'
 alias esquie='ssh -t esquie tmux -u a'
 alias gds='git --no-pager diff --stat HEAD'
 {{- if eq .chezmoi.os "darwin" }}
