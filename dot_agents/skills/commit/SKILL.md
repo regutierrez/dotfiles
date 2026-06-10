@@ -16,6 +16,7 @@ Create one git commit for the user's current work. ONLY RUN ONCE IN THE SESSION 
 - Keep the title terse, imperative, and usually under 72 characters.
 - Add a body only when the change is large, cross-cutting, or hard to understand from the title alone. If used, write 2-3 short sentences about motivation, behavior change, or impact.
 - Do not invent issue numbers, scopes, or facts that are not supported by the diff or conversation.
+- NEVER EVER add AI attribution
 
 ## Safety
 
