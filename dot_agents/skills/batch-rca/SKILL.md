@@ -95,6 +95,7 @@ CODEX=/Applications/Codex.app/Contents/Resources/codex
   -C /Users/pakkio/playground/investigatr \
   --add-dir /Users/pakkio/Akkio \
   --add-dir /Users/pakkio/.wt/pakkio/Akkio \
+  --add-dir /Users/pakkio/blushift \
   --add-dir /tmp \
   --output-last-message "$BATCH/<TICKET-ID>.last.md" \
   - < "$BATCH/<TICKET-ID>.prompt.md" \
