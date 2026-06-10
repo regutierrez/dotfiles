@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# agent-status — track coding-agent sessions running in tmux panes.
+#
+# Agent hooks (claude settings.json, cursor hooks.json, pi agent-status.ts
+# extension) call `agent-status update <agent> <status>` from inside a tmux
+# pane. `agent-status list` joins that state with live tmux panes and prints
+# colored, grouped lines for the television agent-sessions channel
+# (see agent-sessions-picker).
+set -euo pipefail
+
+STATE_DIR="${AGENT_STATUS_DIR:-$HOME/.cache/agent-status}"
+
+usage() {
+  echo "usage: agent-status update <agent> <attention|busy|done> | clear | list" >&2
+  exit 2
+}
+
+# %12 -> $STATE_DIR/pane-12
+pane_file() {
+  echo "$STATE_DIR/pane-${1#%}"
+}
+
+cmd_update() {
+  [ -n "${TMUX_PANE:-}" ] || exit 0 # not inside tmux: nothing to track
+  local agent="$1" status="$2"
+  case "$status" in attention | busy | done) ;; *) usage ;; esac
+  mkdir -p "$STATE_DIR"
+  local tmp
+  tmp=$(mktemp "$STATE_DIR/.tmp.XXXXXX")
+  printf '%s\t%s\t%s\t%s\n' "$TMUX_PANE" "$agent" "$status" "$(date +%s)" >"$tmp"
+  mv -f "$tmp" "$(pane_file "$TMUX_PANE")"
+}
+
+cmd_clear() {
+  [ -n "${TMUX_PANE:-}" ] || exit 0
+  rm -f "$(pane_file "$TMUX_PANE")"
+}
+
+# Single pass over one `tmux list-panes -a`, one `ps` scoped to the pane
+# ttys (~15x cheaper than scanning all processes), and the state files.
+# Panes whose tty runs an agent process but that have no hook state yet
+# (started before the hooks existed, cursor -p mode, ...) are shown as
+# "unknown" without writing state; their first hook event upgrades them.
+# State whose pane is gone or whose tty no longer runs a matching agent is
+# deleted.
+gen_list() {
+  local panes ttys out line pane
+  panes=$(tmux list-panes -a -F $'#{pane_id}\t#{pane_tty}\t#{pane_pid}\t#{session_name}\t#{window_name}' 2>/dev/null) || return 0
+  [ -n "$panes" ] || return 0
+  ttys=$(printf '%s\n' "$panes" | awk -F'\t' '{ t = $2; sub("^/dev/", "", t); printf " -t %s", t }')
+  out=$(
+    {
+      echo '##PANES'
+      printf '%s\n' "$panes"
+      echo '##PS'
+      # shellcheck disable=SC2086 # ttys is a list of -t flags
+      ps -o pid=,ppid=,tty=,comm=,args= $ttys 2>/dev/null || true
+      echo '##STATE'
+      cat "$STATE_DIR"/pane-* 2>/dev/null || true
+    } | awk -F'\t' '
+      /^##/ { section = substr($0, 3); next }
+      section == "PANES" {
+        pane = $1; tty = $2; sub("^/dev/", "", tty)
+        live[pane] = 1; shellpid[pane] = $3
+        sess[pane] = $4; win[pane] = $5
+        pane_of_tty[tty] = pane
+        next
+      }
+      section == "PS" {
+        split($0, a, /[ \t]+/)
+        i = (a[1] == "" ? 2 : 1)
+        pid = a[i]; ppid = a[i + 1]; tty = a[i + 2]; comm = a[i + 3]
+        agent = ""
+        if (comm == "claude") agent = "claude"
+        else if (comm == "pi") agent = "pi"
+        else if ($0 ~ /cursor-agent/) agent = "cursor"
+        if (agent == "") next
+        pane = pane_of_tty[tty]
+        if (pane == "") next
+        # Prefer the direct child of the pane shell (the pane owner) over
+        # agents an agent spawned itself (e.g. claude running headless pi).
+        if (pid == shellpid[pane] || ppid == shellpid[pane]) owner[pane] = agent
+        else if (detected[pane] == "") detected[pane] = agent
+        next
+      }
+      section == "STATE" { st_agent[$1] = $2; st_status[$1] = $3; next }
+      END {
+        for (pane in live) {
+          agent = (owner[pane] != "" ? owner[pane] : detected[pane])
+          if (st_status[pane] != "" && agent == st_agent[pane]) {
+            emit(pane, agent, st_status[pane])
+            continue
+          }
+          if (st_status[pane] != "") print "RM\t" pane
+          if (agent != "") emit(pane, agent, "unknown")
+        }
+        for (pane in st_status) if (!live[pane]) print "RM\t" pane
+      }
+      # Status is conveyed by the dot color alone:
+      # yellow = needs intervention, blue = busy, green = done, dim = unknown.
+      function emit(pane, agent, status,   order, color) {
+        if (status == "attention") { order = 0; color = "\033[33m" }
+        else if (status == "busy") { order = 1; color = "\033[34m" }
+        else if (status == "done") { order = 2; color = "\033[32m" }
+        else { order = 3; color = "\033[2m" }
+        # Display text, then a tab and the pane id (extracted by the output
+        # and preview templates of the television channel, dimmed in the list).
+        printf "OUT\t%d\t%s●\033[0m %-8s \033[1m%s\033[0m:%s\t\033[2m%s\033[0m\n",
+          order, color, agent, sess[pane], win[pane], pane
+      }
+    '
+  )
+
+  while IFS=$'\t' read -r line pane _; do
+    [ "$line" = "RM" ] && rm -f "$(pane_file "$pane")"
+  done <<<"$out"
+
+  printf '%s\n' "$out" | awk -F'\t' '$1 == "OUT"' | sort -t $'\t' -k2,2n -k3 | cut -f3-
+}
+
+# Stale-while-revalidate around gen_list. Television only hides its reload
+# redraw for 200ms (RELOAD_RENDERING_DELAY); when generation occasionally
+# spikes past that (cold caches, system load) the reload flickers. Serving
+# recent results from a cache file keeps reloads ~10ms while a detached
+# background job regenerates; pressing reload again (>200ms later) gets the
+# fresh data.
+cmd_list() {
+  local cache="$STATE_DIR/.list-cache" mtime age
+  mkdir -p "$STATE_DIR"
+  if [ -f "$cache" ]; then
+    mtime=$(stat -f %m "$cache" 2>/dev/null || stat -c %Y "$cache" 2>/dev/null || echo 0)
+    age=$(($(date +%s) - mtime))
+    if [ "$age" -le 2 ]; then
+      cat "$cache"
+      # Concurrent refreshes are benign: the mv is atomic.
+      ({ gen_list >"$cache.tmp.$$" 2>/dev/null && mv -f "$cache.tmp.$$" "$cache"; } ||
+        rm -f "$cache.tmp.$$") >/dev/null 2>&1 &
+      return 0
+    fi
+  fi
+  { gen_list >"$cache.tmp.$$" && mv -f "$cache.tmp.$$" "$cache"; } || rm -f "$cache.tmp.$$"
+  cat "$cache"
+}
+
+case "${1:-}" in
+update) [ $# -eq 3 ] || usage; cmd_update "$2" "$3" ;;
+clear) cmd_clear ;;
+list) cmd_list ;;
+*) usage ;;
+esac

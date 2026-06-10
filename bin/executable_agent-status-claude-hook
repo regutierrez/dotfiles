@@ -1,0 +1,21 @@
+#!/bin/sh
+# agent-status-claude-hook — adapter for Claude Code settings.json hooks.
+#
+# cursor-agent emulates Claude Code hooks: it reads ~/.claude/settings.json
+# and runs these commands with its own payloads (env: CURSOR_INVOKED_AS,
+# CURSOR_VERSION, even CLAUDE_PROJECT_DIR). Without a guard, cursor panes get
+# their state overwritten with agent=claude, which then conflicts with
+# process detection and degrades them to "unknown". Only real Claude Code
+# sets CLAUDECODE=1, so gate on that; cursor panes are handled by
+# ~/.cursor/hooks.json instead.
+#
+# usage: agent-status-claude-hook <attention|busy|done|clear>
+cat >/dev/null 2>&1
+
+[ "${CLAUDECODE:-}" = "1" ] || exit 0
+
+case "${1:-}" in
+clear) exec "$HOME/bin/agent-status" clear ;;
+attention | busy | done) exec "$HOME/bin/agent-status" update claude "$1" ;;
+*) exit 0 ;;
+esac
