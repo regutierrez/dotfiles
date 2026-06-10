@@ -7,7 +7,7 @@ compatibility: Requires linear-cli, pup, jq, and npm. Fallback orchestration req
 
 # Investigatr Batch Authoring
 
-Target repo is always `/Users/pakkio/playground/investigatr`. Per-ticket investigation writing must follow `/Users/pakkio/.agents/skills/investigatr-authoring/SKILL.md`.
+Target repo is always `/Users/pakkio/playground/investigatr`. Per-ticket investigation writing must follow `/Users/pakkio/.agents/skills/rca/SKILL.md`.
 
 ## Defaults
 
@@ -111,7 +111,7 @@ You are a subagent for Investigatr batch authoring.
 Ticket: <TICKET-ID>
 
 Mandatory:
-1. Read and follow /Users/pakkio/.agents/skills/investigatr-authoring/SKILL.md.
+1. Read and follow /Users/pakkio/.agents/skills/rca/SKILL.md.
 2. Work in /Users/pakkio/playground/investigatr. Application code is in /Users/pakkio/Akkio.
 3. Use linear-cli for Linear and pup for Datadog. Do not start auth flows.
 4. Check whether this ticket already has an investigation or is a Linear duplicate. If duplicate/existing, skip and report it.

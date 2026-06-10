@@ -1,6 +1,6 @@
 ---
 name: datadog-investigate
-description: Drive the `pup` Datadog CLI efficiently when investigating a single incident — find the request_id, expand to the full trace, cross-reference downvotes/triage, and complete a writeup checklist. Use when a Linear ticket / user-feedback / incident must be traced to root cause. Pairs with investigatr-authoring; do not use for metric dashboards or general APM exploration.
+description: Drive the `pup` Datadog CLI efficiently when investigating a single incident — find the request_id, expand to the full trace, cross-reference downvotes/triage, and complete a writeup checklist. Use when a Linear ticket / user-feedback / incident must be traced to root cause. Pairs with rca; do not use for metric dashboards or general APM exploration.
 ---
 
 ## Authentication & sanity

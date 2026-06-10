@@ -6,7 +6,7 @@ compatibility: Requires psql, python3, VPN to horizon-production RDS. aws CLI on
 
 # Query Postgres (Horizon production)
 
-Read-only lookups against **horizon-production transactional Postgres** during investigations (pairs with `investigatr-authoring` / `pup`).
+Read-only lookups against **horizon-production transactional Postgres** during investigations (pairs with `rca` / `pup`).
 
 ## When to use
 
