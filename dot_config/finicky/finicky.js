@@ -49,7 +49,7 @@ const slackTargetUri = (url) => {
 };
 
 const isHorizonUrl = (s) =>
-  /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|([a-z0-9-]+\.)*datadoghq\.com)/.test(s);
+  /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/.test(s);
 
 export default {
   defaultBrowser: "Arc",
@@ -60,7 +60,7 @@ export default {
     },
     {
       match: "blu.sky.horizonmedia.com/*",
-      url: tagSpace("horizon"),
+      url: tagSpace("akkio"),
     },
     {
       match: "bitbucket.org/horizonspireteam/*",
@@ -68,6 +68,10 @@ export default {
     },
     {
       match: "spirehorizon.atlassian.net/*",
+      url: tagSpace("horizon"),
+    },
+    {
+      match: ["hminc.sharepoint.com/*", "hminc-my.sharepoint.com/*"],
       url: tagSpace("horizon"),
     },
     {

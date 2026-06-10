@@ -130,3 +130,9 @@ chezmoi edit ~/.zshrc
 chezmoi diff
 chezmoi apply
 ```
+
+If `chezmoi apply` fails while updating the external Neovim checkout at `~/.config/nvim`, skip externals:
+
+```bash
+chezmoi apply --exclude externals
+```
