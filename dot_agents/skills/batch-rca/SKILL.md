@@ -1,11 +1,11 @@
 ---
-name: batch-investigatr
+name: batch-rca
 description: Batch-create Investigatr MDX docs for filtered Linear tickets using one subagent per ticket. Use when explicitly asked to batch missing Investigatr investigations, fan out Linear tickets, or run investigation subagents.
 disable-model-invocation: true
 compatibility: Requires linear-cli, pup, jq, and npm. Fallback orchestration requires tmux; Codex CLI is optional but preferred for tmux fallback.
 ---
 
-# Investigatr Batch Authoring
+# RCA Batch Authoring
 
 Target repo is always `/Users/pakkio/playground/investigatr`. Per-ticket investigation writing must follow `/Users/pakkio/.agents/skills/rca/SKILL.md`.
 
@@ -93,7 +93,7 @@ CODEX=/Applications/Codex.app/Contents/Resources/codex
   -m gpt-5.5 \
   -c model_reasoning_effort=\"xhigh\" \
   -C /Users/pakkio/playground/investigatr \
-  --add-dir /Users/pakkio/Akkio \
+  --add-dir /Users/pakkio/.wt/pakkio/Akkio \
   --add-dir /tmp \
   --output-last-message "$BATCH/<TICKET-ID>.last.md" \
   - < "$BATCH/<TICKET-ID>.prompt.md" \
@@ -112,12 +112,12 @@ Ticket: <TICKET-ID>
 
 Mandatory:
 1. Read and follow /Users/pakkio/.agents/skills/rca/SKILL.md.
-2. Work in /Users/pakkio/playground/investigatr. Application code is in /Users/pakkio/Akkio.
+2. Work in /Users/pakkio/playground/investigatr. Application code: grab the environment from the Linear issue description and use the matching worktree — production → /Users/pakkio/.wt/pakkio/Akkio/horizon-production/, staging → /Users/pakkio/.wt/pakkio/Akkio/horizon-staging/. Run git pull there before reading code.
 3. Use linear-cli for Linear and pup for Datadog. Do not start auth flows.
 4. Check whether this ticket already has an investigation or is a Linear duplicate. If duplicate/existing, skip and report it.
 5. If not skipped, create only src/content/investigations/<TICKET-ID>/index.mdx and optional assets under that folder.
-6. Back every root-cause claim with Linear, Datadog, code, or data evidence. Show decisive logs inline in the MDX Root cause section.
-7. Include required Investigatr sections: frontmatter, Summary, TLDR, Timeline (ET), Root cause, Reproduction steps, Validation steps, Other potential causes considered.
+6. Back every root-cause claim with Linear, Datadog, code, or data evidence. Show the key logs inline in the MDX Root cause section.
+7. Include every required section from the rca skill (frontmatter, Summary, TLDR, Timeline (ET), Root cause, Root cause confidence, How it broke — call stack & flow, ELI5 walkthrough, Reproduction steps, Manual validation required, Possible fixes, Shareable comment).
 8. Run npm run build if feasible. If it fails on an unrelated pre-existing MDX issue, report the exact error and do not fix unrelated files.
 9. Final response must end with a section titled exactly "## TLDR" with bullets for: created/skipped path, duplicate/canonical status, root cause or unknown, strongest evidence, build/validation status, blockers/next query.
 ```

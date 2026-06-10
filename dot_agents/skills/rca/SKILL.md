@@ -5,7 +5,14 @@ description: Author deep investigation writeups for the Investigatr Astro site. 
 
 # Investigatr Authoring
 
-Global skill for writing evidence-backed investigation MDX. Target repo is always `/Users/pakkio/playground/investigatr`; use absolute paths or `cd` there before file edits, tests, or content creation. Application code lives in `~/Akkio/`.
+Global skill for writing evidence-backed investigation MDX. Target repo is always `/Users/pakkio/playground/investigatr`; use absolute paths or `cd` there before file edits, tests, or content creation.
+
+**Application code — env-matched worktree.** Grab the environment from the Linear issue description, then read code from the worktree that matches it:
+
+- `production` → `~/.wt/pakkio/Akkio/horizon-production/`
+- `staging` → `~/.wt/pakkio/Akkio/horizon-staging/`
+
+Run `git pull` in the worktree before reading anything there. Everywhere this skill says `~/Akkio`, it means this env-matched worktree — code references, `file:line` citations, and schema checks all come from it.
 
 ## Required CLIs
 
