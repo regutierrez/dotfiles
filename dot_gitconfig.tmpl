@@ -1,0 +1,17 @@
+{{ if eq .profile "work" -}}
+[user]
+	name = pael-akkio
+	email = pael@akkio.com
+
+[core]
+	pager = hunk pager
+{{ else -}}
+[user]
+	name = regutierrez
+	email = regutierrez@gmail.com
+
+[core]
+	pager = delta
+{{ end }}
+[delta]
+	syntax-theme = {{ if eq .chezmoi.os "darwin" }}Catppuccin Frappe{{ else }}gruvbox-dark{{ end }}

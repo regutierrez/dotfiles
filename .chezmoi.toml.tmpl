@@ -1,4 +1,5 @@
-{{- $profile := env "CHEZMOI_PROFILE" | default "personal" }}
+{{- /* Asked once at `chezmoi init`; scripted: chezmoi init --promptString profile=server */ -}}
+{{- $profile := promptStringOnce . "profile" "profile (personal/work/server)" "personal" }}
 {{ if ne $profile "work" }}encryption = "age"
 
 [age]

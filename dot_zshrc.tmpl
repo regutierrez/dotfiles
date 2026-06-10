@@ -6,12 +6,16 @@
 # zmodload zsh/zprof
 
 eval "$(starship init zsh)"
+if command -v atuin >/dev/null 2>&1; then
+  eval "$(atuin init zsh)"
+fi
+{{- if eq .chezmoi.os "darwin" }}
 
 # Homebrew setup
 if [[ -f "/opt/homebrew/bin/brew" ]] then
-  # If you're using macOS, you'll want this enabled
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
+{{- end }}
 
 # ============================================================================
 # PLUGIN MANAGEMENT
@@ -42,8 +46,12 @@ zinit light Aloxaf/fzf-tab
 # fzf - fuzzy finder
 source <(fzf --zsh)
 
-# zoxide - smart cd
+# zoxide - smart jump
+{{- if eq .chezmoi.os "darwin" }}
+eval "$(zoxide init --cmd z zsh)"
+{{- else }}
 eval "$(zoxide init --cmd cd zsh)"
+{{- end }}
 
 # ============================================================================
 # SHELL CONFIGURATION
@@ -66,6 +74,9 @@ fi
 
 # Other settings
 DISABLE_AUTO_TITLE=true
+{{- if eq .chezmoi.os "darwin" }}
+ulimit -n 10240
+{{- end }}
 
 # History settings
 HISTSIZE=100000
@@ -95,14 +106,23 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 export COLORTERM=truecolor
 export PATH=$PATH:$HOME/.local/bin/
 export PATH=$PATH:$HOME/bin/
-export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
 export PATH=$PATH:$HOME/go/bin
+export PATH=$PATH:$HOME/.cargo/bin/
 export PATH=$PATH:$HOME/.opencode/bin
-export PATH=$PATH:$HOME/.cargo/bin/ # my helper scripts
+export PATH=$HOME/.npm-global/bin:$PATH # allows me to run node pkg globally installed
+{{- if eq .chezmoi.os "darwin" }}
+export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
 export PATH=/opt/homebrew/share/google-cloud-sdk/bin:"$PATH"
-export EDITOR=nvim
+export PATH=/opt/homebrew/opt/libpq/bin:"$PATH"
+{{- end }}
 
-# Some env vars
+export EDITOR=nvim
+{{- if eq .profile "work" }}
+
+# Akkio stuff
+export PROC_COMP_CONFIG="$HOME/.config/process-compose"
+{{- end }}
+
 CLAUDE_CODE_NO_FLICKER=1
 
 # ============================================================================
@@ -111,15 +131,22 @@ CLAUDE_CODE_NO_FLICKER=1
 
 alias ls='eza'
 alias lg='lazygit'
+alias ld='lazydocker'
 alias v='nvim'
 alias o='opencode'
 alias ff='fastfetch'
 alias t='tmux'
+alias c='claude --dangerously-skip-permissions'
 alias co='commando'
+alias ca='chezmoi apply'
 alias noco='ssh -t noco tmux -u a'
 alias sbs='ssh -t sbs@sbs-cloud tmux -u a'
 alias esquie='ssh -t esquie tmux -u a'
 alias gds='git --no-pager diff --stat HEAD'
+{{- if eq .chezmoi.os "darwin" }}
+alias chrome-debug='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-perf-profile > /tmp/chrome.log 2>&1 &'
+{{- end }}
+alias dbui='nvim -c DBUI'
 # alias ag='Xvfb :100 -screen 0 1920x1080x24 & sleep 1 && DISPLAY=:100 autocutsel -fork & DISPLAY=:100 antigravity --ozone-platform=x11 & sleep 2 && x11vnc -display :100 -forever -rfbauth ~/.vnc/passwd -listen 0.0.0.0 -rfbport 5900 -noxdamage -clipboard'
 
 
@@ -135,7 +162,16 @@ alias gds='git --no-pager diff --stat HEAD'
 # Added by Antigravity
 export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
 
+# mise
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+fi
+
 # fnm
+FNM_PATH="$HOME/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+fi
 if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
@@ -150,3 +186,5 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 # uncomment to profile zsh startup, along with zprof (end of line)
 # zprof
+
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi

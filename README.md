@@ -1,27 +1,34 @@
 # dotfiles
 
-Managed with `chezmoi`.
+Managed with `chezmoi`. One repo, one branch, all machines.
+
+## Mental model
+
+Two facts decide what a machine gets, and they are orthogonal:
+
+- **profile** (`personal` / `work` / `server`) — why the machine exists. Chosen once at `chezmoi init`, stored in `~/.config/chezmoi/chezmoi.toml`.
+- **OS** (`.chezmoi.os`) — what it runs. Detected automatically.
+
+So: mac-personal = `personal`+darwin, mac-work = `work`+darwin, arch-desktop = `personal`+linux, ubuntu-server = `server`+linux. No per-machine branches, no second dotfiles repo.
+
+Three mechanisms, each with one job:
+
+1. `.chezmoiignore` (templated) — whether a machine gets a file at all (e.g. zed/karabiner only on darwin, kitty/niri only on linux, skills via `exclude_skills`).
+2. `*.tmpl` files — what's inside a file per machine (`dot_zshrc.tmpl`, `dot_tmux.conf.tmpl`, `dot_gitconfig.tmpl`).
+3. `.chezmoidata.toml` — the single place per-profile knobs live (manage_* flags, `exclude_skills`).
 
 ## Quick start (no preinstalled chezmoi)
 
-Use the official installer wrapper to init + apply in one shot.
-
-### Personal profile
+Use the official installer wrapper to init + apply in one shot. It prompts for the profile on first run:
 
 ```bash
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "regutierrez"
 ```
 
-### Work profile
+Non-interactive (servers, scripts):
 
 ```bash
-CHEZMOI_PROFILE=work sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "regutierrez"
-```
-
-### Server profile
-
-```bash
-CHEZMOI_PROFILE=server sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "regutierrez"
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server "regutierrez"
 ```
 
 You can replace `$GITHUB_USERNAME` with a full repo URL, e.g. `"https://github.com/regutierrez/dotfiles.git"`.
@@ -52,17 +59,32 @@ Profile behavior is centralized in `.chezmoidata.toml`.
   - `manage_vimrc = true` (minimal Vim config)
   - `manage_bin = false`
   - `manage_dot_config = false`
-  - `manage_agents = false`
+  - `manage_agents = true` (skills filtered via `exclude_skills`)
   - `use_age = true`
 
-Set profile per machine in local config (`~/.config/chezmoi/chezmoi.toml`):
+### Per-machine skills
+
+Each profile has an `exclude_skills` deny-list in `.chezmoidata.toml`. Everything under `.agents/skills/` syncs everywhere by default; a new skill reaches all machines unless you add it to a profile's list:
+
+```toml
+[profiles.server]
+exclude_skills = ["datadog-investigate", "query-postgres-hz", "query-snowflake-hz", "zoom-out"]
+```
+
+### Packages
+
+All installed packages come from one file: `.chezmoidata/packages.toml`, with sections per package manager (`packages.darwin` formulae/casks + per-profile extras, `packages.arch` repo + AUR, `packages.debian`). `run_onchange_before_install-packages.sh.tmpl` installs them on `chezmoi apply` — brew on macOS, paru (fallback pacman) on arch, apt on debian/ubuntu — and re-runs automatically whenever a list changes. Add a package to the file, push, and every machine picks it up on its next apply.
+
+The bootstrap scripts (`macos/scripts/init.sh`, `linux/deb-srv/scripts/init.sh`, `linux/arch-srv/user_configuration.json`) only install the minimum needed to get chezmoi running; everything else flows from `packages.toml`.
+
+### Changing a machine's profile
+
+The profile is prompted once at `chezmoi init` and stored in `~/.config/chezmoi/chezmoi.toml`. To change it, edit that file:
 
 ```toml
 [data]
 profile = "server"
 ```
-
-For first-time `init`, use `CHEZMOI_PROFILE` so `.chezmoi.toml.tmpl` can write the correct local profile before `apply` runs.
 
 ## Safe preview / dry run
 
@@ -75,6 +97,18 @@ chezmoi apply -n --override-data '{"profile":"work"}'
 ```
 
 After `init`, the selected profile is stored in the local chezmoi config, so plain `chezmoi apply` uses it automatically.
+
+## Migrating a machine off arch-dotfiles
+
+`regutierrez/arch-dotfiles` has been absorbed into this repo (kitty, niri, zshrc, gitconfig, lazygit, skills) and is now archive-only. On a machine that used its Makefile symlinks, remove them before the first apply so chezmoi doesn't write through symlinks into the old checkout:
+
+```bash
+make -C ~/path/to/arch-dotfiles uninstall 2>/dev/null \
+  || for f in ~/.zshrc ~/.gitconfig ~/.config/lazygit/config.yml ~/.config/kitty ~/.config/niri; do
+       [ -L "$f" ] && rm "$f"
+     done
+chezmoi init --apply regutierrez   # answer: personal
+```
 
 ## arch bootstrap
 > you probably need to re-fix partitions, but other than that should be good to go.
@@ -95,16 +129,10 @@ curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scr
 
 The script generates a new SSH key and prints the public key. Add it to GitHub, then apply dotfiles.
 
-Personal:
+Then apply dotfiles (prompts for profile on first run):
 
 ```bash
 chezmoi init --apply regutierrez
-```
-
-Work:
-
-```bash
-CHEZMOI_PROFILE=work chezmoi init --apply regutierrez
 ```
 
 To use the work package set from the repo (`macos/scripts/bootstrap.sh`):
@@ -129,4 +157,10 @@ curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scr
 chezmoi edit ~/.zshrc
 chezmoi diff
 chezmoi apply
+```
+
+If `chezmoi apply` fails while updating the external Neovim checkout at `~/.config/nvim`, skip externals:
+
+```bash
+chezmoi apply --exclude externals
 ```

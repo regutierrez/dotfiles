@@ -12,40 +12,15 @@ EMAIL="rpegutierrez@gmail.com"
 echo "=== Debian Initialization ==="
 echo ""
 
-# Package list based on linux/arch-srv/user_configuration.json
-# Arch names are mapped to Debian package names where needed.
+# Bootstrap essentials only. The full package set lives in
+# .chezmoidata/packages.toml ([packages.debian]) and is installed by the
+# chezmoi init --apply below (run_onchange_before_install-packages.sh.tmpl).
 APT_PACKAGES=(
-  asciinema
-  ast-grep
   build-essential
-  bat
-  btop
-  cargo
   curl
-  dpkg
-  eza
-  fakeroot
-  fd-find
-  ffmpeg
-  fzf
   git
-  golang-go
-  jq
-  neovim
-  mise
   openssh-client
   openssh-server
-  python3-pymupdf
-  qemu-guest-agent
-  ripgrep
-  rustc
-  spice-vdagent
-  starship
-  tmux
-  tree-sitter-cli
-  uv
-  zoxide
-  zip
   zsh
 )
 

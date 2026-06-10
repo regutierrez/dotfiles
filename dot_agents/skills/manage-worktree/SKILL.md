@@ -1,6 +1,6 @@
 ---
 name: manage-worktree
-description: Use whenever creating, switching, listing, removing, merging, or cleaning up git worktrees. Always go through Worktrunk (`wt`), not raw `git worktree`.
+description: Use whenever creating, switching, listing, removing, merging, or cleaning up git worktrees. DO NOT USE if request just needs creating branches. Always go through Worktrunk (`wt`), not raw `git worktree`.
 disable-model-invocation: false
 ---
 
