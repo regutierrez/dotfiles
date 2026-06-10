@@ -1,44 +1,7 @@
 # WORK STUFF
+# Sourced by init.sh via BOOTSTRAP_CONFIG to override identity defaults.
+# Packages are NOT defined here anymore — the per-profile package set lives
+# in .chezmoidata/packages.toml (work_formulae / work_casks) and installs
+# via chezmoi apply.
 # GHUSER="regutierrez"
 # EMAIL="rpegutierrez@gmail.com"
-
-BREW_PACKAGES=(
-  asciinema
-  bat
-  btop
-  starship
-  ripgrep
-  uv
-  tailscale
-  fd
-  ffmpeg
-  gh
-  rust
-  delta
-  neovim
-  tmux
-  eza
-  zoxide
-  fzf
-  go
-  tree-sitter-cli
-  lazygit
-  pandoc
-  worktrunk
-  direnv
-  fnm
-  mingw-w64
-  # docker stuff
-  docker
-  docker-compose
-  docker-completion
-  colima
-)
-
-BREW_CASKS=(
-  shottr
-  google-chrome
-  obsidian
-  raycast
-  ghostty
-)

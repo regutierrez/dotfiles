@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+conf="${KITTY_CONFIG_DIRECTORY:-$HOME/.config/kitty}/kitty.conf"
+builtin_conf="/usr/share/doc/kitty/kitty.conf"
+
+section() {
+  printf '\n%s\n' "$1"
+  printf '%*s\n' "${#1}" '' | tr ' ' '-'
+}
+
+row() {
+  printf '  %-30s %s\n' "$1" "$2"
+}
+
+print_maps() {
+  local file="$1"
+  local commented="${2:-no}"
+
+  if [[ "$commented" == yes ]]; then
+    awk '
+      /^# map[[:space:]]+/ {
+        key=$3
+        $1=""; $2=""; $3=""
+        sub(/^[[:space:]]+/, "")
+        printf "  %-30s %s\n", key, $0
+      }
+    ' "$file"
+  else
+    awk '
+      /^map[[:space:]]+/ {
+        key=$2
+        $1=""; $2=""
+        sub(/^[[:space:]]+/, "")
+        printf "  %-30s %s\n", key, $0
+      }
+    ' "$file"
+  fi
+}
+
+{
+  printf 'KITTY SHORTCUTS\n'
+  printf '===============\n'
+
+  section 'Help'
+  row 'Ctrl+Shift+F1' "Open Kitty's built-in help / keyboard shortcuts"
+  row 'Ctrl+Shift+/' 'Show this popup'
+
+  section 'Your Kitty mappings / overrides'
+  if [[ -r "$conf" ]]; then
+    print_maps "$conf"
+  else
+    printf '  Could not read %s\n' "$conf"
+  fi
+
+  section 'Built-in Kitty mappings'
+  if [[ -r "$builtin_conf" ]]; then
+    print_maps "$builtin_conf" yes
+  else
+    printf '  Could not read %s\n' "$builtin_conf"
+  fi
+
+  section 'Terminal navigation'
+  row 'Ctrl+A' 'Move to beginning of line'
+  row 'Ctrl+E' 'Move to end of line'
+  row 'Alt+B' 'Move back one word'
+  row 'Alt+F' 'Move forward one word'
+  row 'Ctrl+B' 'Move back one character'
+  row 'Ctrl+F' 'Move forward one character'
+
+  section 'Terminal editing'
+  row 'Ctrl+U' 'Delete from cursor to beginning of line'
+  row 'Ctrl+K' 'Delete from cursor to end of line'
+  row 'Ctrl+W' 'Delete previous word'
+  row 'Alt+D' 'Delete next word'
+  row 'Ctrl+Y' 'Paste/yank last deleted text'
+  row 'Ctrl+T' 'Transpose characters'
+  row 'Alt+T' 'Transpose words'
+  row 'Ctrl+_' 'Undo, in shells/readline that support it'
+
+  section 'History / search'
+  row 'Ctrl+P / Up' 'Previous history entry'
+  row 'Ctrl+N / Down' 'Next history entry'
+  row 'Ctrl+R' 'Reverse history search'
+  row 'Ctrl+S' 'Forward history search, if flow control is disabled'
+  row 'Alt+.' 'Insert last argument from previous command'
+
+  section 'Terminal control'
+  row 'Ctrl+C' 'Interrupt current command'
+  row 'Ctrl+D' 'EOF / close shell if line is empty'
+  row 'Ctrl+L' 'Clear screen'
+  row 'Ctrl+Z' 'Suspend foreground job'
+  row 'fg' 'Resume suspended job in foreground'
+  row 'Ctrl+Q' 'Resume output after Ctrl+S flow-control pause'
+} | bat --language=help --style=plain --paging=always --color=always

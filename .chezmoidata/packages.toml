@@ -1,0 +1,139 @@
+# Single source of truth for installed packages on all machines.
+# Consumed by run_onchange_before_install-packages.sh.tmpl — editing any
+# list here makes chezmoi re-run the installer on each machine's next apply.
+
+[packages.darwin]
+formulae = [
+  "asciinema",
+  "chezmoi",
+  "delta",
+  "eza",
+  "fd",
+  "ffmpeg",
+  "fzf",
+  "gh",
+  "go",
+  "lazygit",
+  "mingw-w64",
+  "neovim",
+  "pandoc",
+  "ripgrep",
+  "rust",
+  "starship",
+  "tailscale",
+  "tmux",
+  "tree-sitter-cli",
+  "uv",
+  "worktrunk",
+  "zoxide",
+]
+casks = [
+  "ghostty",
+  "obsidian",
+  "raycast",
+  "shottr",
+]
+personal_formulae = [
+  "mas",
+  "nvm",
+]
+personal_casks = [
+  "aldente",
+  "homerow",
+  "iina",
+  "karabiner-elements",
+  "parsec",
+]
+work_formulae = [
+  "bat",
+  "btop",
+  "colima",
+  "direnv",
+  "docker",
+  "docker-completion",
+  "docker-compose",
+  "fnm",
+]
+work_casks = [
+  "google-chrome",
+]
+
+[packages.arch]
+# Installed with paru when available, pacman otherwise (repo packages only).
+packages = [
+  "asciinema",
+  "ast-grep",
+  "atuin",
+  "bat",
+  "chezmoi",
+  "docker-compose",
+  "eza",
+  "fakeroot",
+  "fd",
+  "ffmpeg",
+  "fnm",
+  "fzf",
+  "git",
+  "git-delta",
+  "github-cli",
+  "go",
+  "jq",
+  "lazygit",
+  "neovim",
+  "pandoc-cli",
+  "qemu-guest-agent",
+  "ripgrep",
+  "rust",
+  "starship",
+  "stow",
+  "tmux",
+  "tree-sitter-cli",
+  "uv",
+  "wl-clipboard",
+  "zoxide",
+  "zsh",
+]
+# AUR + desktop apps; needs paru, skipped on server profile.
+aur = [
+  "flatpak",
+  "google-chrome",
+  "helium-browser-bin",
+  "joplin-bin",
+  "tailscale",
+]
+
+[packages.debian]
+packages = [
+  "asciinema",
+  "ast-grep",
+  "bat",
+  "btop",
+  "build-essential",
+  "cargo",
+  "curl",
+  "dpkg",
+  "eza",
+  "fakeroot",
+  "fd-find",
+  "ffmpeg",
+  "fzf",
+  "git",
+  "golang-go",
+  "jq",
+  "mise",
+  "neovim",
+  "openssh-client",
+  "openssh-server",
+  "python3-pymupdf",
+  "qemu-guest-agent",
+  "ripgrep",
+  "rustc",
+  "spice-vdagent",
+  "starship",
+  "tmux",
+  "tree-sitter-cli",
+  "uv",
+  "zip",
+  "zoxide",
+  "zsh",
+]

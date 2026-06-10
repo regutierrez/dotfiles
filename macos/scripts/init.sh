@@ -17,44 +17,14 @@ echo ""
 GHUSER="regutierrez"
 EMAIL="rpegutierrez@gmail.com"
 
-# Default packages
+# Bootstrap essentials only. The full package set lives in
+# .chezmoidata/packages.toml and is installed by chezmoi apply
+# (run_onchange_before_install-packages.sh.tmpl).
 BREW_PACKAGES=(
-  asciinema
-  starship
-  ripgrep
-  uv
-  tailscale
-  fd
-  ffmpeg
-  gh
-  rust
-  neovim
-  tmux
-  eza
-  zoxide
-  fzf
-  go
-  tree-sitter-cli
-  lazygit
-  pandoc
-  worktrunk
-  mas
   chezmoi
-  nvm
-  mingw-w64
 )
 
-BREW_CASKS=(
-  aldente
-  shottr
-  parsec
-  homerow
-  iina
-  obsidian
-  raycast
-  ghostty
-  karabiner-elements
-)
+BREW_CASKS=()
 
 load_bootstrap_config() {
   if [[ -f "$BOOTSTRAP_CONFIG" ]]; then

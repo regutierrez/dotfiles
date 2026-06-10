@@ -7,6 +7,11 @@ manage_bin = true
 manage_dot_config = true
 manage_agents = true
 use_age = true
+exclude_skills = [
+  "datadog-investigate",
+  "query-postgres-hz",
+  "query-snowflake-hz",
+]
 
 [profiles.work]
 tmux_plugins = true
@@ -17,6 +22,7 @@ manage_bin = true
 manage_dot_config = true
 manage_agents = true
 use_age = false
+exclude_skills = []
 
 [profiles.server]
 tmux_plugins = false
@@ -25,5 +31,11 @@ manage_vimrc = true
 manage_nvim = false
 manage_bin = false
 manage_dot_config = false
-manage_agents = false
+manage_agents = true
 use_age = true
+exclude_skills = [
+  "datadog-investigate",
+  "query-postgres-hz",
+  "query-snowflake-hz",
+  "zoom-out",
+]

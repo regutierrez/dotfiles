@@ -1,0 +1,66 @@
+{{- /* Installs packages from .chezmoidata/packages.toml.
+       run_onchange_: re-runs whenever the rendered list below changes. */ -}}
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+set -euo pipefail
+
+{{ $formulae := .packages.darwin.formulae -}}
+{{ $casks := .packages.darwin.casks -}}
+{{ if eq .profile "work" -}}
+{{   $formulae = concat $formulae .packages.darwin.work_formulae -}}
+{{   $casks = concat $casks .packages.darwin.work_casks -}}
+{{ else -}}
+{{   $formulae = concat $formulae .packages.darwin.personal_formulae -}}
+{{   $casks = concat $casks .packages.darwin.personal_casks -}}
+{{ end -}}
+if ! command -v brew >/dev/null 2>&1; then
+  echo "install-packages: brew not found, skipping (run macos/scripts/init.sh first)" >&2
+  exit 0
+fi
+
+# Ensure-present semantics: never upgrade existing packages from this script.
+# Upgrades stay deliberate (brew upgrade).
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALL_UPGRADE=1
+
+echo "install-packages: syncing brew packages..."
+brew install {{ $formulae | sortAlpha | uniq | join " " }}
+brew install --cask --adopt {{ $casks | sortAlpha | uniq | join " " }}
+{{ else if eq .chezmoi.os "linux" -}}
+{{- $osid := .chezmoi.osRelease.id | default "" -}}
+{{- $oslike := .chezmoi.osRelease.idLike | default "" -}}
+#!/bin/bash
+set -euo pipefail
+
+{{ if or (eq $osid "arch") (contains "arch" $oslike) -}}
+pkgs=({{ .packages.arch.packages | sortAlpha | uniq | join " " }})
+
+if command -v paru >/dev/null 2>&1; then
+  echo "install-packages: syncing packages with paru..."
+  paru -S --needed --noconfirm "${pkgs[@]}"
+{{ if ne .profile "server" -}}
+  echo "install-packages: syncing AUR/desktop apps with paru..."
+  paru -S --needed --noconfirm {{ .packages.arch.aur | sortAlpha | uniq | join " " }}
+{{ end -}}
+else
+  echo "install-packages: paru not found, using pacman (repo packages only)..."
+  sudo pacman -S --needed --noconfirm "${pkgs[@]}"
+fi
+{{ else if or (eq $osid "debian") (eq $osid "ubuntu") (contains "debian" $oslike) -}}
+echo "install-packages: syncing apt packages..."
+sudo apt-get update -y
+
+# Skip packages this release doesn't ship instead of failing the whole run.
+installable=()
+for pkg in {{ .packages.debian.packages | sortAlpha | uniq | join " " }}; do
+  if apt-cache show "$pkg" >/dev/null 2>&1; then
+    installable+=("$pkg")
+  else
+    echo "install-packages: '$pkg' not available, skipping" >&2
+  fi
+done
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${installable[@]}"
+{{ else -}}
+echo "install-packages: unsupported linux distro '{{ $osid }}', skipping" >&2
+{{ end -}}
+{{ end -}}
