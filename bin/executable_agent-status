@@ -105,7 +105,8 @@ gen_list() {
         else { order = 3; color = "\033[2m" }
         # Display text, then a tab and the pane id (extracted by the output
         # and preview templates of the television channel, dimmed in the list).
-        printf "OUT\t%d\t%s●\033[0m %-8s \033[1m%s\033[0m:%s\t\033[2m%s\033[0m\n",
+        # Session bold, window name cyan so the two stand apart.
+        printf "OUT\t%d\t%s●\033[0m %-8s \033[1m%s\033[0m:\033[36m%s\033[0m\t\033[2m%s\033[0m\n",
           order, color, agent, sess[pane], win[pane], pane
       }
     '

@@ -94,7 +94,7 @@ Then you can use it in two ways.
 
 The extension stores data in:
 
-- `.pi/todos` by default
+- `~/.pi/agent/todos/<cwd-key>` by default
 - or the directory pointed to by `PI_TODO_PATH`
 
 ---
@@ -103,11 +103,13 @@ The extension stores data in:
 
 ### Storage location
 
-By default, todos are stored under:
+By default, todos are stored under a per-project directory in the Pi agent data dir:
 
 ```text
-.pi/todos/
+~/.pi/agent/todos/<cwd-key>/
 ```
+
+The `<cwd-key>` is derived from Pi's current working directory, similar to how Pi stores sessions under `~/.pi/agent/sessions/<cwd-key>/`. This keeps todo data out of project worktrees while still separating todos by project.
 
 You can override that with:
 
@@ -117,7 +119,8 @@ export PI_TODO_PATH=/absolute/or/relative/path
 
 Implementation detail:
 
-- the path is resolved relative to Pi’s current working directory when the extension runs
+- the default path is resolved under `~/.pi/agent/todos/` using Pi’s current working directory as the project key
+- `PI_TODO_PATH` overrides the default and is resolved relative to Pi’s current working directory when it is not absolute
 - the settings file is stored inside that same todo directory
 
 Examples:
@@ -385,7 +388,7 @@ Each todo is stored as:
 Example:
 
 ```text
-.pi/todos/deadbeef.md
+~/.pi/agent/todos/--Users-you-project--/deadbeef.md
 ```
 
 The file format is:
@@ -564,7 +567,7 @@ A few helpers define most of the storage semantics.
 
 #### Storage path helpers
 
-- `getTodosDir()` resolves the todo root
+- `getTodosDir()` resolves the per-project todo root under `~/.pi/agent/todos/<cwd-key>` unless `PI_TODO_PATH` is set
 - `getTodoPath()` maps `id -> <todo-dir>/<id>.md`
 - `getLockPath()` maps `id -> <todo-dir>/<id>.lock`
 - `getTodoSettingsPath()` maps to `settings.json`

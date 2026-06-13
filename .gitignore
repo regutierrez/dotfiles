@@ -3,6 +3,7 @@ dot_config/nvim/
 dot_config/btop/
 
 dot_pi/agent/node_modules/
+dot_pi/agent/todos/
 dot_pi/todos/
 .pi/todos/
 **/.pi/todos/

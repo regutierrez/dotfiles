@@ -33,6 +33,7 @@ ctrl-r = "reload_source"
 
 [ui]
 input_header = "agent sessions (ctrl-r: refresh)"
+input_bar_position = "bottom"
 
 [ui.preview_panel]
 size = 60

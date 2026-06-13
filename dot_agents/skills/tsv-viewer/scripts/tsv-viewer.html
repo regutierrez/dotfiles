@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSV Viewer</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --panel: #ffffff;
+    --border: #d9d9e0;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --hover: #eef2ff;
+    --zebra: #fafafa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { font-size: 15px; margin: 0 8px 0 0; }
+  input[type="file"] { display: none; }
+  .btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .btn:hover { background: var(--hover); border-color: var(--accent); }
+  #globalSearch {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    width: 240px;
+  }
+  #globalSearch:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  #stats { color: var(--muted); margin-left: auto; }
+  #dropzone {
+    margin: 40px auto;
+    max-width: 560px;
+    padding: 60px 20px;
+    text-align: center;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    background: var(--panel);
+    cursor: pointer;
+  }
+  #dropzone.dragover { border-color: var(--accent); background: var(--hover); }
+  #dropzone strong { color: var(--text); }
+  #tableWrap { overflow: auto; max-height: calc(100vh - 56px); }
+  table { border-collapse: collapse; width: 100%; background: var(--panel); }
+  thead { position: sticky; top: 0; z-index: 5; }
+  th {
+    background: #f0f1f4;
+    border-bottom: 2px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 0;
+    text-align: left;
+    vertical-align: top;
+    white-space: nowrap;
+  }
+  th .colhead {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 8px 4px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+  }
+  th .colhead:hover { color: var(--accent); }
+  th .colhead svg { flex: none; }
+  th .colfilter {
+    width: 100%;
+    min-width: 70px;
+    border: none;
+    border-top: 1px solid var(--border);
+    padding: 4px 8px;
+    font-size: 12px;
+    background: var(--panel);
+  }
+  th .colfilter:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+  td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #eceef1;
+    border-right: 1px solid #f0f1f4;
+    white-space: nowrap;
+    max-width: 480px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:nth-child(even) { background: var(--zebra); }
+  tbody tr:hover { background: var(--hover); }
+  #more {
+    display: none;
+    margin: 12px auto;
+  }
+  .hint { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>TSV Viewer</h1>
+  <label class="btn" for="fileInput">Open TSV…</label>
+  <input type="file" id="fileInput" accept=".tsv,.tab,.txt,text/tab-separated-values">
+  <input type="search" id="globalSearch" placeholder="Search all columns…" disabled>
+  <button class="btn" id="clearFilters" disabled>Clear filters</button>
+  <span id="stats"></span>
+</header>
+
+<div id="dropzone">
+  <p><strong>Drop a .tsv file here</strong> or click to browse.</p>
+  <p class="hint">First row is treated as the header. Click a column header to sort
+  (numbers sort numerically), type in the box under a header to filter that column.</p>
+  <p class="hint">Scriptable, no dragging needed: <code>./tsv-view.sh file.tsv</code>,
+  or open <code>tsv-viewer.html#name=file.tsv&amp;gz=&lt;base64url of gzipped tsv&gt;</code>
+  (also accepts <code>data=</code> for plain base64, or <code>file=&lt;url&gt;</code> when served over http).</p>
+</div>
+
+<div id="tableWrap" hidden>
+  <table>
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <button class="btn" id="more">Show more rows</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const PAGE = 500; // rows rendered per batch, keeps huge files responsive
+
+  let headers = [];
+  let rows = [];          // array of string arrays
+  let view = [];          // filtered + sorted indices into rows
+  let numericCol = [];    // per-column: true if every non-empty value is a number
+  let sortCol = -1;
+  let sortDir = 1;        // 1 asc, -1 desc
+  let shown = 0;
+  let colFilters = [];
+
+  const $ = id => document.getElementById(id);
+  const dropzone = $("dropzone"), tableWrap = $("tableWrap"),
+        thead = $("thead"), tbody = $("tbody"),
+        globalSearch = $("globalSearch"), stats = $("stats"),
+        moreBtn = $("more"), clearBtn = $("clearFilters"),
+        fileInput = $("fileInput");
+
+  // --- file loading -------------------------------------------------------
+
+  dropzone.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files[0]) loadFile(fileInput.files[0]);
+  });
+  ["dragover", "dragenter"].forEach(ev =>
+    dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add("dragover"); }));
+  ["dragleave", "drop"].forEach(ev =>
+    dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+  dropzone.addEventListener("drop", e => {
+    const f = e.dataTransfer.files[0];
+    if (f) loadFile(f);
+  });
+  // allow dropping anywhere once a table is shown
+  document.addEventListener("dragover", e => e.preventDefault());
+  document.addEventListener("drop", e => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) loadFile(f);
+  });
+
+  function loadFile(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      parseTSV(reader.result);
+      document.title = file.name + " — TSV Viewer";
+    };
+    reader.readAsText(file);
+  }
+
+  function parseTSV(text) {
+    const lines = text.replace(/\r\n?/g, "\n").split("\n");
+    while (lines.length && lines[lines.length - 1] === "") lines.pop();
+    if (!lines.length) { alert("File is empty."); return; }
+
+    headers = lines[0].split("\t");
+    rows = new Array(lines.length - 1);
+    for (let i = 1; i < lines.length; i++) {
+      const cells = lines[i].split("\t");
+      while (cells.length < headers.length) cells.push("");
+      rows[i - 1] = cells;
+    }
+
+    // detect numeric columns so sorting does the right thing
+    numericCol = headers.map((_, c) => {
+      let sawValue = false;
+      for (const r of rows) {
+        const v = r[c];
+        if (v === "" || v == null) continue;
+        sawValue = true;
+        if (isNaN(Number(v.replace(/,/g, "")))) return false;
+      }
+      return sawValue;
+    });
+
+    sortCol = -1;
+    sortDir = 1;
+    colFilters = headers.map(() => "");
+    globalSearch.value = "";
+    globalSearch.disabled = false;
+    clearBtn.disabled = false;
+    dropzone.hidden = true;
+    tableWrap.hidden = false;
+
+    buildHeader();
+    applyFilters();
+  }
+
+  // --- header / sort UI ---------------------------------------------------
+
+  function sortArrow(state) {
+    // state: 0 none, 1 asc, -1 desc — small SVG indicator
+    const up = state === 1 ? "#2563eb" : "#b6b9c2";
+    const down = state === -1 ? "#2563eb" : "#b6b9c2";
+    return '<svg width="9" height="12" viewBox="0 0 9 12">' +
+      '<path d="M4.5 0 L8.5 4.5 L0.5 4.5 Z" fill="' + up + '"/>' +
+      '<path d="M4.5 12 L8.5 7.5 L0.5 7.5 Z" fill="' + down + '"/>' +
+      "</svg>";
+  }
+
+  function buildHeader() {
+    thead.innerHTML = "";
+    const tr = document.createElement("tr");
+    headers.forEach((h, c) => {
+      const th = document.createElement("th");
+
+      const head = document.createElement("div");
+      head.className = "colhead";
+      head.title = "Sort by " + h;
+      const label = document.createElement("span");
+      label.textContent = h;
+      const arrow = document.createElement("span");
+      arrow.innerHTML = sortArrow(sortCol === c ? sortDir : 0);
+      head.append(label, arrow);
+      head.addEventListener("click", () => {
+        if (sortCol === c) sortDir = -sortDir;
+        else { sortCol = c; sortDir = 1; }
+        refreshArrows();
+        applySort();
+        renderRows(true);
+      });
+      th.appendChild(head);
+
+      const filter = document.createElement("input");
+      filter.className = "colfilter";
+      filter.type = "search";
+      filter.placeholder = "filter…";
+      filter.value = colFilters[c];
+      filter.addEventListener("input", () => {
+        colFilters[c] = filter.value.toLowerCase();
+        applyFilters();
+      });
+      th.appendChild(filter);
+
+      tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+  }
+
+  function refreshArrows() {
+    thead.querySelectorAll(".colhead").forEach((head, c) => {
+      head.lastChild.innerHTML = sortArrow(sortCol === c ? sortDir : 0);
+    });
+  }
+
+  // --- filtering / sorting ------------------------------------------------
+
+  function applyFilters() {
+    const q = globalSearch.value.toLowerCase();
+    const active = colFilters
+      .map((f, c) => f ? [c, f] : null)
+      .filter(Boolean);
+
+    view = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      let ok = true;
+      for (const [c, f] of active) {
+        if (!(r[c] || "").toLowerCase().includes(f)) { ok = false; break; }
+      }
+      if (ok && q) {
+        ok = r.some(v => (v || "").toLowerCase().includes(q));
+      }
+      if (ok) view.push(i);
+    }
+    applySort();
+    renderRows(true);
+  }
+
+  function applySort() {
+    if (sortCol < 0) { view.sort((a, b) => a - b); return; }
+    const c = sortCol, dir = sortDir, numeric = numericCol[c];
+    view.sort((a, b) => {
+      const va = rows[a][c] || "", vb = rows[b][c] || "";
+      // empties always sink to the bottom
+      if (va === "" && vb === "") return a - b;
+      if (va === "") return 1;
+      if (vb === "") return -1;
+      let cmp;
+      if (numeric) cmp = Number(va.replace(/,/g, "")) - Number(vb.replace(/,/g, ""));
+      else cmp = va.localeCompare(vb, undefined, { sensitivity: "base", numeric: true });
+      return cmp !== 0 ? dir * cmp : a - b;
+    });
+  }
+
+  // --- rendering ----------------------------------------------------------
+
+  function renderRows(reset) {
+    if (reset) { tbody.innerHTML = ""; shown = 0; }
+    const end = Math.min(shown + PAGE, view.length);
+    const frag = document.createDocumentFragment();
+    for (let i = shown; i < end; i++) {
+      const r = rows[view[i]];
+      const tr = document.createElement("tr");
+      for (let c = 0; c < headers.length; c++) {
+        const td = document.createElement("td");
+        td.textContent = r[c];
+        td.title = r[c];
+        if (numericCol[c]) td.className = "num";
+        tr.appendChild(td);
+      }
+      frag.appendChild(tr);
+    }
+    tbody.appendChild(frag);
+    shown = end;
+
+    moreBtn.style.display = shown < view.length ? "block" : "none";
+    moreBtn.textContent = "Show more rows (" + (view.length - shown) + " remaining)";
+    stats.textContent = view.length === rows.length
+      ? rows.length + " rows"
+      : view.length + " of " + rows.length + " rows";
+  }
+
+  moreBtn.addEventListener("click", () => renderRows(false));
+
+  globalSearch.addEventListener("input", applyFilters);
+
+  clearBtn.addEventListener("click", () => {
+    globalSearch.value = "";
+    colFilters = headers.map(() => "");
+    thead.querySelectorAll(".colfilter").forEach(i => i.value = "");
+    applyFilters();
+  });
+
+  // --- loading without drag-and-drop, sources checked in order ------------
+  //   1. window.__TSV_VIEWER_EMBEDDED__ = {name, data|gz}
+  //      spliced into a generated copy of this file by tsv-view.sh;
+  //      plain base64 in "data" works in any browser, no modern APIs.
+  //   2. URL hash or query parameters:
+  //        gz=<base64 of gzipped tsv>   (needs DecompressionStream)
+  //        data=<base64 of tsv>
+  //        file=<url>                   (only when served over http)
+  //        name=<tab title>
+  //      Prefer the hash form (#gz=...) — it also works on file:// URLs.
+
+  function b64ToBytes(s) {
+    // URLSearchParams turns "+" into spaces; also accept base64url and
+    // missing "=" padding so callers don't have to be careful.
+    s = s.replace(/ /g, "+").replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    const bin = atob(s);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  async function loadFromHash() {
+    const rawParams = location.hash ? location.hash.slice(1) : location.search.slice(1);
+    const params = new URLSearchParams(rawParams);
+    const embedded = window.__TSV_VIEWER_EMBEDDED__ || {};
+    const name = embedded.name || params.get("name") || params.get("file") || "data.tsv";
+    try {
+      let text = null;
+      if (embedded.gz) {
+        const stream = new Blob([b64ToBytes(embedded.gz)]).stream()
+          .pipeThrough(new DecompressionStream("gzip"));
+        text = await new Response(stream).text();
+      } else if (embedded.data) {
+        text = new TextDecoder().decode(b64ToBytes(embedded.data));
+      } else if (params.get("gz")) {
+        const stream = new Blob([b64ToBytes(params.get("gz"))]).stream()
+          .pipeThrough(new DecompressionStream("gzip"));
+        text = await new Response(stream).text();
+      } else if (params.get("data")) {
+        text = new TextDecoder().decode(b64ToBytes(params.get("data")));
+      } else if (params.get("file")) {
+        const resp = await fetch(params.get("file"));
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        text = await resp.text();
+      }
+      if (text != null) {
+        parseTSV(text);
+        document.title = name + " — TSV Viewer";
+      }
+    } catch (err) {
+      alert("Could not load data: " + err.message);
+    }
+  }
+
+  window.addEventListener("hashchange", loadFromHash);
+  loadFromHash();
+})();
+</script>
+</body>
+</html>
