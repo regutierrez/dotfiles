@@ -183,6 +183,17 @@ fi
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
+# Always prefer the canonical global pi install over fnm/mise/bun shims.
+# fnm re-prepends its multishell bin on directory changes, so enforce this once
+# at startup and again after every chpwd hook run.
+__prefer_npm_global_pi() {
+  typeset -gU path PATH
+  path=("$HOME/.npm-global/bin" ${path:#$HOME/.npm-global/bin})
+  rehash
+}
+autoload -Uz add-zsh-hook
+__prefer_npm_global_pi
+add-zsh-hook chpwd __prefer_npm_global_pi
 
 # uncomment to profile zsh startup, along with zprof (end of line)
 # zprof

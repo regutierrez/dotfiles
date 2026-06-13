@@ -7,13 +7,16 @@ Vendored from:
 
 These extensions live under `~/.pi/agent/` when applied via chezmoi.
 
-Included extensions now also contain `answer.ts`, which adds `/answer` and `ctrl+.` for extracting questions from the last assistant reply into an interactive Q&A TUI.
+Included extensions now also contain:
 
-`multi-edit.ts` depends on the npm package `diff`, so after syncing dotfiles you must install dependencies in:
+- `answer.ts`, which adds `/answer` and `ctrl+.` for extracting questions from the last assistant reply into an interactive Q&A TUI.
+- `todos/`, which adds a file-backed `todo` tool and `/todos` manager. Todo data lives in `~/.pi/agent/todos/<cwd-key>/` by default, or `$PI_TODO_PATH` when set.
+
+Some extensions depend on npm packages (`diff`, `typebox`), so after syncing dotfiles you must install dependencies in:
 
 ```bash
 cd ~/.pi/agent
-bun install
+npm install
 ```
 
 Then reload pi:

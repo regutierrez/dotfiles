@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# agent-sessions-picker — floating tmux popup listing coding-agent sessions.
+#
+# Bound to prefix+a (see .tmux.conf). Runs the television "agent-sessions"
+# cable channel over the state maintained by `agent-status`; picking an entry
+# jumps the client to that pane.
+set -euo pipefail
+
+# The channel's output template reduces the selection to the pane id ("%12").
+pane=$(tv agent-sessions) || exit 0
+case "$pane" in
+%*) ;;
+*) exit 0 ;;
+esac
+
+tmux select-window -t "$pane"
+tmux select-pane -t "$pane"
+tmux switch-client -t "$pane" 2>/dev/null || true

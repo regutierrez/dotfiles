@@ -1,0 +1,40 @@
+# Coding-agent sessions running in tmux panes, grouped by status
+# (yellow = needs intervention, blue = busy, green = done).
+# Entries come from `agent-status list`; opened by agent-sessions-picker
+# (tmux prefix+a popup). Enter outputs the tmux pane id.
+
+# No `watch`: tv reloads empty the matcher for a moment, and any tick landing
+# in that window resets the preview scroll to the top (and can flicker) —
+# television 0.15.8 television.rs:426 / previewer/state.rs:36. Statuses are
+# fresh at popup open; ctrl-r reloads (list and preview) on demand.
+
+[metadata]
+name = "agent-sessions"
+description = "tmux panes running claude / cursor / pi, by status"
+requirements = ["tmux", "agent-status"]
+
+[source]
+command = "agent-status list"
+ansi = true
+# Lines are "<colored status / agent / session:window>\t<pane_id>".
+output = "{strip_ansi|split:\\t:1}"
+no_sort = true
+frecency = false
+
+[preview]
+command = "tmux capture-pane -ep -t '{strip_ansi|split:\\t:1}'"
+# Uncached so a ctrl-r reload re-captures the pane instead of serving the
+# snapshot from popup open. Navigation keeps the previous preview on screen
+# until the new one arrives, so this does not flicker.
+cached = false
+
+[keybindings]
+ctrl-r = "reload_source"
+
+[ui]
+input_header = "agent sessions (ctrl-r: refresh)"
+input_bar_position = "bottom"
+
+[ui.preview_panel]
+size = 60
+header = "{strip_ansi|split:\\t:0|trim}"

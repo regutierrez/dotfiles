@@ -1,23 +1,20 @@
 ---
 name: plannotator-annotate
 description: Open Plannotator's annotation UI for a markdown file, converted HTML file, URL, or folder and then respond to the returned annotations.
+allowed-tools: Bash(plannotator:*)
+disable-model-invocation: true
 ---
 
 # Plannotator Annotate
 
-Use this skill when the user wants to annotate a document in Plannotator instead of reviewing it inline in chat.
+## Markdown annotations
 
-Run:
+!`plannotator annotate $ARGUMENTS`
 
-```bash
-plannotator annotate <path-or-url>
-```
+## Your task
 
-Behavior:
+The output above will be one of:
 
-1. Launch the command with Bash.
-2. Wait for the browser review to finish.
-3. If annotations are returned, address them directly.
-4. If the session closes without feedback, say so briefly and continue.
-
-Do not ask the user to paste a shell command into the chat. Run the command yourself.
+1. The exact text `The user approved.`, OR a JSON object with `"decision": "approved"`. The user approved the markdown file(s). Acknowledge with a single sentence ("Approved.") and stop. Do not begin any work.
+2. Empty, OR a JSON object with `"decision": "dismissed"`. The user closed the session without requesting changes. Acknowledge with a single sentence ("Annotation session closed.") and stop. Do not begin any work.
+3. Plaintext annotation feedback, OR a JSON object with `"decision": "annotated"` and a `"feedback"` field. Address the feedback. The user has reviewed the markdown file(s) and provided specific annotations and comments.

@@ -156,6 +156,7 @@ set -ag status-right "#{E:@catppuccin_status_uptime}"
 
 # Custom commands
 bind o run-shell '~/bin/commando --fzf-tmux'
+bind a display-popup -E -w 80% -h 75% -T " agent sessions " '~/bin/agent-sessions-picker'
 bind -r DC select-layout tiled
 bind S setw synchronize-panes \; set -g pane-active-border-style "#{?synchronize-panes,fg=#{@thm_red},fg=#{@thm_lavender}}"
 
