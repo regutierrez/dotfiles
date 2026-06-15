@@ -1,5 +1,12 @@
 Include /Users/pael/.colima/ssh_config
 
+Host github-regutierrez
+	HostName github.com
+	User git
+	IdentityFile ~/.ssh/id_ed25519_regutierrez
+	IdentitiesOnly yes
+	IdentityAgent none
+
 Host *
 	IgnoreUnknown UseKeychain
 	AddKeysToAgent yes
