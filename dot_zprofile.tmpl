@@ -9,6 +9,8 @@ export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";'
 
 # activate mise for non-interactive shells
 eval "$(mise activate zsh)" # should be near the top!
+{{- if eq .profile "work" }}
 # helper scripts for Akkio
 . ~/Akkio/scripts/akkio_aliases.sh
+{{- end }}
 

@@ -25,6 +25,10 @@ macos/
 linux/
 srv/
 
+{{- if ne $profile "work" }}
+akkio-helpers/
+{{- end }}
+
 {{- if ne .chezmoi.os "darwin" }}
 .ssh/id_ed25519.age
 .ssh/id_ed25519.pub
