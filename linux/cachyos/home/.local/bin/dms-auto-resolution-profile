@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Auto-switches DMS display profiles based on the current resolution of the XG27UCG monitor.
+# Only for Linux gaming with CachyOS, Niri, and DMS.
+
+MONITOR_MODEL="XG27UCG"
+
+PROFILE_4K="asus-xg27ucg-4k"
+PROFILE_1080="asus-xg27ucg-1080"
+
+get_resolution() {
+  niri msg --json outputs | jq -r \
+    --arg model "$MONITOR_MODEL" '
+      to_entries[]
+      | select(.value.model == $model)
+      | .value as $output
+      | $output.modes[$output.current_mode]
+      | "\(.width)x\(.height)"
+    '
+}
+
+get_active_profile() {
+  dms ipc outputs status | awk '/^active:/ {print $2}'
+}
+
+apply_profile_if_needed() {
+  local res active target
+
+  res="$(get_resolution)"
+  active="$(get_active_profile)"
+
+  case "$res" in
+    3840x2160)
+      target="$PROFILE_4K"
+      ;;
+    1920x1080)
+      target="$PROFILE_1080"
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+
+  if [[ "$active" != "$target" ]]; then
+    dms ipc outputs setProfile "$target"
+  fi
+}
+
+while true; do
+  apply_profile_if_needed
+  sleep 2
+done

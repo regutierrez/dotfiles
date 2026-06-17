@@ -5,6 +5,7 @@
         }
     },
     "archinstall-language": "English",
+    "hostname": "noco",
     "auth_config": {},
     "bootloader_config": {
         "bootloader": "Limine",
