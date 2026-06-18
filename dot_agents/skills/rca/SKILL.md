@@ -77,6 +77,7 @@ Key platform files: `ml/src/dataset_parsing/datasource_info/` (metadata builder)
    - Scope: systems, tenants, routes, jobs, time range, user actions in. What's out.
    - Access map: for each source (logs, traces, dashboards, code, DB, queue, flag, deploy), mark `available`, `partial`, `missing`, `unknown`. Declare gaps now, not at writeup.
    - Timebox: 20 min per hypothesis check unless user says otherwise.
+   - Agent session: record the current agent type (`pi`, `claude`, `cursor`, `opencode`, etc.) and session ID before evidence collection starts. If the harness exposes a session UUID/path, use that exact value. If it does not, write `Unknown — <where checked>` in notes and resolve it before finalizing the MDX.
 2. **Check duplicates.** `rg -il '<error text|symptom|entity id>' src/content/investigations/`. Same root cause elsewhere → link or flag, don't re-author.
 3. **Grab Linear ticket info with `linear-cli`.** Use machine-readable output and narrow fields when possible:
    - `linear-cli issues get <TICKET-ID> --output json --compact` for title, body, metadata, labels, team/project, dates, URL, assignee, creator/reporter.
@@ -184,7 +185,8 @@ Then add `## Summary`. The table below is the required baseline, not a limit: in
 | Datadog — logs                  | scoped URL                                              |
 | Datadog — trace                 | URL                                                     |
 | Datadog — metrics/RUM/events    | scoped URL                                              |
-| Agent session ID(s)             | this claude/pi session uuid                             |
+| Agent session type(s)           | `pi`, `claude`, `cursor`, `opencode`, etc.              |
+| Agent session ID(s)             | exact session UUID/path for each agent session used     |
 
 After `## Summary`, include:
 
@@ -260,6 +262,7 @@ Optional when useful:
 ## **MUST DO** Self-Review Before Finalizing
 
 - Could a junior engineer tell where to look next, with all lookup IDs present (user, org, project, resource, trace, job, agent session)?
+- Does the Summary include both `Agent session type(s)` and `Agent session ID(s)`? Do not finalize with either blank; use `Unknown — <where checked>` only when the harness truly does not expose it.
 - Walk each Root cause sentence: every claim points to a quoted log, trace id, `file:line`, SQL result, or Linear comment in the doc — fix or delete any without proof.
 - Is `## Root cause confidence` consistent with open `## Manual validation required` items?
 - Missing facts labeled `Unknown` with the exact next query/tool needed?
