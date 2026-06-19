@@ -14,11 +14,7 @@
                 "to": [
                   {
                     "key_code": "left_shift",
-                    "modifiers": [
-                      "left_command",
-                      "left_control",
-                      "left_option"
-                    ]
+                    "modifiers": ["left_command", "left_control", "left_option"]
                   }
                 ],
                 "to_if_alone": [
@@ -33,9 +29,7 @@
                 "from": {
                   "key_code": "tab",
                   "modifiers": {
-                    "mandatory": [
-                      "left_command"
-                    ]
+                    "mandatory": ["left_command"]
                   }
                 },
                 "to": [
@@ -56,12 +50,7 @@
                 "from": {
                   "key_code": "q",
                   "modifiers": {
-                    "mandatory": [
-                      "left_command",
-                      "left_control",
-                      "left_shift",
-                      "left_option"
-                    ]
+                    "mandatory": ["left_command", "left_control", "left_shift", "left_option"]
                   }
                 },
                 "to": [
@@ -94,9 +83,7 @@
                 "from": {
                   "key_code": "0",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -118,9 +105,7 @@
                 "from": {
                   "key_code": "m",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -139,17 +124,15 @@
                   }
                 ],
                 "from": {
-                  "description": "Open -a 'Zen.app'",
+                  "description": "Open -a 'Helium.app'",
                   "key_code": "g",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Zen.app'"
+                    "shell_command": "open -a 'Helium.app'"
                   }
                 ],
                 "type": "basic"
@@ -166,9 +149,7 @@
                 "from": {
                   "key_code": "v",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -190,9 +171,7 @@
                 "from": {
                   "key_code": "f",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -214,9 +193,7 @@
                 "from": {
                   "key_code": "d",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -238,9 +215,7 @@
                 "from": {
                   "key_code": "s",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -262,9 +237,7 @@
                 "from": {
                   "key_code": "n",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -286,9 +259,7 @@
                 "from": {
                   "key_code": "",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -306,61 +277,11 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Notion.app'",
-                "from": {
-                  "key_code": "n",
-                  "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
-                  }
-                },
-                "to": [
-                  {
-                    "shell_command": "open -a 'Notion.app'"
-                  }
-                ],
-                "type": "basic"
-              },
-              {
-                "conditions": [
-                  {
-                    "name": "hyper_sublayer_q",
-                    "type": "variable_if",
-                    "value": 1
-                  }
-                ],
-                "description": "Open -a 'zoom.us.app'",
-                "from": {
-                  "key_code": "z",
-                  "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
-                  }
-                },
-                "to": [
-                  {
-                    "shell_command": "open -a 'zoom.us.app'"
-                  }
-                ],
-                "type": "basic"
-              },
-              {
-                "conditions": [
-                  {
-                    "name": "hyper_sublayer_q",
-                    "type": "variable_if",
-                    "value": 1
-                  }
-                ],
                 "description": "Open -a 'Ghostty.app'",
                 "from": {
-                  "key_code": "t",
+                  "key_code": "return_or_enter",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -382,9 +303,7 @@
                 "from": {
                   "key_code": "9",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -406,9 +325,7 @@
                 "from": {
                   "key_code": "b",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
@@ -430,9 +347,7 @@
                 "from": {
                   "key_code": "r",
                   "modifiers": {
-                    "mandatory": [
-                      "any"
-                    ]
+                    "mandatory": ["any"]
                   }
                 },
                 "to": [
