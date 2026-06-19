@@ -6,10 +6,10 @@ Managed with `chezmoi`. One repo, one branch, all machines.
 
 Two facts decide what a machine gets, and they are orthogonal:
 
-- **profile** (`personal` / `work` / `server`) — why the machine exists. Chosen once at `chezmoi init`, stored in `~/.config/chezmoi/chezmoi.toml`.
+- **profile** (`personal` / `work` / `server` / `cachygaming`) — why the machine exists. Chosen once at `chezmoi init`, stored in `~/.config/chezmoi/chezmoi.toml`.
 - **OS** (`.chezmoi.os`) — what it runs. Detected automatically.
 
-So: mac-personal = `personal`+darwin, mac-work = `work`+darwin, arch-desktop = `personal`+linux, ubuntu-server = `server`+linux. No per-machine branches, no second dotfiles repo.
+So: mac-personal = `personal`+darwin, mac-work = `work`+darwin, cachy-gaming-desktop = `cachygaming`+linux, ubuntu-server = `server`+linux. No per-machine branches, no second dotfiles repo.
 
 Three mechanisms, each with one job:
 
@@ -53,6 +53,9 @@ Profile behavior is centralized in `.chezmoidata.toml`.
   - `manage_dot_config = true`
   - `manage_agents = true`
   - `use_age = false` (skips secret decryption, no age key needed)
+- `profiles.cachygaming`
+  - Same base behavior as `personal`
+  - Applies CachyOS/Niri/DMS gaming desktop files such as kitty, niri, and the DMS auto-resolution-profile systemd user service
 - `profiles.server`
   - `tmux_plugins = false` (same tmux config, no plugins)
   - `manage_bashrc = true` (minimal Bash config)

@@ -1,0 +1,11 @@
+[Unit]
+Description=Auto-switch DMS display profile based on monitor resolution
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/dms-auto-resolution-profile
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

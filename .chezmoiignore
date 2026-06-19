@@ -38,9 +38,11 @@ akkio-helpers/
 Library/LaunchAgents/
 {{- end }}
 
-{{- if ne .chezmoi.os "linux" }}
+{{- if or (ne .chezmoi.os "linux") (ne $profile "cachygaming") }}
 .config/kitty
 .config/niri
+.config/systemd/user/dms-auto-resolution-profile.service
+.local/bin/dms-auto-resolution-profile
 {{- end }}
 
 {{- if not $use_age }}

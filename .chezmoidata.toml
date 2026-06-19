@@ -24,6 +24,21 @@ manage_agents = true
 use_age = false
 exclude_skills = []
 
+[profiles.cachygaming]
+tmux_plugins = true
+manage_bashrc = false
+manage_vimrc = false
+manage_nvim = true
+manage_bin = true
+manage_dot_config = true
+manage_agents = true
+use_age = true
+exclude_skills = [
+  "datadog-investigate",
+  "query-postgres-hz",
+  "query-snowflake-hz",
+]
+
 [profiles.server]
 tmux_plugins = false
 manage_bashrc = true
