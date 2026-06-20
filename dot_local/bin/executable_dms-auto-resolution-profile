@@ -8,8 +8,22 @@ MONITOR_MODEL="XG27UCG"
 PROFILE_4K="asus-xg27ucg-4k"
 PROFILE_1080="asus-xg27ucg-1080"
 
+get_niri_socket() {
+  if [[ -n "${NIRI_SOCKET:-}" && -S "${NIRI_SOCKET}" ]]; then
+    printf '%s\n' "$NIRI_SOCKET"
+    return 0
+  fi
+
+  find "${XDG_RUNTIME_DIR:-/run/user/$UID}" -maxdepth 1 -type s -name 'niri.*.sock' 2>/dev/null | head -n 1
+}
+
 get_resolution() {
-  niri msg --json outputs | jq -r \
+  local socket
+
+  socket="$(get_niri_socket)"
+  [[ -n "$socket" ]] || return 0
+
+  NIRI_SOCKET="$socket" niri msg --json outputs 2>/dev/null | jq -r \
     --arg model "$MONITOR_MODEL" '
       to_entries[]
       | select(.value.model == $model)
