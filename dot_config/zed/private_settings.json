@@ -7,11 +7,15 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "diff_view_style": "unified",
   "agent_servers": {
-    "claude-acp": {
+    "cursor": {
       "type": "registry"
     },
-    "pi-acp": {
+    "claude-acp": {
+      "default_config_options": {
+        "model": "claude-fable-5[1m]"
+      },
       "type": "registry"
     }
   },
