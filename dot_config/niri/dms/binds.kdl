@@ -5,12 +5,15 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
     // === Application Launchers ===
-    Mod+Return repeat=false hotkey-overlay-title="Focus/Open Terminal" { spawn "~/.config/niri/focus-or-spawn" "kitty" "kitty"; }
+    Mod+Return repeat=false hotkey-overlay-title="Focus/Open Terminal" { spawn "~/.config/niri/focus-or-spawn" "com.mitchellh.ghostty" "ghostty"; }
+    Mod+Shift+Return repeat=false hotkey-overlay-title="Open New Terminal" { spawn "ghostty"; }
     Mod+G repeat=false hotkey-overlay-title="Focus/Open Helium Browser" { spawn "~/.config/niri/focus-or-spawn" "helium" "helium-browser"; }
     Mod+Shift+G repeat=false hotkey-overlay-title="Open New Helium Browser" { spawn "helium-browser"; }
     Mod+O repeat=false hotkey-overlay-title="Focus/Open Joplin" { spawn "~/.config/niri/focus-or-spawn" "joplin" "joplin"; }
     Mod+Shift+O repeat=false hotkey-overlay-title="Open New Joplin" { spawn "joplin"; }
-    Mod+Shift+Return repeat=false hotkey-overlay-title="Open New Terminal" { spawn "kitty"; }
+    Mod+Period repeat=false hotkey-overlay-title="Focus/Open Files" { spawn "~/.config/niri/focus-or-spawn" "nemo" "nemo"; }
+    Mod+S repeat=false hotkey-overlay-title="Focus/Open Steam" { spawn "~/.config/niri/focus-or-spawn" "steam" "steam"; }
+    Mod+Shift+S repeat=false hotkey-overlay-title="Open New Steam" { spawn "steam"; }
     Mod+Space hotkey-overlay-title="Application Launcher" {
         spawn "dms" "ipc" "call" "spotlight" "toggle";
     }
@@ -197,7 +200,7 @@ binds {
     // === Column Management ===
     Mod+BracketLeft  { consume-or-expel-window-left; }
     Mod+BracketRight { consume-or-expel-window-right; }
-    Mod+Period { expel-window-from-column; }
+    Mod+Shift+Period { expel-window-from-column; }
 
     // === Sizing & Layout ===
     Mod+R { switch-preset-column-width; }
