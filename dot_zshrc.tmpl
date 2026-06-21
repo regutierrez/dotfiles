@@ -117,6 +117,10 @@ export PATH=/opt/homebrew/opt/libpq/bin:"$PATH"
 {{- end }}
 
 export EDITOR=nvim
+
+# Plannotator remote review UI
+export PLANNOTATOR_REMOTE=1
+export PLANNOTATOR_PORT=19432
 {{- if eq .profile "work" }}
 
 # Akkio stuff
