@@ -41,6 +41,7 @@ Profile behavior is centralized in `.chezmoidata.toml`.
   - `tmux_plugins = true`
   - `manage_bashrc = false`
   - `manage_vimrc = false`
+  - `manage_nvim = true`
   - `manage_bin = true`
   - `manage_dot_config = true`
   - `manage_agents = true` (`~/.agents` is managed)
@@ -49,6 +50,7 @@ Profile behavior is centralized in `.chezmoidata.toml`.
   - `tmux_plugins = true`
   - `manage_bashrc = false`
   - `manage_vimrc = false`
+  - `manage_nvim = true`
   - `manage_bin = true`
   - `manage_dot_config = true`
   - `manage_agents = true`
@@ -60,10 +62,22 @@ Profile behavior is centralized in `.chezmoidata.toml`.
   - `tmux_plugins = false` (same tmux config, no plugins)
   - `manage_bashrc = true` (minimal Bash config)
   - `manage_vimrc = true` (minimal Vim config)
+  - `manage_nvim = false`
   - `manage_bin = false`
   - `manage_dot_config = false`
   - `manage_agents = true` (skills filtered via `exclude_skills`)
   - `use_age = true`
+
+### CachyGaming-only managed files
+
+Source of truth: `.chezmoiignore`. These apply only when `.chezmoi.os == "linux"` and `profile == "cachygaming"`:
+
+- `dot_config/kitty/` -> `~/.config/kitty/`
+- `dot_config/niri/` -> `~/.config/niri/`
+- `dot_config/systemd/user/dms-auto-resolution-profile.service` -> `~/.config/systemd/user/dms-auto-resolution-profile.service`
+- `dot_local/bin/executable_dms-auto-resolution-profile` -> `~/.local/bin/dms-auto-resolution-profile`
+
+`linux/cachyos/setup.sh` is Cachy-specific bootstrap, not managed into `$HOME`. Arch AUR desktop packages are not currently `cachygaming`-only.
 
 ### Per-machine skills
 
@@ -159,7 +173,8 @@ curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scr
 ```bash
 chezmoi edit ~/.zshrc
 chezmoi diff
-chezmoi apply
+chezmoi apply ~/.zshrc
+bin/executable_check-dotfiles-docs
 ```
 
 If `chezmoi apply` fails while updating the external Neovim checkout at `~/.config/nvim`, skip externals:

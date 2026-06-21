@@ -1,89 +1,174 @@
 # DOTFILES
 
-Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Zsh + Tmux + age encryption. Three profiles: `personal` (default), `work`, and `server`.
+Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Source state lives in this repo; target state is usually `$HOME`.
 
-## SKILLS
+## Agent rules
 
-- Load `.agents/skills/chezmoi/SKILL.md` whenever a task touches dotfiles, chezmoi-managed files, source-state prefixes (`dot_`, `private_`, `encrypted_`, `executable_`), `.chezmoi*` files, templates, profiles, secrets, or `chezmoi` commands.
+- Prefer editing source files in this repo, not live target files, unless asked.
+- Think: target path -> source path -> rendered output.
+- Preview before apply with `chezmoi cat <target>`, `chezmoi diff`, or `chezmoi apply -n -v`.
+- Do not run real `chezmoi apply` unless asked. When applying, prefer specific targets (`chezmoi apply ~/.zshrc`) over whole-repo apply.
+- If target files changed outside chezmoi and should become source truth, use `chezmoi re-add <target>`.
+- If behavior is surprising, run `chezmoi doctor` first.
+- For encrypted files, do not edit ciphertext directly; use `chezmoi edit` if working from target state.
+- Template/gate rules use Go templates; `.chezmoiignore` patterns match target paths, not source paths.
+- `run_` scripts execute on apply; `run_onchange_` runs when contents change; keep scripts idempotent.
+- Always update `AGENTS.md` and `README.md` when repo behavior, structure, profiles, bootstrap flow, managed files, packages, or agent/skill layout changes.
 
-## STRUCTURE
+## Structure
 
-```
+```text
 .
-├── .chezmoi.toml.tmpl       # Config template (age encryption, editor prefs)
-├── .chezmoidata.toml        # Profile definitions (personal/work vs server)
-├── .chezmoiignore           # Conditional ignore rules by profile/OS
-├── dot_zshrc                # → ~/.zshrc
-├── dot_bashrc               # → ~/.bashrc (server only)
-├── dot_vimrc                # → ~/.vimrc (server only)
-├── dot_tmux.conf.tmpl       # → ~/.tmux.conf (templated, plugins toggle by profile)
-├── dot_config/              # → ~/.config/ (personal/work only)
-│   ├── ghostty/             #   Terminal
-│   ├── karabiner/           #   macOS key remapping
-│   ├── lazygit/             #   Git TUI
-│   ├── opencode/            #   AI agent config + commands/skills
-│   └── zed/                 #   Editor (macOS only)
-├── dot_agents/              # → ~/.agents/ (personal/work only) — AI coding skills
-├── dot_pi/                  # → ~/.pi/ — Pi agent config, extensions, specs
-├── bin/                     # → ~/bin/ (personal/work only) — custom scripts
-├── private_dot_ssh/         # → ~/.ssh/ (0700) — age-encrypted private key
-├── macos/                   # NOT managed — bootstrap & settings scripts
-├── linux/                   # NOT managed — Arch/Debian provisioning
-└── archive/                 # NOT managed — retired configs
+├── .chezmoi.toml.tmpl          # chezmoi config template; profile prompt/data + age config
+├── .chezmoidata.toml           # profile flags
+├── .chezmoidata/packages.toml  # package source of truth for brew/arch/debian
+├── .chezmoiignore              # templated target-path ignore rules
+├── .chezmoiexternal.toml       # external git checkout(s), currently nvim
+├── dot_zshrc.tmpl              # -> ~/.zshrc
+├── dot_zprofile.tmpl           # -> ~/.zprofile
+├── dot_gitconfig.tmpl          # -> ~/.gitconfig
+├── dot_tmux.conf.tmpl          # -> ~/.tmux.conf
+├── dot_bashrc                  # -> ~/.bashrc when profile manages bashrc
+├── dot_vimrc                   # -> ~/.vimrc when profile manages vimrc
+├── dot_config/                 # -> ~/.config/ when profile manages dot_config
+│   ├── finicky/                # URL/browser routing
+│   ├── ghostty/                # terminal
+│   ├── gh-dash/                # GitHub dashboard
+│   ├── git/                    # git config fragments
+│   ├── karabiner/              # macOS key remapping
+│   ├── kitty/                  # Linux/CachyGaming terminal
+│   ├── lazygit/                # Git TUI
+│   ├── niri/                   # Linux/CachyGaming compositor config
+│   ├── opencode/               # opencode commands/config
+│   ├── process-compose/        # process-compose config
+│   ├── ripgrep/                # ripgrep config
+│   ├── sesh/                   # session config
+│   ├── systemd/user/           # user services
+│   ├── television/             # television config
+│   ├── tmux/                   # tmux extras
+│   ├── uv/                     # uv config
+│   ├── worktrunk/              # worktree tooling config
+│   └── zed/                    # editor config, darwin only
+├── dot_local/bin/              # -> ~/.local/bin/
+├── dot_agents/skills/          # -> ~/.agents/skills/ when profile manages agents
+├── dot_pi/                     # -> ~/.pi/ Pi config, extensions, specs, Pi-specific skills
+├── bin/                        # -> ~/bin/ when profile manages bin
+├── private_dot_ssh/            # -> ~/.ssh/ with private perms; age-encrypted key
+├── Library/LaunchAgents/       # -> ~/Library/LaunchAgents/ on darwin
+├── macos/                      # bootstrap/settings scripts; not applied as dotfiles
+├── linux/                      # Arch/Debian/Cachy bootstrap assets; not applied as dotfiles
+├── akkio-helpers/              # helper scripts; excluded on work profile
+├── plans/                      # design/handoff notes; not applied
+└── archive/                    # retired configs/skills; not applied
 ```
 
-## CHEZMOI PREFIXES
+## Chezmoi mapping
 
-| Prefix | Effect |
-|--------|--------|
-| `dot_` | Becomes `.` in target |
+| Source prefix/suffix | Target effect |
+|---|---|
+| `dot_` | leading `.` |
 | `private_` | `0600` file / `0700` dir |
-| `encrypted_` | Decrypted with age on apply |
-| `executable_` | `0755` permissions |
-| `.tmpl` suffix | Rendered as Go template |
+| `encrypted_` | decrypt with age on apply |
+| `executable_` | `0755` perms |
+| `.tmpl` | render as Go template |
 
-## PROFILES
+Examples:
 
-Defined in `.chezmoidata.toml`, set per machine in `~/.config/chezmoi/chezmoi.toml`:
+- `dot_zshrc.tmpl` -> `~/.zshrc`
+- `dot_config/lazygit/config.yml` -> `~/.config/lazygit/config.yml`
+- `private_dot_ssh/private_config` -> `~/.ssh/config`
+- `bin/executable_uuid` -> `~/bin/uuid`
 
-| Flag | `personal` | `work` | `server` |
-|------|------------|--------|----------|
-| `tmux_plugins` | ✅ | ✅ | ❌ |
-| `manage_bashrc` | ❌ | ❌ | ✅ |
-| `manage_vimrc` | ❌ | ❌ | ✅ |
-| `manage_bin` | ✅ | ✅ | ❌ |
-| `manage_dot_config` | ✅ | ✅ | ❌ |
-| `manage_agents` | ✅ | ✅ | ❌ |
-| `use_age` | ✅ | ❌ | ✅ |
+Use `chezmoi source-path <target>` / `chezmoi target-path <source>` when mapping is unclear.
 
-## COMMANDS
+## Profiles
+
+Profiles live in `.chezmoidata.toml`; selected profile is stored in `~/.config/chezmoi/chezmoi.toml` under `[data].profile`.
+
+| Flag | personal | work | cachygaming | server |
+|---|---:|---:|---:|---:|
+| `tmux_plugins` | yes | yes | yes | no |
+| `manage_bashrc` | no | no | no | yes |
+| `manage_vimrc` | no | no | no | yes |
+| `manage_nvim` | yes | yes | yes | no |
+| `manage_bin` | yes | yes | yes | no |
+| `manage_dot_config` | yes | yes | yes | no |
+| `manage_agents` | yes | yes | yes | yes |
+| `use_age` | yes | no | yes | yes |
+
+`.chezmoiignore` gates by OS/profile using target paths, not source paths.
+
+Notable gates:
+
+- `work` excludes `akkio-helpers/`.
+- non-darwin excludes SSH secrets/config, Karabiner, Zed, LaunchAgents.
+- non-`cachygaming` Linux excludes Kitty/Niri/DMS desktop files.
+- `server` skips `~/.config`, `~/bin`, tmux plugins, nvim, but still manages filtered `~/.agents/skills`.
+- `exclude_skills` in `.chezmoidata.toml` denies selected skills per profile.
+
+### CachyGaming-only managed files
+
+Only when `.chezmoi.os == "linux"` and `profile == "cachygaming"`:
+
+- `dot_config/kitty/` -> `~/.config/kitty/`
+- `dot_config/niri/` -> `~/.config/niri/`
+- `dot_config/systemd/user/dms-auto-resolution-profile.service` -> `~/.config/systemd/user/dms-auto-resolution-profile.service`
+- `dot_local/bin/executable_dms-auto-resolution-profile` -> `~/.local/bin/dms-auto-resolution-profile`
+
+`linux/cachyos/setup.sh` is Cachy-specific bootstrap, not managed into `$HOME`. Arch AUR desktop packages are not currently `cachygaming`-only.
+
+## Skills layout
+
+- `dot_agents/skills/` -> `~/.agents/skills/`; main coding-agent skills, filtered by profile `exclude_skills`.
+- `dot_pi/agent/skills/` -> `~/.pi/agent/skills/`; Pi-specific skills.
+- `archive/skills/` is not managed; retired/reference skills only.
+- Repo-local helper skills for agents live under `.agents/skills/` and are not target-state dotfiles.
+
+## Packages
+
+`.chezmoidata/packages.toml` is the package source of truth.
+
+`run_onchange_before_install-packages.sh.tmpl` installs packages during apply:
+
+- macOS: Homebrew formulae/casks
+- Arch/CachyOS: `paru` when available, fallback `pacman`
+- Debian/Ubuntu: `apt`
+
+Bootstrap scripts install only enough to get chezmoi running; packages flow from `packages.toml`.
+
+## Commands
 
 ```bash
-# Bootstrap
+# Bootstrap; prompts for profile
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
-CHEZMOI_PROFILE=work sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
-CHEZMOI_PROFILE=server sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
+
+# Non-interactive profile select
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server regutierrez
 
 # Daily
-chezmoi edit ~/.zshrc         # edit + auto-apply
-chezmoi diff                  # preview changes
-chezmoi apply                 # apply all
-chezmoi apply -n -v           # dry-run verbose
+chezmoi edit ~/.zshrc
+chezmoi diff
+chezmoi apply -n -v
+chezmoi apply ~/.zshrc   # only when asked; prefer specific targets
 
 # Inspect
-chezmoi managed               # list managed files
-chezmoi status                # show diffs
-chezmoi data                  # dump template data
-chezmoi cat ~/.zshrc           # preview rendered output
+chezmoi managed
+chezmoi status
+chezmoi data
+chezmoi cat ~/.zshrc
 
-# Add/remove
-chezmoi add ~/.some_config     # start managing
-chezmoi add --encrypt ~/.ssh/key  # add encrypted
-chezmoi forget ~/.some_config  # stop managing
-chezmoi re-add                 # refresh source from target
+# Add/remove/update source from target
+chezmoi add ~/.some_config
+chezmoi add --encrypt ~/.ssh/key
+chezmoi forget ~/.some_config
+chezmoi re-add ~/.some_config
+
+# Doc drift check from source repo
+bin/executable_check-dotfiles-docs
 ```
 
-## ENCRYPTION
+## Secrets
 
-Age encryption. Identity at `~/.config/chezmoi/key.txt` (restore manually on new machines).
-Encrypted files use `encrypted_` prefix + `.age` extension in source.
+Age encryption. Identity path: `~/.config/chezmoi/key.txt`.
+
+Encrypted source files use `encrypted_` prefix plus `.age`. Keep secrets out of plain-text commits.
