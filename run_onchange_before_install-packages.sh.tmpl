@@ -27,8 +27,8 @@ echo "install-packages: syncing brew packages..."
 brew install {{ $formulae | sortAlpha | uniq | join " " }}
 brew install --cask --adopt {{ $casks | sortAlpha | uniq | join " " }}
 {{ else if eq .chezmoi.os "linux" -}}
-{{- $osid := .chezmoi.osRelease.id | default "" -}}
-{{- $oslike := .chezmoi.osRelease.idLike | default "" -}}
+{{- $osid := index .chezmoi.osRelease "id" | default "" -}}
+{{- $oslike := index .chezmoi.osRelease "idLike" | default "" -}}
 #!/bin/bash
 set -euo pipefail
 
