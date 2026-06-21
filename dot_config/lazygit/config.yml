@@ -6,9 +6,14 @@ gui:
   showBottomLine: true
 git:
   pagers:
-    - colorArg: always
-      # Hunk detects LazyGit's captured pager host and renders static colored diff output.
-      pager: hunk pager
+    - name: delta stacked
+      colorArg: always
+      # --no-gitconfig avoids global delta.side-by-side=true for this LazyGit-only stacked view.
+      pager: delta --no-gitconfig --dark --paging=never --true-color=always --line-numbers --syntax-theme=gruvbox-dark --plus-style="syntax auto" --minus-style="syntax auto" --zero-style="syntax" --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    - name: delta side-by-side
+      colorArg: always
+      # syntax-theme comes from [delta] in git config (per-machine via chezmoi template)
+      pager: delta --dark --paging=never --true-color=always --line-numbers --plus-style="syntax auto" --minus-style="syntax auto" --zero-style="syntax" --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
 os:
   editPreset: nvim
   # On headless SSH sessions, use tmux's clipboard integration (-w) to forward copies to the local terminal clipboard.
