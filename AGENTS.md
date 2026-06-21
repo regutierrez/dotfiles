@@ -120,6 +120,7 @@ Only when `.chezmoi.os == "linux"` and `profile == "cachygaming"`:
 ## Skills layout
 
 - `dot_agents/skills/` -> `~/.agents/skills/`; main coding-agent skills, filtered by profile `exclude_skills`.
+- `dot_pi/agent/APPEND_SYSTEM.md` -> `~/.pi/agent/APPEND_SYSTEM.md`; Pi global behavior addendum: terse communication plus read/edit/verify/workspace-safety loop.
 - `dot_pi/agent/skills/` -> `~/.pi/agent/skills/`; Pi-specific skills.
 - `archive/skills/` is not managed; retired/reference skills only.
 - Repo-local helper skills for agents live under `.agents/skills/` and are not target-state dotfiles.

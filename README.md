@@ -79,7 +79,9 @@ Source of truth: `.chezmoiignore`. These apply only when `.chezmoi.os == "linux"
 
 `linux/cachyos/setup.sh` is Cachy-specific bootstrap, not managed into `$HOME`. Arch AUR desktop packages are not currently `cachygaming`-only.
 
-### Per-machine skills
+### Agent behavior and per-machine skills
+
+Pi gets a global prompt addendum from `dot_pi/agent/APPEND_SYSTEM.md` -> `~/.pi/agent/APPEND_SYSTEM.md`. It currently sets terse communication rules and a coding loop: read before editing, fix the source of truth, make the smallest correct change, verify proportional to risk, protect shared workspaces, and report validation honestly.
 
 Each profile has an `exclude_skills` deny-list in `.chezmoidata.toml`. Everything under `.agents/skills/` syncs everywhere by default; a new skill reaches all machines unless you add it to a profile's list:
 
