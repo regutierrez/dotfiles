@@ -26,6 +26,7 @@ Read until these are clear, then stop:
 - narrowest useful validation
 
 Read file before editing it. Edit current file, not imagined file. Do not patch symptoms when source of truth is elsewhere.
+Add comments when they clarify non-obvious implementation choices. For simple logic, prefer a short one-line comment only where useful. For complex functions or important decisions, use a concise comment block of at most four sentences. Do not add comments that merely restate the code.
 
 For bugs: symptom -> repro/localize -> root cause -> fix -> verify. Use evidence: failing test, stack trace, log, repro, exact mismatch, recent diff, relevant path. Keep hypotheses; choose checks that eliminate possibilities cheaply.
 
