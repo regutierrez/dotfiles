@@ -106,7 +106,7 @@ exclude_skills = ["datadog-investigate", "query-postgres-hz", "query-snowflake-h
 
 ### Bootstrap-only entries
 
-Normal `chezmoi apply` is daily-safe. It skips entries that install packages, touch encrypted SSH material, or make one-time compatibility links.
+Normal `chezmoi apply` is daily-safe. It skips entries that install packages, touch encrypted SSH material, or make one-time compatibility links. The encrypted SSH key is ignored by both its decrypted target path (`.ssh/id_ed25519`) and encrypted path (`.ssh/id_ed25519.age`) so work machines without age config do not try to decrypt it.
 
 Run bootstrap-only entries explicitly:
 

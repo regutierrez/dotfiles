@@ -32,6 +32,7 @@ akkio-helpers/
 
 {{- if ne .chezmoi.os "darwin" }}
 .ssh/id_ed25519
+.ssh/id_ed25519.age
 .ssh/id_ed25519.pub
 .ssh/config
 .config/karabiner
@@ -50,12 +51,14 @@ Library/LaunchAgents/
 install-packages.sh
 20-link-lazygit-to-xdg.sh
 .ssh/id_ed25519
+.ssh/id_ed25519.age
 .ssh/id_ed25519.pub
 .ssh/config
 {{- end }}
 
 {{- if not $use_age }}
 .ssh/id_ed25519
+.ssh/id_ed25519.age
 .ssh/id_ed25519.pub
 .ssh/config
 {{- end }}

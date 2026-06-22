@@ -11,7 +11,7 @@ Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Source state l
 - If target files changed outside chezmoi and should become source truth, use `chezmoi re-add <target>`.
 - If behavior is surprising, run `chezmoi doctor` first.
 - For encrypted files, do not edit ciphertext directly; use `chezmoi edit` if working from target state.
-- Template/gate rules use Go templates; `.chezmoiignore` patterns match target paths, not source paths.
+- Template/gate rules use Go templates; `.chezmoiignore` usually matches target paths, but encrypted entries may need both decrypted target and `.age` path to avoid pre-decrypt errors when encryption is off.
 - Bootstrap-only entries are gated by `--override-data '{"bootstrap":true}'`.
 - `run_` scripts execute on apply when not ignored; `run_onchange_` runs when contents change; keep scripts idempotent.
 - Always update `AGENTS.md` and `README.md` when repo behavior, structure, profiles, bootstrap flow, managed files, packages, or agent/skill layout changes.
@@ -105,7 +105,7 @@ Notable gates:
 - non-darwin excludes SSH secrets/config, Karabiner, Zed, LaunchAgents.
 - non-`cachygaming` Linux excludes Kitty/Niri/DMS desktop files.
 - `server` skips `~/.config`, `~/bin`, tmux plugins, nvim, but still manages filtered `~/.agents/skills`.
-- `bootstrap != true` excludes package/lazygit scripts and encrypted SSH secrets/config.
+- `bootstrap != true` excludes package/lazygit scripts and encrypted SSH secrets/config; encrypted SSH key ignore lists both `.ssh/id_ed25519` and `.ssh/id_ed25519.age`.
 - `exclude_skills` in `.chezmoidata.toml` denies selected skills per profile.
 
 ### CachyGaming-only managed files
