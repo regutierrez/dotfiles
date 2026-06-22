@@ -13,7 +13,7 @@ So: mac-personal = `personal`+darwin, mac-work = `work`+darwin, cachy-gaming-des
 
 Three mechanisms, each with one job:
 
-1. `.chezmoiignore` (templated) — whether a machine gets a file at all (e.g. zed/karabiner only on darwin, kitty/niri only on linux, skills via `exclude_skills`).
+1. `.chezmoiignore` (templated) — whether a machine gets a file at all (e.g. zed/karabiner only on darwin, kitty/niri only on linux, bootstrap-only scripts/secrets only when `bootstrap=true`).
 2. `*.tmpl` files — what's inside a file per machine (`dot_zshrc.tmpl`, `dot_tmux.conf.tmpl`, `dot_gitconfig.tmpl`).
 3. `.chezmoidata.toml` — the single place per-profile knobs live (manage_* flags, `exclude_skills`).
 
@@ -22,13 +22,27 @@ Three mechanisms, each with one job:
 Use the official installer wrapper to init + apply in one shot. It prompts for the profile on first run:
 
 ```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply "regutierrez"
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --override-data '{"bootstrap":true}' "regutierrez"
 ```
+
+`bootstrap=true` includes bootstrap-only entries:
+
+- package install script (`install-packages.sh`)
+- macOS lazygit compatibility link script
+- SSH secrets/config on profiles/OSes that allow them
+
+Daily `chezmoi apply` omits those entries.
 
 Non-interactive (servers, scripts):
 
 ```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server "regutierrez"
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server --override-data '{"bootstrap":true}' "regutierrez"
+```
+
+One-off profile override plus bootstrap:
+
+```bash
+chezmoi apply --override-data '{"profile":"work","bootstrap":true}'
 ```
 
 You can replace `$GITHUB_USERNAME` with a full repo URL, e.g. `"https://github.com/regutierrez/dotfiles.git"`.
@@ -90,11 +104,29 @@ Each profile has an `exclude_skills` deny-list in `.chezmoidata.toml`. Everythin
 exclude_skills = ["datadog-investigate", "query-postgres-hz", "query-snowflake-hz", "zoom-out"]
 ```
 
+### Bootstrap-only entries
+
+Normal `chezmoi apply` is daily-safe. It skips entries that install packages, touch encrypted SSH material, or make one-time compatibility links.
+
+Run bootstrap-only entries explicitly:
+
+```bash
+chezmoi apply --override-data '{"bootstrap":true}'
+```
+
+Combine with a one-off profile override when needed:
+
+```bash
+chezmoi apply --override-data '{"profile":"work","bootstrap":true}'
+```
+
 ### Packages
 
-All installed packages come from one file: `.chezmoidata/packages.toml`, with sections per package manager (`packages.darwin` formulae/casks + per-profile extras, `packages.arch` repo + AUR, `packages.debian`). `run_onchange_before_install-packages.sh.tmpl` installs them on `chezmoi apply` — brew on macOS, paru (fallback pacman) on arch, apt on debian/ubuntu — and re-runs automatically whenever a list changes. Add a package to the file, push, and every machine picks it up on its next apply.
+All installed packages come from `.chezmoidata/packages.toml`, with sections per package manager (`packages.darwin` formulae/casks + per-profile extras, `packages.arch` repo + AUR, `packages.debian`). `run_onchange_before_install-packages.sh.tmpl` installs them only when `bootstrap=true` is passed to chezmoi — brew on macOS, paru (fallback pacman) on arch, apt on debian/ubuntu.
 
-The bootstrap scripts (`macos/scripts/init.sh`, `linux/deb-srv/scripts/init.sh`, `linux/arch-srv/user_configuration.json`) only install the minimum needed to get chezmoi running; everything else flows from `packages.toml`.
+Add a package to the file, push, then run the bootstrap command on machines that should install it.
+
+The bootstrap scripts (`macos/scripts/init.sh`, `linux/deb-srv/scripts/init.sh`, `linux/arch-srv/user_configuration.json`) only install the minimum needed to get chezmoi running; everything else flows from `packages.toml` when `bootstrap=true` is set.
 
 ### Changing a machine's profile
 
@@ -113,6 +145,7 @@ chezmoi apply -n -v
 chezmoi apply -n --override-data '{"profile":"server"}'
 chezmoi apply -n --override-data '{"profile":"personal"}'
 chezmoi apply -n --override-data '{"profile":"work"}'
+chezmoi apply -n -v --override-data '{"profile":"work","bootstrap":true}'
 ```
 
 After `init`, the selected profile is stored in the local chezmoi config, so plain `chezmoi apply` uses it automatically.
@@ -126,7 +159,7 @@ make -C ~/path/to/arch-dotfiles uninstall 2>/dev/null \
   || for f in ~/.zshrc ~/.gitconfig ~/.config/lazygit/config.yml ~/.config/kitty ~/.config/niri; do
        [ -L "$f" ] && rm "$f"
      done
-chezmoi init --apply regutierrez   # answer: personal
+chezmoi init --apply --override-data '{"bootstrap":true}' regutierrez   # answer: personal
 ```
 
 ## arch bootstrap
@@ -148,10 +181,10 @@ curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scr
 
 The script generates a new SSH key and prints the public key. Add it to GitHub, then apply dotfiles.
 
-Then apply dotfiles (prompts for profile on first run):
+Then apply dotfiles (prompts for profile on first run, includes bootstrap-only entries):
 
 ```bash
-chezmoi init --apply regutierrez
+chezmoi init --apply --override-data '{"bootstrap":true}' regutierrez
 ```
 
 To use the work package set from the repo (`macos/scripts/bootstrap.sh`):
@@ -176,8 +209,11 @@ curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scr
 chezmoi edit ~/.zshrc
 chezmoi diff
 chezmoi apply ~/.zshrc
+chezmoi apply
 bin/executable_check-dotfiles-docs
 ```
+
+`chezmoi apply` is daily-safe: it skips bootstrap-only scripts and encrypted SSH secrets unless `--override-data '{"bootstrap":true}'` is supplied.
 
 If `chezmoi apply` fails while updating the external Neovim checkout at `~/.config/nvim`, skip externals:
 

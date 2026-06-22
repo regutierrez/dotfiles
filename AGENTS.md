@@ -12,7 +12,8 @@ Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Source state l
 - If behavior is surprising, run `chezmoi doctor` first.
 - For encrypted files, do not edit ciphertext directly; use `chezmoi edit` if working from target state.
 - Template/gate rules use Go templates; `.chezmoiignore` patterns match target paths, not source paths.
-- `run_` scripts execute on apply; `run_onchange_` runs when contents change; keep scripts idempotent.
+- Bootstrap-only entries are gated by `--override-data '{"bootstrap":true}'`.
+- `run_` scripts execute on apply when not ignored; `run_onchange_` runs when contents change; keep scripts idempotent.
 - Always update `AGENTS.md` and `README.md` when repo behavior, structure, profiles, bootstrap flow, managed files, packages, or agent/skill layout changes.
 
 ## Structure
@@ -96,7 +97,7 @@ Profiles live in `.chezmoidata.toml`; selected profile is stored in `~/.config/c
 | `manage_agents` | yes | yes | yes | yes |
 | `use_age` | yes | no | yes | yes |
 
-`.chezmoiignore` gates by OS/profile using target paths, not source paths.
+`.chezmoiignore` gates by OS/profile/bootstrap using target paths, not source paths.
 
 Notable gates:
 
@@ -104,6 +105,7 @@ Notable gates:
 - non-darwin excludes SSH secrets/config, Karabiner, Zed, LaunchAgents.
 - non-`cachygaming` Linux excludes Kitty/Niri/DMS desktop files.
 - `server` skips `~/.config`, `~/bin`, tmux plugins, nvim, but still manages filtered `~/.agents/skills`.
+- `bootstrap != true` excludes package/lazygit scripts and encrypted SSH secrets/config.
 - `exclude_skills` in `.chezmoidata.toml` denies selected skills per profile.
 
 ### CachyGaming-only managed files
@@ -129,28 +131,32 @@ Only when `.chezmoi.os == "linux"` and `profile == "cachygaming"`:
 
 `.chezmoidata/packages.toml` is the package source of truth.
 
-`run_onchange_before_install-packages.sh.tmpl` installs packages during apply:
+`run_onchange_before_install-packages.sh.tmpl` installs packages during apply only when `bootstrap=true` is set:
 
 - macOS: Homebrew formulae/casks
 - Arch/CachyOS: `paru` when available, fallback `pacman`
 - Debian/Ubuntu: `apt`
 
-Bootstrap scripts install only enough to get chezmoi running; packages flow from `packages.toml`.
+Bootstrap scripts install only enough to get chezmoi running; packages flow from `packages.toml` when chezmoi runs with `--override-data '{"bootstrap":true}'`.
 
 ## Commands
 
 ```bash
-# Bootstrap; prompts for profile
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
+# Bootstrap; prompts for profile, includes bootstrap-only scripts/secrets
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --override-data '{"bootstrap":true}' regutierrez
 
 # Non-interactive profile select
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server regutierrez
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server --override-data '{"bootstrap":true}' regutierrez
 
-# Daily
+# One-off profile + bootstrap override
+chezmoi apply --override-data '{"profile":"work","bootstrap":true}'
+
+# Daily; skips bootstrap-only scripts and encrypted SSH secrets
 chezmoi edit ~/.zshrc
 chezmoi diff
 chezmoi apply -n -v
-chezmoi apply ~/.zshrc   # only when asked; prefer specific targets
+chezmoi apply            # only when asked
+chezmoi apply ~/.zshrc   # prefer specific targets when possible
 
 # Inspect
 chezmoi managed
@@ -171,5 +177,7 @@ bin/executable_check-dotfiles-docs
 ## Secrets
 
 Age encryption. Identity path: `~/.config/chezmoi/key.txt`.
+
+Encrypted SSH secrets are bootstrap-only: normal `chezmoi apply` skips them; pass `--override-data '{"bootstrap":true}'` to apply them on machines that have the age key. Work profile still skips age secrets via `use_age = false`.
 
 Encrypted source files use `encrypted_` prefix plus `.age`. Keep secrets out of plain-text commits.
