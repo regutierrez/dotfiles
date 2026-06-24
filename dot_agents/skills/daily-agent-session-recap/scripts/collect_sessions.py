@@ -492,11 +492,15 @@ def collect_cursor_db(db_path: Path, source: str, target_day: dt.date, min_user_
 
         session["title"] = db_meta.get("name") or meta_json.get("title")
         session["directory"] = meta_json.get("cwd") or None
+        # Cursor stores NO per-message timestamps and no "last updated" field — the
+        # store.db `meta` table only has `createdAt`. Do NOT fall back to store.db /
+        # -wal / -shm (or meta.json) file mtimes for activity: SQLite WAL/checkpoint/
+        # indexing bumps those long after a chat ends, so using them made every
+        # historical cursor session look "active today" and massively over-included
+        # them (120 collected / 104 cursor on 2026-06-22; only ~2 were really today).
+        # `createdAt` is the only honest activity signal cursor exposes; a session
+        # without it is left undated and dropped by finish_session's date filter.
         add_time(session, db_meta.get("createdAt"), created=True)
-
-        add_file_times(session, db_path, db_path.with_name("store.db-wal"), db_path.with_name("store.db-shm"))
-        if meta_json_path:
-            add_file_times(session, meta_json_path)
 
         try:
             rows = con.execute("select rowid, id, data from blobs order by rowid")
