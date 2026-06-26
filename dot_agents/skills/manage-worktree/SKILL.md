@@ -14,3 +14,52 @@ Use Worktrunk for all worktree operations. Run from inside the repo, or pass `-C
 - `wt merge` — squash + rebase + ff into default + remove worktree.
 - Use `$HOME`/`~`; never hard-coded `/Users/...` paths.
 - Don't use `git worktree` directly — go through `wt`.
+
+## Akkio repo — create workflow
+
+When creating a worktree for `~/Akkio`, follow this sequence. Do not skip confirmation or setup.
+
+### 1. Propose branch name
+
+Branch must be `pael-akkio/<slug>`:
+
+- If the user already gave a good branch slug, use it after the prefix.
+- Otherwise derive a slug from the issue/task: **6–8 hyphenated words** that best describe the work (lowercase, no spaces).
+- Examples: `pael-akkio/fix-chart-access-gate`, `pael-akkio/agent-finegrained-observability-hooks`.
+
+### 2. Confirm with user
+
+Before running `wt switch --create`, show the proposed branch name and the short description it encodes. Ask whether the description is good enough to use as the branch slug. Revise until the user approves or supplies their own slug.
+
+### 3. Create worktree
+
+From the Akkio repo:
+
+```sh
+wt switch --create <branch> -C ~/Akkio [--base <base>]
+```
+
+Use `--base` when the task needs a specific release branch (e.g. `release/horizon-staging`, `release/horizon-production`). Resolve the new worktree path from `wt switch --format json` or `git -C ~/Akkio worktree list`.
+
+### 4. Bootstrap the worktree
+
+In the new worktree directory, run in order:
+
+```sh
+cd <worktree_path>
+mise trust
+mise install
+npm install
+```
+
+Stop on first failure; capture stderr/stdout.
+
+### 5. Report
+
+When all steps succeed, report:
+
+- branch name
+- worktree path
+- that `mise trust`, `mise install`, and `npm install` completed
+
+On failure, report which step failed and the exact error output. Do not claim success for steps that did not finish.
