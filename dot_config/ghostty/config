@@ -53,3 +53,8 @@ macos-titlebar-style = tabs
 macos-option-as-alt = true
 keybind = alt+arrow_left=unbind
 keybind = alt+arrow_right=unbind
+# tmux M-H/J/K/L (Option+Shift+hjkl): csi-u from Ghostty often misses Alt+Shift.
+keybind = alt+shift+h=text:\x1bH
+keybind = alt+shift+j=text:\x1bJ
+keybind = alt+shift+k=text:\x1bK
+keybind = alt+shift+l=text:\x1bL
