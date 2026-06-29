@@ -50,7 +50,11 @@ cd <worktree_path>
 mise trust
 mise install
 npm install
+"$HOME/repos/akkio-agent-overrides/bin/akkio-bootstrap" <worktree_path>
+"$HOME/.local/bin/akkio-overrides-visibility" hide <worktree_path>
 ```
+
+`akkio-bootstrap` wires `~/.local/bin/akkio-*` if needed, installs override hooks into the worktree, and applies overrides once. `hide` sets `skip-worktree` on tracked override files for this worktree only.
 
 Stop on first failure; capture stderr/stdout.
 
@@ -60,6 +64,6 @@ When all steps succeed, report:
 
 - branch name
 - worktree path
-- that `mise trust`, `mise install`, and `npm install` completed
+- that `mise trust`, `mise install`, `npm install`, and agent overrides completed
 
 On failure, report which step failed and the exact error output. Do not claim success for steps that did not finish.
