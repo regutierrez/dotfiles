@@ -1,0 +1,51 @@
+onboarding = false
+
+[ui.toast]
+delivery = "system"
+
+[ui]
+pane_borders = true
+pane_gaps = false
+show_agent_labels_on_pane_borders = false
+
+[experimental]
+pane_history = true
+
+[keys]
+# Set prefix to backtick (`) to match tmux config
+prefix = "backtick"
+
+# Direct pane navigation (Alt/Meta + h/j/k/l)
+focus_pane_left = ["prefix+h", "alt+h"]
+focus_pane_down = ["prefix+j", "alt+j"]
+focus_pane_up = ["prefix+k", "alt+k"]
+focus_pane_right = ["prefix+l", "alt+l"]
+
+# Splits and new tabs (windows)
+split_vertical = "prefix+\\"
+split_horizontal = "prefix+minus"
+new_tab = "prefix+c"
+
+# Workspaces (Sessions) and Tabs (Windows)
+new_workspace = "prefix+shift+n"
+rename_workspace = "prefix+shift+r"
+rename_tab = "prefix+comma"
+
+# Reload config (prefix + r)
+reload_config = "prefix+r"
+
+# Rebind resize mode since prefix+r is now reload_config
+resize_mode = "prefix+alt+r"
+
+# # Custom commands
+# [[keys.command]]
+# key = "prefix+o"
+# type = "shell"
+# command = "~/bin/commando --fzf-tmux"
+# description = "run commando"
+#
+# [[keys.command]]
+# key = "prefix+a"
+# type = "pane"
+# command = "~/bin/agent-sessions-picker"
+# description = "agent sessions"
