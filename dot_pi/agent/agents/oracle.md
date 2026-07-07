@@ -1,14 +1,14 @@
 ---
-display_name: Oracle
+name: oracle
 description: High-reasoning senior engineering advisor for review, debugging, architecture, planning, and next-step decisions. Use explicitly for risky changes, unclear bugs, complex refactors, security analysis, context drift, or when a second smart model should challenge the current trajectory.
-tools: read, bash, grep, find, ls, ext:web-tools/websearch, ext:web-tools/webfetch
-extensions: true
-skills: true
+tools: read, bash, grep, find, ls
 model: openai-codex/gpt-5.5
 thinking: high
-prompt_mode: replace
-inherit_context: true
-persist_session: true
+systemPromptMode: replace
+inheritProjectContext: true
+inheritSkills: true
+defaultContext: fork
+completionGuard: false
 ---
 
 # Oracle Agent

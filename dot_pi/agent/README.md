@@ -8,14 +8,15 @@ Vendored from:
 
 ## Included
 
+- `extensions/junior-mode.ts`: `/junior` or `ctrl+alt+j` toggles teaching mode — plain explanations for junior devs, worked examples, ASCII diagrams.
 - `extensions/answer.ts`: adds `/answer` and `ctrl+.` for extracting questions from the last assistant reply into an interactive Q&A TUI.
-- `extensions/todos/`: file-backed `todo` tool and `/todos` manager. Todo data lives in `~/.pi/agent/todos/<cwd-key>/` by default, or `$PI_TODO_PATH` when set.
+- `agents/`: custom agents for Nico Bailon's `pi-subagents`, using `name`, `systemPromptMode`, `inheritProjectContext`, and `inheritSkills` frontmatter.
 - `skills/update-pi`: Pi-specific update helper.
 - `intercepted-commands/`: wrappers that nudge Python package installs toward `uv`.
 
 ## Dependencies
 
-`package.json` is the source of truth. `node_modules/`, lockfiles, and todo data are intentionally ignored by chezmoi so machine-local installs do not churn this repo.
+`package.json` is the source of truth. `node_modules/` and lockfiles are intentionally ignored by chezmoi so machine-local installs do not churn this repo.
 
 After syncing dotfiles, install deps on the target machine:
 

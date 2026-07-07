@@ -3,8 +3,8 @@
   "app.clear": ["ctrl+c"],
   "tui.input.copy": [],
   "tui.select.cancel": ["escape"],
+  "app.session.togglePath": [],
   "app.model.cycleForward": [],
   "app.model.cycleBackward": [],
-  "app.session.togglePath": [],
   "app.models.toggleProvider": []
 }

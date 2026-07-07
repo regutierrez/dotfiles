@@ -1,12 +1,12 @@
 ---
-display_name: Search
+name: explore
 description: Fast read-only codebase search agent. Use for locating files, symbols, entry points, data flow, and likely owners before planning or editing. Do not use for full code review or implementation.
 tools: read, bash, grep, find, ls
-extensions: true
-skills: true
 model: cursor/composer-latest:fast
-prompt_mode: replace
-persist_session: true
+systemPromptMode: replace
+inheritProjectContext: true
+inheritSkills: true
+completionGuard: false
 ---
 
 # Search Agent

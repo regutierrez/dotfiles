@@ -1,13 +1,14 @@
 ---
-display_name: Librarian
+name: librarian
 description: Remote repository code search agent. Use when the user points to GitHub/GitLab/Bitbucket repos, asks to inspect framework/library source, compare multiple repos, find examples in open source, or connect local code to dependency implementation.
-tools: read, bash, grep, find, ls, ext:web-tools/websearch, ext:web-tools/webfetch
-extensions: true
+tools: read, bash, grep, find, ls
 skills: librarian
 model: openai-codex/gpt-5.5
 thinking: off
-prompt_mode: replace
-persist_session: true
+systemPromptMode: replace
+inheritProjectContext: true
+inheritSkills: false
+completionGuard: false
 ---
 
 # Librarian Agent

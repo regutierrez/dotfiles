@@ -75,7 +75,7 @@ Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Source state l
 
 Examples:
 
-- `dot_zshrc.tmpl` -> `~/.zshrc`
+- `dot_zshrc.tmpl` -> `~/.zshrc` (sources `~/.config/secrets/kagi.env` when present for Kagi-backed Pi websearch)
 - `dot_config/lazygit/config.yml` -> `~/.config/lazygit/config.yml`
 - `private_dot_ssh/private_config` -> `~/.ssh/config`
 - `bin/executable_uuid` -> `~/bin/uuid`
@@ -123,6 +123,9 @@ Only when `.chezmoi.os == "linux"` and `profile == "cachygaming"`:
 
 - `dot_agents/skills/` -> `~/.agents/skills/`; main coding-agent skills, filtered by profile `exclude_skills`.
 - `dot_pi/agent/APPEND_SYSTEM.md` -> `~/.pi/agent/APPEND_SYSTEM.md`; Pi global behavior addendum: terse communication plus read/edit/verify/workspace-safety loop.
+- `dot_pi/agent/keybindings.json` -> `~/.pi/agent/keybindings.json`; Pi keyboard overrides: abort/interrupt on `escape` so double-escape session tree works, clear/exit-on-second-press on `ctrl+c`, copy unbound from `ctrl+c`, selection cancel on `escape`, and `ctrl+p` / `shift+ctrl+p` freed from model/session selectors for a future command palette.
+- `dot_pi/agent/agents/` -> `~/.pi/agent/agents/`; nico-bailon's `pi-subagents` global custom agents using `name`, `systemPromptMode`, `inheritProjectContext`, and `inheritSkills` frontmatter. Managed agents include a Composer-backed `general-purpose.md` parent-twin agent for normal multi-step tasks, `explore.md` for fast read-only codebase search, `impl.md` for small targeted Composer-backed code changes, a Garfield-style `reviewer.md` with tiered review policies (general policies from the `codebase-design` skill, TypeScript from `coding-standards`, Akkio from `akkio-coding-standards`), a `librarian` remote-repository search agent that preloads the managed `librarian` skill, an `oracle` read-only high-reasoning advisory agent, and a `planner` override (claude-fable-5 at `xhigh` thinking) that conditionally loads `coding-standards`, `codebase-design`, `prototype`, and `domain-modeling` for plan-only work.
+- `dot_pi/agent/extensions/` -> `~/.pi/agent/extensions/`; Pi extensions, including `junior-mode.ts` (`/junior`, `ctrl+alt+j`) for toggleable junior-dev teaching mode, and `web-tools/` for `webfetch` and Kagi-backed `websearch` (`KAGI_API_KEY` required). `run_onchange_after_30-install-pi-web-tools.sh.tmpl` installs its runtime npm deps with `npm ci --omit=dev` when package metadata changes.
 - `dot_pi/agent/skills/` -> `~/.pi/agent/skills/`; Pi-specific skills.
 - `archive/skills/` is not managed; retired/reference skills only.
 - Repo-local helper skills for agents live under `.agents/skills/` and are not target-state dotfiles.
