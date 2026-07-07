@@ -1,0 +1,24 @@
+{{- /* Install runtime npm deps for the managed Pi web-tools extension.
+       The rendered checksum makes run_onchange_ rerun when package metadata changes. */ -}}
+{{- if ne .profile "server" -}}
+#!/bin/bash
+set -euo pipefail
+
+# package.json: {{ include "dot_pi/agent/extensions/web-tools/package.json" | sha256sum }}
+# package-lock.json: {{ include "dot_pi/agent/extensions/web-tools/package-lock.json" | sha256sum }}
+
+extension_dir="${HOME}/.pi/agent/extensions/web-tools"
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "install-pi-web-tools: npm not found, skipping" >&2
+  exit 0
+fi
+
+if [ ! -f "${extension_dir}/package-lock.json" ]; then
+  echo "install-pi-web-tools: ${extension_dir}/package-lock.json not found, skipping" >&2
+  exit 0
+fi
+
+echo "install-pi-web-tools: syncing runtime npm dependencies..."
+npm --prefix "${extension_dir}" ci --omit=dev
+{{- end -}}

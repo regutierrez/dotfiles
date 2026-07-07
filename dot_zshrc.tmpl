@@ -118,6 +118,9 @@ export PATH=/opt/homebrew/opt/libpq/bin:"$PATH"
 
 export EDITOR=nvim
 
+# Local secrets; keep this file untracked or chezmoi age-encrypted.
+[ -f "$HOME/.config/secrets/kagi.env" ] && source "$HOME/.config/secrets/kagi.env"
+
 # Plannotator remote review UI
 export PLANNOTATOR_REMOTE=1
 export PLANNOTATOR_AGENT_TERMINAL_REMOTE=1 
