@@ -26,7 +26,8 @@ DEFAULT_PROFILE = "blushift"
 DEFAULT_TARGET = "prod"
 DEFAULT_SCHEMA = "BLUSHIFT_DEMO"
 DEFAULT_TIMEOUT_SECONDS = 600
-DEFAULT_MAX_ROWS = 1000
+DEFAULT_MAX_ROWS = 50
+DEFAULT_LOGIN_TIMEOUT_SECONDS = 20
 
 ALLOWED_STARTERS = {"SELECT", "WITH", "EXPLAIN", "SHOW", "DESCRIBE", "DESC", "TABLE", "VALUES"}
 BLOCKED_ANYWHERE = {
@@ -215,6 +216,8 @@ def connect_args_from_profile(cfg: dict[str, Any], args: argparse.Namespace) -> 
         "token",
     }
     conn_args = {k: v for k, v in cfg.items() if k in known_keys and v not in (None, "")}
+    conn_args["login_timeout"] = DEFAULT_LOGIN_TIMEOUT_SECONDS
+    conn_args["network_timeout"] = args.timeout
     for key in ["warehouse", "database", "schema", "role"]:
         override = getattr(args, key)
         if override:
@@ -264,7 +267,7 @@ def main() -> int:
     parser.add_argument("--role")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_SECONDS)
     parser.add_argument("--max-rows", type=int, default=DEFAULT_MAX_ROWS)
-    parser.add_argument("--format", choices=["json", "csv", "tsv", "table"], default="table")
+    parser.add_argument("--format", choices=["json", "csv", "tsv", "table"], default="tsv")
     parser.add_argument("--query-tag", default="query-snowflake-hz")
     args = parser.parse_args()
 
@@ -296,7 +299,7 @@ def main() -> int:
                         "rows": rows_as_dicts(columns, rows),
                     },
                     default=str,
-                    indent=2,
+                    separators=(",", ":"),
                 )
             )
         elif args.format == "csv":

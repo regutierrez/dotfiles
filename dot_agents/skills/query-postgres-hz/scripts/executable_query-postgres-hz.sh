@@ -1,31 +1,40 @@
 #!/usr/bin/env bash
-# Read-only Horizon production Postgres queries via psql.
+# Read-only Akkio Horizon transactional Postgres queries via psql (multi-env).
 set -euo pipefail
 
-AWS_PROFILE="${AWS_PROFILE:-horizon-production}"
-SECRET_ID="${HORIZON_PG_SECRET_ID:-production/common/env}"
+ENV_NAME="${HORIZON_PG_ENV:-production}"
+ENV_FROM_CLI=0
 CONNECT_TIMEOUT="${HORIZON_PG_CONNECT_TIMEOUT:-10}"
 USE_SECRETS="${HORIZON_PG_FROM_SECRETS:-0}"
-CACHE_TTL_SECONDS="${HORIZON_PG_CACHE_TTL:-86400}"
+CACHE_TTL_SECONDS="${HORIZON_PG_CACHE_TTL:-604800}"
+MAX_LINES="${HORIZON_PG_MAX_LINES:-200}"
+SECRET_ID_OVERRIDE="${HORIZON_PG_SECRET_ID:-}"
 
 usage() {
   cat <<'EOF'
 Usage:
-  query-postgres-hz.sh [--from-secrets] lookup-chart <chart_id>
-  query-postgres-hz.sh [--from-secrets] lookup-project <project_id>
-  query-postgres-hz.sh [--from-secrets] -c "<SQL>"
-  query-postgres-hz.sh [--from-secrets] -f <file.sql>
+  query-postgres-hz.sh envs                                # list envs: URL source, host, reachability
+  query-postgres-hz.sh [flags] lookup-chart <chart_id>
+  query-postgres-hz.sh [flags] lookup-project <project_id>
+  query-postgres-hz.sh [flags] -c "<SQL>"
+  query-postgres-hz.sh [flags] -f <file.sql>
 
-DB URL resolution (first match wins; no AWS unless --from-secrets):
-  1. $BACKEND_DB_URL or $HORIZON_PG_URL
-  2. BACKEND_DB_URL in $HORIZON_PG_ENV_FILE, $AKKIO_REPO/ml/.env, or ~/Akkio/ml/.env
-  3. ~/.config/horizon-pg/backend_db_url (URL line or BACKEND_DB_URL=...)
-  4. ~/.cache/horizon-pg/<AWS_PROFILE>.url (written by a prior --from-secrets run)
-  5. AWS Secrets Manager (only with --from-secrets or HORIZON_PG_FROM_SECRETS=1)
+Flags:
+  --env production|staging|dev|local   target environment (default: $HORIZON_PG_ENV or production)
+  --from-secrets                       allow AWS Secrets Manager fetch (profile horizon-<env>)
+  --max-lines N                        cap psql output lines (default 200)
 
-Requires: python3, psql, VPN to horizon-production RDS. aws CLI only for --from-secrets.
+DB URL resolution per env (first match wins; no AWS unless --from-secrets):
+  1. $BACKEND_DB_URL / $HORIZON_PG_URL   (ignored when --env is passed explicitly)
+  2. ~/.config/horizon-pg/<env>.url
+  3. ~/.cache/horizon-pg/horizon-<env>.url   (stale cache still used, with a warning)
+  4. AWS Secrets Manager (--from-secrets only)
+  --env local reads BACKEND_DB_URL from $AKKIO_REPO/ml/.env (default ~/Akkio/ml/.env).
 
-All SQL is validated read-only before connect. Mutating keywords are rejected.
+Every query prints "env=... host=..." on stderr. All SQL is validated read-only
+before connecting; the target host is TCP-checked first (UNREACHABLE fails fast).
+
+Requires: python3, psql. aws CLI only for --from-secrets.
 EOF
 }
 
@@ -41,9 +50,20 @@ require_cmd() {
 parse_global_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --env)
+        [[ $# -ge 2 ]] || die "--env requires a value (production|staging|dev|local)"
+        ENV_NAME="$2"
+        ENV_FROM_CLI=1
+        shift 2
+        ;;
       --from-secrets)
         USE_SECRETS=1
         shift
+        ;;
+      --max-lines)
+        [[ $# -ge 2 && "$2" =~ ^[0-9]+$ ]] || die "--max-lines requires a number"
+        MAX_LINES="$2"
+        shift 2
         ;;
       *)
         break
@@ -56,7 +76,7 @@ parse_global_flags() {
 assert_read_only_sql() {
   local label="$1"
   local sql="$2"
-  python3 - <<'PY' "$label" "$sql"
+  python3 - "$label" "$sql" <<'PY'
 import re
 import sys
 
@@ -81,10 +101,60 @@ ALLOWED_STARTS = ("select", "with", "explain", "show", "table", "values")
 ALLOWED_PSQL_META = {"x", "timing", "pset", "a", "t", "c", "o", "q", "echo", "conninfo"}
 
 
-def strip_comments(text: str) -> str:
-    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
-    text = re.sub(r"--[^\n]*", " ", text)
-    return text
+def strip_comments_and_literals(text: str) -> str:
+    """Remove comments and quoted content so keyword checks only see SQL shape."""
+    out: list[str] = []
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+        nxt = text[i + 1] if i + 1 < n else ""
+        if ch == "-" and nxt == "-":
+            while i < n and text[i] not in "\r\n":
+                i += 1
+            out.append(" ")
+            continue
+        if ch == "/" and nxt == "*":
+            i += 2
+            while i + 1 < n and not (text[i] == "*" and text[i + 1] == "/"):
+                i += 1
+            i += 2
+            out.append(" ")
+            continue
+        if ch == "'":
+            i += 1
+            while i < n:
+                if text[i] == "'" and i + 1 < n and text[i + 1] == "'":
+                    i += 2
+                    continue
+                if text[i] == "'":
+                    i += 1
+                    break
+                i += 1
+            out.append("''")
+            continue
+        if ch == '"':
+            i += 1
+            while i < n:
+                if text[i] == '"' and i + 1 < n and text[i + 1] == '"':
+                    i += 2
+                    continue
+                if text[i] == '"':
+                    i += 1
+                    break
+                i += 1
+            out.append('""')
+            continue
+        if ch == "$":
+            match = re.match(r"\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$", text[i:])
+            if match:
+                tag = match.group(0)
+                end = text.find(tag, i + len(tag))
+                i = end + len(tag) if end != -1 else n
+                out.append(" ")
+                continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
 
 
 def fail(message: str) -> None:
@@ -92,7 +162,7 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
-cleaned = strip_comments(sql)
+cleaned = strip_comments_and_literals(sql)
 lower = cleaned.lower()
 
 for line in sql.splitlines():
@@ -125,29 +195,54 @@ assert_read_only_sql_file() {
   assert_read_only_sql "$file" "$(cat "$file")"
 }
 
-resolve_backend_db_url() {
-  python3 - <<'PY' "$USE_SECRETS" "$AWS_PROFILE" "$SECRET_ID" "$CONNECT_TIMEOUT" "$CACHE_TTL_SECONDS"
+# Shared resolver: mode "resolve" prints the URL for $ENV_NAME on stdout,
+# mode "envs" prints a reachability table for all envs.
+run_resolver() {
+  local mode="$1"
+  python3 - "$mode" "$ENV_NAME" "$ENV_FROM_CLI" "$USE_SECRETS" "$CONNECT_TIMEOUT" "$CACHE_TTL_SECONDS" "$SECRET_ID_OVERRIDE" <<'PY'
 import json
 import os
 import re
+import socket
 import subprocess
 import sys
 import time
 import urllib.parse
 from pathlib import Path
 
-use_secrets = sys.argv[1] == "1"
-aws_profile = sys.argv[2]
-secret_id = sys.argv[3]
-connect_timeout = sys.argv[4]
-cache_ttl = int(sys.argv[5])
+mode = sys.argv[1]
+env_name = sys.argv[2]
+env_from_cli = sys.argv[3] == "1"
+use_secrets = sys.argv[4] == "1"
+connect_timeout = sys.argv[5]
+cache_ttl = int(sys.argv[6])
+secret_override = sys.argv[7]
 
+ENVS = ("production", "staging", "dev", "local")
 ENV_LINE = re.compile(r'^BACKEND_DB_URL=(?:"(.*)"|(.*))$')
 
 
 def die(message: str) -> None:
     print(f"error: {message}", file=sys.stderr)
     raise SystemExit(1)
+
+
+def note(message: str) -> None:
+    print(message, file=sys.stderr)
+
+
+def host_port(url: str) -> tuple[str, int]:
+    parsed = urllib.parse.urlparse(url)
+    return parsed.hostname or "?", parsed.port or 5432
+
+
+def reachable(url: str, timeout: float = 3.0) -> bool:
+    host, port = host_port(url)
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
 def with_timeout(url: str) -> str:
@@ -168,40 +263,28 @@ def parse_env_file(path: Path) -> str | None:
     return None
 
 
-def read_config_file(path: Path) -> str | None:
+def read_url_file(path: Path) -> str | None:
     if not path.is_file():
         return None
-    text = path.read_text().strip()
-    if not text or text.startswith("#"):
-        return None
-    match = ENV_LINE.match(text.splitlines()[0].strip())
-    if match:
-        return match.group(1) or match.group(2)
-    if text.startswith("postgresql://") or text.startswith("postgres://"):
-        return text.splitlines()[0].strip()
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = ENV_LINE.match(line)
+        if match:
+            return match.group(1) or match.group(2)
+        if line.startswith(("postgresql://", "postgres://")):
+            return line
     return None
 
 
-def cache_path() -> Path:
-    cache_dir = Path.home() / ".cache" / "horizon-pg"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    safe_profile = re.sub(r"[^A-Za-z0-9._-]+", "_", aws_profile)
-    return cache_dir / f"{safe_profile}.url"
+def config_path(env: str) -> Path:
+    root = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config")))
+    return Path(root) / "horizon-pg" / f"{env}.url"
 
 
-def read_cache() -> str | None:
-    path = cache_path()
-    if not path.is_file():
-        return None
-    age = time.time() - path.stat().st_mtime
-    if age > cache_ttl:
-        return None
-    text = path.read_text().strip()
-    return text or None
-
-
-def write_cache(url: str) -> None:
-    cache_path().write_text(url)
+def cache_path(env: str) -> Path:
+    return Path.home() / ".cache" / "horizon-pg" / f"horizon-{env}.url"
 
 
 def local_candidates() -> list[Path]:
@@ -209,29 +292,34 @@ def local_candidates() -> list[Path]:
     env_file = os.environ.get("HORIZON_PG_ENV_FILE")
     if env_file:
         paths.append(Path(env_file).expanduser())
-    akkio_repo = Path(os.environ.get("AKKIO_REPO", Path.home() / "Akkio")).expanduser()
+    akkio_repo = Path(os.environ.get("AKKIO_REPO", str(Path.home() / "Akkio"))).expanduser()
     paths.append(akkio_repo / "ml" / ".env")
-    config_root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
-    paths.append(config_root / "horizon-pg" / "backend_db_url")
     return paths
 
 
-def resolve_local() -> str | None:
-    for key in ("BACKEND_DB_URL", "HORIZON_PG_URL"):
-        value = os.environ.get(key, "").strip()
-        if value:
-            return value
-    for path in local_candidates():
-        if path.name == "backend_db_url":
-            value = read_config_file(path)
-        else:
+def resolve_env(env: str) -> tuple[str | None, str]:
+    """Return (url, source-label) without touching AWS."""
+    if env == "local":
+        for path in local_candidates():
             value = parse_env_file(path)
-        if value:
-            return value
-    return read_cache()
+            if value:
+                return value, f"env-file:{path}"
+        return None, ""
+    value = read_url_file(config_path(env))
+    if value:
+        return value, f"config:{config_path(env)}"
+    path = cache_path(env)
+    if path.is_file():
+        text = path.read_text().strip()
+        if text:
+            stale = time.time() - path.stat().st_mtime > cache_ttl
+            return text, f"cache{'(stale)' if stale else ''}:{path}"
+    return None, ""
 
 
-def fetch_from_secrets() -> str:
+def fetch_from_secrets(env: str) -> str:
+    profile = f"horizon-{env}"
+    secret_id = secret_override or f"{env}/common/env"
     auth_markers = (
         "unable to locate credentials",
         "token has expired",
@@ -245,92 +333,132 @@ def fetch_from_secrets() -> str:
         "invalidclienttokenid",
         "security token included in the request is invalid",
     )
-
     try:
         proc = subprocess.run(
-            [
-                "aws",
-                "secretsmanager",
-                "get-secret-value",
-                "--secret-id",
-                secret_id,
-                "--query",
-                "SecretString",
-                "--output",
-                "text",
-            ],
+            ["aws", "secretsmanager", "get-secret-value", "--secret-id", secret_id,
+             "--query", "SecretString", "--output", "text"],
             check=False,
             capture_output=True,
             text=True,
-            env={**os.environ, "AWS_PROFILE": aws_profile},
+            env={**os.environ, "AWS_PROFILE": profile},
         )
     except FileNotFoundError:
-        die("aws CLI not found; install it or provide BACKEND_DB_URL locally")
+        die("aws CLI not found; install it or provide the URL locally")
 
     if proc.returncode != 0:
         err_raw = (proc.stderr or proc.stdout or "").strip()
-        err = re.sub(r"://([^:/@]+):([^@/]+)@", r"://\\1:***@", err_raw)
-        err_lower = err_raw.lower()
-        if any(marker in err_lower for marker in auth_markers):
+        err = re.sub(r"://([^:/@]+):([^@/]+)@", r"://\1:***@", err_raw)
+        if any(marker in err_raw.lower() for marker in auth_markers):
             die(
-                "AUTH_REQUIRED: AWS credentials for profile "
-                f"'{aws_profile}' are missing or expired ({err.strip()}).\n"
-                "Agent: do NOT run aws sso login. Ask the user to run manually:\n"
-                f"  aws sso login --profile {aws_profile}\n"
-                "Then export BACKEND_DB_URL or retry with --from-secrets."
+                f"AUTH_REQUIRED: AWS credentials for profile '{profile}' are missing or expired "
+                f"({err}).\nAgent: do NOT run aws sso login. Ask the user to run manually:\n"
+                f"  aws sso login --profile {profile}\n"
+                "Then retry with --from-secrets, or export BACKEND_DB_URL."
             )
         die(
-            "failed to read secret "
-            f"{secret_id} ({err.strip()}). "
-            "Prefer exporting BACKEND_DB_URL once instead of using --from-secrets."
+            f"failed to read secret {secret_id} with profile {profile} ({err}). "
+            "If the secret id differs for this env, set HORIZON_PG_SECRET_ID."
         )
 
     try:
         obj = json.loads(proc.stdout)
     except json.JSONDecodeError:
         die(f"secret {secret_id} did not contain JSON")
-
     url = obj.get("BACKEND_DB_URL")
     if not url:
         die(f"BACKEND_DB_URL missing from secret {secret_id}")
-    write_cache(url)
+    path = cache_path(env)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(url)
     return url
 
 
-url = resolve_local()
-if not url:
-    if use_secrets:
-        url = fetch_from_secrets()
-    else:
-        die(
-            "BACKEND_DB_URL not found locally. Set one of:\n"
-            "  export BACKEND_DB_URL='postgresql://...'\n"
-            "  echo 'postgresql://...' > ~/.config/horizon-pg/backend_db_url\n"
-            "  (or populate BACKEND_DB_URL in ~/Akkio/ml/.env)\n"
-            "Or pass --from-secrets once to fetch from AWS and cache for 24h."
-        )
+if mode == "envs":
+    print(f"{'env':<11} {'source':<15} {'host':<62} reachable")
+    for env in ENVS:
+        url, source = resolve_env(env)
+        if not url:
+            hint = "(--from-secrets can fetch)" if env != "local" else "(no ml/.env)"
+            print(f"{env:<11} {'-':<15} {'no URL found ' + hint:<62} -")
+            continue
+        host, port = host_port(url)
+        label = source.split(":", 1)[0]
+        print(f"{env:<11} {label:<15} {host + ':' + str(port):<62} {'yes' if reachable(url) else 'no'}")
+    raise SystemExit(0)
 
+# mode == "resolve"
+if env_name not in ENVS:
+    die(f"unknown --env {env_name!r} (expected: {', '.join(ENVS)})")
+
+ambient = next(
+    (os.environ[k].strip() for k in ("BACKEND_DB_URL", "HORIZON_PG_URL") if os.environ.get(k, "").strip()),
+    None,
+)
+
+if ambient and not env_from_cli:
+    url, source, label = ambient, "env:BACKEND_DB_URL", "custom"
+else:
+    if ambient and env_from_cli:
+        note(f"note: ignoring exported BACKEND_DB_URL because --env {env_name} was passed")
+    url, source = resolve_env(env_name)
+    label = env_name
+    if not url:
+        if env_name == "local":
+            die(
+                "no BACKEND_DB_URL in ml/.env for --env local. "
+                "Set AKKIO_REPO or HORIZON_PG_ENV_FILE, or pick another --env."
+            )
+        if use_secrets:
+            url, source = fetch_from_secrets(env_name), "secrets"
+        else:
+            die(
+                f"no URL found for env '{env_name}'. Options:\n"
+                f"  - write it to ~/.config/horizon-pg/{env_name}.url\n"
+                f"  - export BACKEND_DB_URL='postgresql://...'\n"
+                f"  - re-run with --from-secrets (AWS profile horizon-{env_name}; needs fresh SSO)\n"
+                "Run the 'envs' subcommand to see what is available."
+            )
+
+if "(stale)" in source:
+    note(f"warning: cached URL is older than TTL ({source}); using it anyway — if auth fails, refresh with --from-secrets")
+
+host, port = host_port(url)
+if os.environ.get("HORIZON_PG_SKIP_PREFLIGHT") != "1" and not reachable(url):
+    die(
+        f"UNREACHABLE: {host}:{port} (env={label}) refused/timed out on TCP within 3s.\n"
+        "This environment is likely not routed on the current VPN. Run the 'envs' subcommand "
+        "to see which environments are reachable, then retry with --env <name> or ask the user. "
+        "Do not retry this same environment."
+    )
+
+note(f"env={label} host={host} source={source.split(':', 1)[0]}")
 print(with_timeout(url))
 PY
 }
 
+cap_output() {
+  awk -v max="$MAX_LINES" '
+    NR <= max { print }
+    NR == max + 1 { printf "... output truncated at %d lines (add LIMIT or pass --max-lines N)\n", max }
+  '
+}
+
 run_psql() {
-  local url sql_mode sql_arg
-  url="$(resolve_backend_db_url)"
+  local url sql_mode
   sql_mode="$1"
   shift
 
   if [[ "$sql_mode" == "-c" ]]; then
-    sql_arg="$1"
-    assert_read_only_sql "inline SQL" "$sql_arg"
-    psql "$url" -v ON_ERROR_STOP=1 -c "$sql_arg"
+    assert_read_only_sql "inline SQL" "$1"
   elif [[ "$sql_mode" == "-f" ]]; then
     [[ -f "$1" ]] || die "SQL file not found: $1"
     assert_read_only_sql_file "$1"
-    psql "$url" -v ON_ERROR_STOP=1 -f "$1"
   else
     die "internal error: unknown sql mode $sql_mode"
   fi
+
+  url="$(run_resolver resolve)"
+  psql "$url" -v ON_ERROR_STOP=1 -P pager=off "$sql_mode" "$1" | cap_output
 }
 
 lookup_chart() {
@@ -421,37 +549,39 @@ ORDER BY d.id;
 
 main() {
   require_cmd python3
-  require_cmd psql
 
-  local -a args
   parse_global_flags "$@"
-  args=("${REPLY[@]}")
-
-  if [[ ${#args[@]} -lt 1 ]]; then
+  if [[ ${#REPLY[@]} -lt 1 ]]; then
     usage
     exit 1
   fi
-
-  set -- "${args[@]}"
+  set -- "${REPLY[@]}"
 
   case "$1" in
     -h|--help|help)
       usage
       ;;
+    envs)
+      run_resolver envs
+      ;;
     lookup-chart)
-      [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh lookup-chart <chart_id>"
+      require_cmd psql
+      [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh [--env <env>] lookup-chart <chart_id>"
       lookup_chart "$2"
       ;;
     lookup-project)
-      [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh lookup-project <project_id>"
+      require_cmd psql
+      [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh [--env <env>] lookup-project <project_id>"
       lookup_project "$2"
       ;;
     -c)
-      [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh -c \"<SQL>\""
+      require_cmd psql
+      [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh [--env <env>] -c \"<SQL>\""
       run_psql -c "$2"
       ;;
     -f)
-      [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh -f <file.sql>"
+      require_cmd psql
+      [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh [--env <env>] -f <file.sql>"
       run_psql -f "$2"
       ;;
     *)
