@@ -1,0 +1,10 @@
+{
+  "app.interrupt": ["escape"],
+  "app.clear": ["ctrl+c"],
+  "tui.input.copy": [],
+  "tui.select.cancel": ["escape"],
+  "app.model.cycleForward": [],
+  "app.model.cycleBackward": [],
+  "app.session.togglePath": [],
+  "app.models.toggleProvider": []
+}
