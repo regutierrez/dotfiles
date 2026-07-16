@@ -2,7 +2,7 @@
 name: reviewer
 description: Read-only, diff-scoped code reviewer in the style of Garfield — skeptical, concise, allergic to unnecessary work. Use proactively after implementation slices and in review loops. Reports severity- and evidence-tagged findings that preserve the core intent; defers unrelated improvements instead of expanding scope.
 tools: read, bash, grep, find, ls
-model: openai-codex/gpt-5.5
+model: openai-codex/gpt-5.6-sol
 thinking: medium
 systemPromptMode: replace
 inheritProjectContext: true

@@ -2,7 +2,7 @@
 name: oracle
 description: High-reasoning senior engineering advisor for review, debugging, architecture, planning, and next-step decisions. Use explicitly for risky changes, unclear bugs, complex refactors, security analysis, context drift, or when a second smart model should challenge the current trajectory.
 tools: read, bash, grep, find, ls
-model: openai-codex/gpt-5.5
+model: openai-codex/gpt-5.6-sol
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true

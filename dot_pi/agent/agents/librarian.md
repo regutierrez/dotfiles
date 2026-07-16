@@ -3,7 +3,7 @@ name: librarian
 description: Remote repository code search agent. Use when the user points to GitHub/GitLab/Bitbucket repos, asks to inspect framework/library source, compare multiple repos, find examples in open source, or connect local code to dependency implementation.
 tools: read, bash, grep, find, ls
 skills: librarian
-model: openai-codex/gpt-5.5
+model: openai-codex/gpt-5.6-sol
 thinking: off
 systemPromptMode: replace
 inheritProjectContext: true
