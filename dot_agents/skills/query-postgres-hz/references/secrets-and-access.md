@@ -51,7 +51,16 @@ aws sso login --profile horizon-<env>
 
 ## Network
 
-RDS hosts are private; VPN typically routes only some environments. The script TCP-checks the host before connecting and fails fast with `UNREACHABLE:` — run the `envs` subcommand to see what is currently routed instead of retrying.
+RDS hosts are private. Production/staging can route through simultaneous Docker VPN sidecars instead of the host VPN:
+
+- default sidecar container names: `vpn-horizon-production`, `vpn-horizon-staging`
+- override per env with `HORIZON_PG_SIDECAR_PRODUCTION` / `HORIZON_PG_SIDECAR_STAGING`, or `~/.config/horizon-pg/<env>.sidecar`
+- client image defaults to `postgres:16`; override with `HORIZON_PG_CLIENT_IMAGE`
+- production/staging use their sidecar when it is running, even if the configured URL host is `localhost`
+- when a sidecar-routed URL points at a published host port like `localhost:25432`, the script maps it back to the matching in-container port before running the postgres client
+- local and ambient exported URLs (`BACKEND_DB_URL` / `HORIZON_PG_URL` without `--env`) stay on the host route
+
+The script TCP-checks the configured URL on the selected route before connecting and fails fast with `UNREACHABLE:` — run the `envs` subcommand to see route + reachability instead of retrying.
 
 ## Safety
 

@@ -27,15 +27,14 @@ print('\n'.join(data['profiles'].keys()))
 PY
 )
 
+# README: human-facing profile/package/Cachy docs
 while IFS= read -r profile; do
   [[ -n "$profile" ]] || continue
   assert_contains README.md "$profile" "README mentions profile '$profile'"
-  assert_contains AGENTS.md "$profile" "AGENTS mentions profile '$profile'"
 done <<< "$profiles"
 
 for flag in tmux_plugins manage_bashrc manage_vimrc manage_nvim manage_bin manage_dot_config manage_agents use_age; do
   assert_contains README.md "$flag" "README mentions profile flag '$flag'"
-  assert_contains AGENTS.md "$flag" "AGENTS mentions profile flag '$flag'"
 done
 
 for path in \
@@ -44,8 +43,14 @@ for path in \
   'dot_config/systemd/user/dms-auto-resolution-profile.service' \
   'dot_local/bin/executable_dms-auto-resolution-profile'; do
   assert_contains README.md "$path" "README mentions CachyGaming path '$path'"
-  assert_contains AGENTS.md "$path" "AGENTS mentions CachyGaming path '$path'"
 done
+
+# AGENTS: agent workflow essentials (no duplicate of README prose)
+assert_contains AGENTS.md ".chezmoidata.toml" "AGENTS references profile data source"
+assert_contains AGENTS.md ".chezmoiignore" "AGENTS mentions .chezmoiignore gates"
+assert_contains AGENTS.md "manage_agents" "AGENTS mentions manage_agents flag"
+assert_contains AGENTS.md "bootstrap" "AGENTS mentions bootstrap gating"
+assert_contains AGENTS.md "README.md" "AGENTS points human docs to README"
 
 if [[ -e .agents/skills/chezmoi/SKILL.md ]]; then
   bad 'retired chezmoi skill still exists; AGENTS.md is source of truth'
@@ -70,8 +75,8 @@ for current in dot_agents/skills/writing-great-skills dot_agents/skills/diagnosi
 done
 
 agents_lines=$(wc -l < AGENTS.md | tr -d ' ')
-if (( agents_lines <= 200 )); then
-  ok "AGENTS.md <= 200 lines ($agents_lines)"
+if (( agents_lines <= 150 )); then
+  ok "AGENTS.md <= 150 lines ($agents_lines)"
 else
   bad "AGENTS.md too long ($agents_lines lines)"
 fi

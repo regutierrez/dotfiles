@@ -21,7 +21,7 @@ Collect the strongest identifiers before querying anything: user email/uid, org 
 1. **Logs & traces — `/datadog-investigate`.** Anchor on email/org → aggregate to candidate `request_id`s → pull the fat "Done" log (prompt, generated SQL, result, `trace_id`) → expand to the trace. The request payload usually answers the question by itself.
 2. **App entity gaps — `/query-postgres-hz`.** When logs have a `chart_id`/`teamId`/`org_id` but not project/dashboard names or integer IDs, or you need tenant ↔ Firestore-id resolution.
 3. **Data-layer gaps — `/query-snowflake-hz`.** When the symptom is about the *data the customer queried* (`BLUSHIFT_HMI_PROD`): wrong/missing/stale rows, audience contents.
-4. **Build-layer — `~/blushift`.** When Snowflake contents are wrong, trace to the dbt model / YAML / lookback that built them, or a stale dbt Cloud run / supplemental-info cache. See `rca`'s blushift section for mechanics.
+4. **Build-layer — `~/blu-platform-transformations`.** When Snowflake contents are wrong, trace to the dbt model / YAML / lookback that built them, or a stale dbt Cloud run / supplemental-info cache. See `rca`'s blu-platform-transformations section for mechanics.
 
 ## Store decision
 

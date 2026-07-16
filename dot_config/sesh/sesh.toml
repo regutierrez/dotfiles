@@ -18,8 +18,8 @@ name = "nvim"
 path = "~/.config/nvim"
 
 [[session]]
-name = "blushift DBT"
-path = "~/blushift/"
+name = "blu-platform-transformations DBT"
+path = "~/blu-platform-transformations/"
 
 [[session]]
 name = "akkio-docs"

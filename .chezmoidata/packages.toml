@@ -22,7 +22,6 @@ formulae = [
   "rust",
   "starship",
   "tailscale",
-  "terminal-notifier",
   "tmux",
   "tree-sitter-cli",
   "uv",

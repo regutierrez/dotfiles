@@ -26,15 +26,23 @@ type Theme = ExtensionContext["ui"]["theme"];
 
 let streamStartMs = 0;
 let firstTokenMs = 0;
+let lastTokenMs = 0;
 let streamChars = 0;
 let streamTokens = 0;
 let tickTimer: ReturnType<typeof setInterval> | undefined;
 let streaming = false;
 let spinIndex = 0;
 
-const windowBuffer = new Float64Array(WINDOW_SIZE * 2);
+const WINDOW_STRIDE = 3;
+const windowBuffer = new Float64Array(WINDOW_SIZE * WINDOW_STRIDE);
 let windowLength = 0;
 let windowHead = 0;
+
+const LIVE_LEN = 25;
+const liveTimes = new Float64Array(LIVE_LEN);
+const liveTokens = new Float64Array(LIVE_LEN);
+let liveLength = 0;
+let liveHead = 0;
 
 const allTimeBuffer = new Float64Array(ALLTIME_CAP);
 let allTimeLength = 0;
@@ -57,12 +65,34 @@ function estimateTokens(charCount: number): number {
   return (charCount >>> 2) + ((charCount & 3) > 0 ? 1 : 0);
 }
 
-function pushWindowSample(tps: number, ms: number): void {
-  const base = windowHead * 2;
-  windowBuffer[base] = tps;
-  windowBuffer[base + 1] = ms;
+function pushWindowSample(tokens: number, elapsedSec: number, ms: number): void {
+  const base = windowHead * WINDOW_STRIDE;
+  windowBuffer[base] = tokens;
+  windowBuffer[base + 1] = elapsedSec;
+  windowBuffer[base + 2] = ms;
   windowHead = (windowHead + 1) % WINDOW_SIZE;
   if (windowLength < WINDOW_SIZE) windowLength++;
+}
+
+function pushLiveSample(ms: number, tokens: number): void {
+  liveTimes[liveHead] = ms;
+  liveTokens[liveHead] = tokens;
+  liveHead = (liveHead + 1) % LIVE_LEN;
+  if (liveLength < LIVE_LEN) liveLength++;
+}
+
+function resetLiveSamples(): void {
+  liveLength = 0;
+  liveHead = 0;
+}
+
+function liveWindowTps(): number | undefined {
+  if (liveLength < 2) return undefined;
+  const newest = (liveHead - 1 + LIVE_LEN) % LIVE_LEN;
+  const oldest = liveLength < LIVE_LEN ? 0 : liveHead;
+  const dt = ((liveTimes[newest] ?? 0) - (liveTimes[oldest] ?? 0)) / 1000;
+  if (dt < 0.3) return undefined;
+  return Math.max(0, ((liveTokens[newest] ?? 0) - (liveTokens[oldest] ?? 0)) / dt);
 }
 
 function pushAllTimeSample(tps: number): void {
@@ -82,24 +112,25 @@ function pushSparkSample(tps: number): void {
   sparkDirty = true;
 }
 
+// Token-weighted so short replies don't skew the average as much as long ones.
 function windowAverage(): number {
   if (windowLength === 0) return 0;
 
   const cutoff = now() - WINDOW_MS;
   const oldest = windowLength < WINDOW_SIZE ? 0 : windowHead;
-  let sum = 0;
-  let count = 0;
+  let tokenSum = 0;
+  let elapsedSum = 0;
 
   for (let i = 0; i < windowLength; i++) {
     const index = (oldest + i) % WINDOW_SIZE;
-    const base = index * 2;
-    const sampleTime = windowBuffer[base + 1] ?? 0;
+    const base = index * WINDOW_STRIDE;
+    const sampleTime = windowBuffer[base + 2] ?? 0;
     if (sampleTime < cutoff) continue;
-    sum += windowBuffer[base] ?? 0;
-    count++;
+    tokenSum += windowBuffer[base] ?? 0;
+    elapsedSum += windowBuffer[base + 1] ?? 0;
   }
 
-  return count === 0 ? 0 : sum / count;
+  return elapsedSum < 1e-6 ? 0 : tokenSum / elapsedSum;
 }
 
 function allTimeMean(): number {
@@ -204,9 +235,17 @@ function renderSpin(): string {
 }
 
 function renderLive(theme: Theme): string {
-  const referenceMs = firstTokenMs > 0 ? firstTokenMs : streamStartMs;
-  const elapsed = (now() - referenceMs) / 1000;
-  const tps = elapsed > 0.3 ? streamTokens / elapsed : 0;
+  const nowMs = now();
+  const tokens = streamTokens;
+  pushLiveSample(nowMs, tokens);
+
+  let tps = liveWindowTps();
+  if (tps === undefined) {
+    const referenceMs = firstTokenMs > 0 ? firstTokenMs : streamStartMs;
+    const elapsed = (nowMs - referenceMs) / 1000;
+    tps = elapsed > 0.3 ? tokens / elapsed : 0;
+  }
+
   return `${theme.fg("accent", renderSpin())} ${renderGauge(tps, theme)} ${speedColor(tps, formatTps(tps), theme)} ${theme.fg("dim", "tps")}`;
 }
 
@@ -244,11 +283,13 @@ function resetSessionState(): void {
   stopTick();
   streamStartMs = 0;
   firstTokenMs = 0;
+  lastTokenMs = 0;
   streamChars = 0;
   streamTokens = 0;
   spinIndex = 0;
   windowLength = 0;
   windowHead = 0;
+  resetLiveSamples();
   allTimeLength = 0;
   allTimeHead = 0;
   allTimeSum = 0;
@@ -271,10 +312,12 @@ export default function betterTui(pi: ExtensionAPI): void {
 
     streamStartMs = now();
     firstTokenMs = 0;
+    lastTokenMs = 0;
     streamChars = 0;
     streamTokens = 0;
     streaming = true;
     spinIndex = 0;
+    resetLiveSamples();
     startTick(ctx);
   });
 
@@ -282,10 +325,16 @@ export default function betterTui(pi: ExtensionAPI): void {
     if (event.message.role !== "assistant") return;
 
     const assistantEvent = event.assistantMessageEvent;
-    if (assistantEvent.type !== "text_delta" && assistantEvent.type !== "thinking_delta") return;
+    if (
+      assistantEvent.type !== "text_delta" &&
+      assistantEvent.type !== "thinking_delta" &&
+      assistantEvent.type !== "toolcall_delta"
+    )
+      return;
     if (!assistantEvent.delta) return;
 
-    if (firstTokenMs === 0) firstTokenMs = now();
+    lastTokenMs = now();
+    if (firstTokenMs === 0) firstTokenMs = lastTokenMs;
     streamChars += assistantEvent.delta.length;
     streamTokens = estimateTokens(streamChars);
   });
@@ -296,14 +345,19 @@ export default function betterTui(pi: ExtensionAPI): void {
     streaming = false;
     stopTick();
 
-    const realOutputTokens = event.message.usage?.output;
-    const tokens = typeof realOutputTokens === "number" && realOutputTokens > 0 ? realOutputTokens : streamTokens;
+    // Streamed estimate over the streamed window: usage.output is deliberately
+    // ignored because it counts hidden reasoning tokens generated before the
+    // first delta, which inflates the rate.
+    const tokens = streamTokens;
+
+    // Measure to the last streamed delta, not this handler, which can fire late.
+    const endMs = lastTokenMs > 0 ? lastTokenMs : now();
     const referenceMs = firstTokenMs > 0 ? firstTokenMs : streamStartMs;
-    const elapsed = (now() - referenceMs) / 1000;
+    const elapsed = (endMs - referenceMs) / 1000;
     if (elapsed < 0.1 || tokens === 0) return;
 
     const tps = tokens / elapsed;
-    pushWindowSample(tps, now());
+    pushWindowSample(tokens, elapsed, now());
     pushAllTimeSample(tps);
     pushSparkSample(tps);
 

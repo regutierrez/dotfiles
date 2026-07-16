@@ -1,6 +1,7 @@
 {
-  "app.interrupt": ["escape"],
-  "app.clear": ["ctrl+c"],
+  "app.interrupt": ["ctrl+c"],
+  "app.clear": [],
+  "app.session.tree": ["escape"],
   "tui.input.copy": [],
   "tui.select.cancel": ["escape"],
   "app.session.togglePath": [],

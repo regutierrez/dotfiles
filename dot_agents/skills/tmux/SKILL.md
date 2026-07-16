@@ -1,8 +1,8 @@
 ---
 name: tmux
-description: "Remote control tmux sessions for interactive CLIs (python, gdb, etc.) by sending keystrokes and scraping pane output."
+description: "Only use when the user explicitly asks to use the tmux skill. Remote control tmux sessions for interactive CLIs by sending keystrokes and scraping pane output."
 license: Vibecoded
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 # tmux Skill

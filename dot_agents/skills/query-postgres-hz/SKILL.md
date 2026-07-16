@@ -1,7 +1,7 @@
 ---
 name: query-postgres-hz
-description: Read-only SQL against Akkio Horizon transactional Postgres (production/staging/dev/local) via a guarded psql wrapper with --env selection. Use for investigation lookups (chart→project/dashboard/tenant IDs) missing from Datadog/logs. Run its `envs` subcommand first to see which environments are reachable. No writes; agents never run aws sso login.
-compatibility: Requires psql, python3, VPN route to the target RDS. aws CLI only for --from-secrets.
+description: Read-only SQL against Akkio Horizon transactional Postgres (production/staging/dev/local) via a guarded psql wrapper with --env selection. Use for investigation lookups (chart→project/dashboard/tenant IDs) missing from Datadog/logs. Run its `envs` subcommand first to see which environments are reachable and how they route. No writes; agents never run aws sso login.
+compatibility: Requires python3. Host/local queries require psql; Docker VPN sidecar queries require docker and a postgres client image. aws CLI only for --from-secrets.
 ---
 
 # Query Postgres (Horizon)
@@ -20,9 +20,9 @@ Flags: `--env production|staging|dev|local` (default `$HORIZON_PG_ENV`, else `pr
 
 ## Environment discipline
 
-- **Run `envs` before the first query of a session.** It shows, per environment, where a URL was found and whether the host answers TCP. Only query reachable environments; VPN typically routes a subset (often only one).
+- **Run `envs` before the first query of a session.** It shows, per environment, URL source, route (`host` or `sidecar:<container>`), and TCP reachability. Production/staging auto-use running Docker VPN sidecars named `vpn-horizon-production` / `vpn-horizon-staging`; override with `HORIZON_PG_SIDECAR_<ENV>` or `~/.config/horizon-pg/<env>.sidecar`. Local and ambient exported URLs stay on the host route.
 - Every query prints `env=<name> host=<host>` on stderr — confirm it matches the environment you intend before citing results. Production data questions need `--env production`; do not substitute staging results silently.
-- URL resolution per env: exported `BACKEND_DB_URL` (ignored when `--env` is passed explicitly) → `~/.config/horizon-pg/<env>.url` → `~/.cache/horizon-pg/horizon-<env>.url` (stale cache is still used, with a warning) → Secrets Manager only with `--from-secrets` (profile `horizon-<env>`, secret `<env>/common/env`).
+- URL resolution per env: exported `BACKEND_DB_URL` (ignored when `--env` is passed explicitly and host-routed only when used as the ambient/custom URL) → `~/.config/horizon-pg/<env>.url` → `~/.cache/horizon-pg/horizon-<env>.url` (stale cache is still used, with a warning) → Secrets Manager only with `--from-secrets` (profile `horizon-<env>`, secret `<env>/common/env`).
 - `--env local` is the only path that reads `$AKKIO_REPO/ml/.env` (default `~/Akkio/ml/.env`, usually `localhost:5431`).
 
 ## Hard rules
@@ -35,7 +35,7 @@ Flags: `--env production|staging|dev|local` (default `$HORIZON_PG_ENV`, else `pr
 
 | Output | Action |
 |---|---|
-| `UNREACHABLE: <host>` | Env not routed on current VPN. Run `envs`, use a reachable env if it answers the question, otherwise ask the user. **Never retry the same env.** |
+| `UNREACHABLE: <host>` | Env not reachable on its displayed route. Run `envs`; if production/staging should use a sidecar, confirm the matching `vpn-horizon-<env>` container is running or set `HORIZON_PG_SIDECAR_<ENV>`. Use another reachable env only if it answers the question; otherwise ask the user. **Never retry the same env unchanged.** |
 | `no URL found for env ...` | Follow the options the error prints; `--from-secrets` only with user's okay. |
 | `AUTH_REQUIRED:` | Stop. User must run SSO login manually; wait for confirmation. |
 | `password authentication failed` | Cached URL outdated → one `--from-secrets` run (with user's okay) refreshes it. |

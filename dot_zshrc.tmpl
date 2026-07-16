@@ -52,6 +52,11 @@ eval "$(zoxide init --cmd z zsh)"
 {{- else }}
 eval "$(zoxide init --cmd cd zsh)"
 {{- end }}
+{{- if eq .profile "work" }}
+
+# Load per-directory environment variables.
+eval "$(direnv hook zsh)"
+{{- end }}
 
 # ============================================================================
 # SHELL CONFIGURATION

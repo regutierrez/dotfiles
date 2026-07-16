@@ -14,7 +14,7 @@ Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Source state l
 - Template/gate rules use Go templates; `.chezmoiignore` usually matches target paths, but encrypted entries may need both decrypted target and `.age` path to avoid pre-decrypt errors when encryption is off.
 - Bootstrap-only entries are gated by `--override-data '{"bootstrap":true}'`.
 - `run_` scripts execute on apply when not ignored; `run_onchange_` runs when contents change; keep scripts idempotent.
-- Always update `AGENTS.md` and `README.md` when repo behavior, structure, profiles, bootstrap flow, managed files, packages, or agent/skill layout changes.
+- `README.md` is human-facing; keep user-visible behavior and setup there. Update `AGENTS.md` only with agent workflow facts (source paths, gates, mappings) — do not duplicate README prose.
 
 ## Structure
 
@@ -26,41 +26,15 @@ Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Source state l
 ├── .chezmoiignore              # templated target-path ignore rules
 ├── .chezmoiexternal.toml       # external git checkout(s), currently nvim
 ├── dot_zshrc.tmpl              # -> ~/.zshrc
-├── dot_zprofile.tmpl           # -> ~/.zprofile
-├── dot_gitconfig.tmpl          # -> ~/.gitconfig
-├── dot_tmux.conf.tmpl          # -> ~/.tmux.conf
-├── dot_bashrc                  # -> ~/.bashrc when profile manages bashrc
-├── dot_vimrc                   # -> ~/.vimrc when profile manages vimrc
 ├── dot_config/                 # -> ~/.config/ when profile manages dot_config
-│   ├── finicky/                # URL/browser routing
-│   ├── ghostty/                # terminal
-│   ├── gh-dash/                # GitHub dashboard
-│   ├── git/                    # git config fragments
-│   ├── karabiner/              # macOS key remapping
-│   ├── kitty/                  # Linux/CachyGaming terminal
-│   ├── lazygit/                # Git TUI
-│   ├── niri/                   # Linux/CachyGaming compositor config
-│   ├── opencode/               # opencode commands/config
-│   ├── process-compose/        # process-compose config
-│   ├── ripgrep/                # ripgrep config
-│   ├── sesh/                   # session config
-│   ├── systemd/user/           # user services
-│   ├── television/             # television config
-│   ├── tmux/                   # tmux extras
-│   ├── uv/                     # uv config
-│   ├── worktrunk/              # worktree tooling config
-│   └── zed/                    # editor config, darwin only
 ├── dot_local/bin/              # -> ~/.local/bin/
 ├── dot_agents/skills/          # -> ~/.agents/skills/ when profile manages agents
-├── dot_pi/                     # -> ~/.pi/ Pi config, extensions, specs, Pi-specific skills
+├── dot_pi/                     # -> ~/.pi/ Pi config, extensions, skills
 ├── bin/                        # -> ~/bin/ when profile manages bin
 ├── private_dot_ssh/            # -> ~/.ssh/ with private perms; age-encrypted key
-├── Library/LaunchAgents/       # -> ~/Library/LaunchAgents/ on darwin
-├── macos/                      # bootstrap/settings scripts; not applied as dotfiles
-├── linux/                      # Arch/Debian/Cachy bootstrap assets; not applied as dotfiles
+├── macos/ linux/               # bootstrap assets; not applied as dotfiles
 ├── akkio-helpers/              # helper scripts; excluded on work profile
-├── plans/                      # design/handoff notes; not applied
-└── archive/                    # retired configs/skills; not applied
+└── archive/ plans/             # not applied
 ```
 
 ## Chezmoi mapping
@@ -73,18 +47,11 @@ Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Source state l
 | `executable_` | `0755` perms |
 | `.tmpl` | render as Go template |
 
-Examples:
-
-- `dot_zshrc.tmpl` -> `~/.zshrc` (sources `~/.config/secrets/kagi.env` when present for Kagi-backed Pi websearch)
-- `dot_config/lazygit/config.yml` -> `~/.config/lazygit/config.yml`
-- `private_dot_ssh/private_config` -> `~/.ssh/config`
-- `bin/executable_uuid` -> `~/bin/uuid`
-
-Use `chezmoi source-path <target>` / `chezmoi target-path <source>` when mapping is unclear.
+Example: `dot_config/lazygit/config.yml` -> `~/.config/lazygit/config.yml`. Use `chezmoi source-path <target>` / `chezmoi target-path <source>` when mapping is unclear.
 
 ## Profiles
 
-Profiles live in `.chezmoidata.toml`; selected profile is stored in `~/.config/chezmoi/chezmoi.toml` under `[data].profile`.
+Profiles live in `.chezmoidata.toml`; selected profile is stored in `~/.config/chezmoi/chezmoi.toml` under `[data].profile`. Profile names and CachyGaming-only paths are documented in `README.md`.
 
 | Flag | personal | work | cachygaming | server |
 |---|---:|---:|---:|---:|
@@ -102,78 +69,39 @@ Profiles live in `.chezmoidata.toml`; selected profile is stored in `~/.config/c
 Notable gates:
 
 - `work` excludes `akkio-helpers/`.
-- non-darwin excludes SSH secrets/config, Karabiner, Zed, LaunchAgents.
+- non-darwin excludes SSH secrets/config, Karabiner, and Zed.
 - non-`cachygaming` Linux excludes Kitty/Niri/DMS desktop files.
 - `server` skips `~/.config`, `~/bin`, tmux plugins, nvim, but still manages filtered `~/.agents/skills`.
 - `bootstrap != true` excludes package/lazygit scripts and encrypted SSH secrets/config; encrypted SSH key ignore lists both `.ssh/id_ed25519` and `.ssh/id_ed25519.age`.
 - `exclude_skills` in `.chezmoidata.toml` denies selected skills per profile.
 
-### CachyGaming-only managed files
-
-Only when `.chezmoi.os == "linux"` and `profile == "cachygaming"`:
-
-- `dot_config/kitty/` -> `~/.config/kitty/`
-- `dot_config/niri/` -> `~/.config/niri/`
-- `dot_config/systemd/user/dms-auto-resolution-profile.service` -> `~/.config/systemd/user/dms-auto-resolution-profile.service`
-- `dot_local/bin/executable_dms-auto-resolution-profile` -> `~/.local/bin/dms-auto-resolution-profile`
-
-`linux/cachyos/setup.sh` is Cachy-specific bootstrap, not managed into `$HOME`. Arch AUR desktop packages are not currently `cachygaming`-only.
-
 ## Skills layout
 
-- `dot_agents/skills/` -> `~/.agents/skills/`; main coding-agent skills, filtered by profile `exclude_skills`.
-- `dot_pi/agent/APPEND_SYSTEM.md` -> `~/.pi/agent/APPEND_SYSTEM.md`; Pi global behavior addendum: terse communication plus read/edit/verify/workspace-safety loop.
-- `dot_pi/agent/keybindings.json` -> `~/.pi/agent/keybindings.json`; Pi keyboard overrides: abort/interrupt on `escape` so double-escape session tree works, clear/exit-on-second-press on `ctrl+c`, copy unbound from `ctrl+c`, selection cancel on `escape`, and `ctrl+p` / `shift+ctrl+p` freed from model/session selectors for a future command palette.
-- `dot_pi/agent/agents/` -> `~/.pi/agent/agents/`; nico-bailon's `pi-subagents` global custom agents using `name`, `systemPromptMode`, `inheritProjectContext`, and `inheritSkills` frontmatter. Managed agents include a Composer-backed `general-purpose.md` parent-twin agent for normal multi-step tasks, `explore.md` for fast read-only codebase search, `impl.md` for small targeted Composer-backed code changes, a Garfield-style `reviewer.md` with tiered review policies (general policies from the `codebase-design` skill, TypeScript from `coding-standards`, Akkio from `akkio-coding-standards`), a `librarian` remote-repository search agent that preloads the managed `librarian` skill, an `oracle` read-only high-reasoning advisory agent, and a `planner` override (claude-fable-5 at `xhigh` thinking) that conditionally loads `coding-standards`, `codebase-design`, `prototype`, and `domain-modeling` for plan-only work.
-- `dot_pi/agent/extensions/` -> `~/.pi/agent/extensions/`; Pi extensions, including `junior-mode.ts` (`/junior`, `ctrl+alt+j`) for toggleable junior-dev teaching mode, and `web-tools/` for `webfetch` and Kagi-backed `websearch` (`KAGI_API_KEY` required). `run_onchange_after_30-install-pi-web-tools.sh.tmpl` installs its runtime npm deps with `npm ci --omit=dev` when package metadata changes.
-- `dot_pi/agent/skills/` -> `~/.pi/agent/skills/`; Pi-specific skills.
-- `archive/skills/` is not managed; retired/reference skills only.
-- Repo-local helper skills for agents live under `.agents/skills/` and are not target-state dotfiles.
+- `dot_agents/skills/` -> `~/.agents/skills/`; filtered by profile `exclude_skills`. Skill behavior details live in each skill's `SKILL.md`; `tmux` is explicit-only, and `batch-rca` uses pi-subagents `general-purpose` workers instead of tmux sessions.
+- `dot_pi/agent/` -> `~/.pi/` (`APPEND_SYSTEM.md`, `keybindings.json`, `agents/`, `extensions/`, `skills/`). User-facing Pi setup is documented in `README.md`.
+- `archive/skills/` is not managed; retired/reference only.
+- `.agents/skills/` is repo-local helpers, not dotfiles.
 
 ## Packages
 
-`.chezmoidata/packages.toml` is the package source of truth.
-
-`run_onchange_before_install-packages.sh.tmpl` installs packages during apply only when `bootstrap=true` is set:
-
-- macOS: Homebrew formulae/casks
-- Arch/CachyOS: `paru` when available, fallback `pacman`
-- Debian/Ubuntu: `apt`
-
-Bootstrap scripts install only enough to get chezmoi running; packages flow from `packages.toml` when chezmoi runs with `--override-data '{"bootstrap":true}'`.
+`.chezmoidata/packages.toml` is the package source of truth. `run_onchange_before_install-packages.sh.tmpl` installs during apply only when `bootstrap=true`.
 
 ## Commands
 
 ```bash
-# Bootstrap; prompts for profile, includes bootstrap-only scripts/secrets
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --override-data '{"bootstrap":true}' regutierrez
-
-# Non-interactive profile select
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server --override-data '{"bootstrap":true}' regutierrez
-
-# One-off profile + bootstrap override
-chezmoi apply --override-data '{"profile":"work","bootstrap":true}'
-
-# Daily; skips bootstrap-only scripts and encrypted SSH secrets
 chezmoi edit ~/.zshrc
 chezmoi diff
 chezmoi apply -n -v
 chezmoi apply            # only when asked
 chezmoi apply ~/.zshrc   # prefer specific targets when possible
-
-# Inspect
+chezmoi source-path <target>
+chezmoi target-path <source>
+chezmoi add ~/.some_config
+chezmoi re-add ~/.some_config
 chezmoi managed
 chezmoi status
 chezmoi data
 chezmoi cat ~/.zshrc
-
-# Add/remove/update source from target
-chezmoi add ~/.some_config
-chezmoi add --encrypt ~/.ssh/key
-chezmoi forget ~/.some_config
-chezmoi re-add ~/.some_config
-
-# Doc drift check from source repo
 bin/executable_check-dotfiles-docs
 ```
 

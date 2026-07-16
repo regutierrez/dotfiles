@@ -52,22 +52,22 @@ Every query — run by you or handed to the user — must be:
 4. **In the doc** — validation queries and the full original problematic SQL stay in the MDX permanently.
 5. **Explained up front** — "if X → confirms A; if Y → disproves A". When results contradict you, update your conclusion or take it back; never repeat the same claim.
 
-## When to look in ~/blushift (dbt → Snowflake)
+## When to look in ~/blu-platform-transformations (dbt → Snowflake)
 
-`~/blushift` is the dbt repo that builds every `BLUSHIFT_HMI_PROD` table: shared models in schema `BLUSHIFT_COMMON`, per-client views in `<CLIENT>_CLIENTDATA` (generated from `models/blushift_common/` templates; hand-written overrides start with `-- akkio: client-logic`). Its YAML descriptions/tags become Snowflake COMMENTs/TAGs, which the platform scrapes into "supplemental info" and injects into LLM prompts for SQL generation.
+`~/blu-platform-transformations` is the dbt repo that builds every `BLUSHIFT_HMI_PROD` table: shared models in schema `BLUSHIFT_COMMON`, per-client views in `<CLIENT>_CLIENTDATA` (generated from `models/blushift_common/` templates; hand-written overrides start with `-- akkio: client-logic`). Its YAML descriptions/tags become Snowflake COMMENTs/TAGs, which the platform scrapes into "supplemental info" and injects into LLM prompts for SQL generation.
 
 A "data issue" can live in four layers — isolate which one before blaming any of them:
 
 1. **Upstream source feed** (TransUnion, Mastercard, Inscape, ...) — bad data arrived.
-2. **dbt model in `~/blushift`** — wrong SQL/YAML, lookback window (`DBT_HISTORY_DAYS`), client mirror drifted from template.
+2. **dbt model in `~/blu-platform-transformations`** — wrong SQL/YAML, lookback window (`DBT_HISTORY_DAYS`), client mirror drifted from template.
 3. **Snowflake table contents** — model is right but the dbt Cloud run failed or is stale (cadence tags `daily`/`weekly`/`monthly`).
 4. **Platform supplemental-info cache** — Snowflake is right, cached metadata is stale until `ml/scripts/refresh_supplemental_info.py` runs.
 
-Checks, in order: query the table via `/query-snowflake-hz`; `DESCRIBE TABLE` for live COMMENTs; compare with the supplemental info the LLM actually received (Datadog logs); read the model SQL/YAML in `~/blushift/models/`.
+Checks, in order: query the table via `/query-snowflake-hz`; `DESCRIBE TABLE` for live COMMENTs; compare with the supplemental info the LLM actually received (Datadog logs); read the model SQL/YAML in `~/blu-platform-transformations/models/`.
 
-Look in blushift when: LLM SQL uses the wrong value format (case, hyphen vs underscore — column descriptions carry `:lower`/`:upper`/`:space-to-hyphen`/`:space-to-underscore` tags that promise a format); table/column descriptions in the LLM context are wrong or missing; a table exists for one client but not another; rows or partition dates are stale/missing; `data_type`/`use_for_audience_gen` tagging is wrong.
+Look in blu-platform-transformations when: LLM SQL uses the wrong value format (case, hyphen vs underscore — column descriptions carry `:lower`/`:upper`/`:space-to-hyphen`/`:space-to-underscore` tags that promise a format); table/column descriptions in the LLM context are wrong or missing; a table exists for one client but not another; rows or partition dates are stale/missing; `data_type`/`use_for_audience_gen` tagging is wrong.
 
-House rules: `git pull` `~/blushift` before reading. Origin is Bitbucket — no `gh`. Deploys are dbt Cloud only, so "what changed" means blushift git log + dbt Cloud run history, not Horizon deploys. Shared client-view bugs are fixed in `models/blushift_common/`, never in one client dir. For dbt change mechanics, read `~/blushift/AGENTS.md`.
+House rules: `git pull` `~/blu-platform-transformations` before reading. Origin is Bitbucket — no `gh`. Deploys are dbt Cloud only, so "what changed" means blu-platform-transformations git log + dbt Cloud run history, not Horizon deploys. Shared client-view bugs are fixed in `models/blushift_common/`, never in one client dir. For dbt change mechanics, read `~/blu-platform-transformations/AGENTS.md`.
 
 Key platform files: `ml/src/dataset_parsing/datasource_info/` (metadata builder), `ml/scripts/refresh_supplemental_info.py` + `ml/scripts/SYNC_COMMON_TABLES.md` (refresh/sync), `apps/docs/docs/by-role/backend/architecture/blushift-dbt-pipeline.md` (architecture).
 
@@ -92,11 +92,12 @@ Key platform files: `ml/src/dataset_parsing/datasource_info/` (metadata builder)
    - Add `pup rum`, `pup events`, `pup metrics`, `pup monitors`, or `pup incidents` queries when relevant.
    If no trace ID exists, discover candidates from strongest anchors and inspect only traces connected to the reported action/resource. Capture scoped Datadog URLs.
 6. **Connect the evidence.** Build an ET timeline from Linear + Datadog + code/data. Mark `Unknown`, assumptions, and hypotheses explicitly.
-7. **Answer "why now".** For behavior with a start date, find the trigger before writing Root cause: commit/PR (author, merge + deploy time), flag/config/migration, or first qualifying input — verified with before/after evidence (error counts by day, deployed versions around first-seen). Map SHAs to commits/PRs and compare the relevant code; decide whether code, data, upstream behavior, branch/release, or migration context changed. No trigger found → say so in the doc and cap confidence at `medium`.
-8. **Verify root cause before claiming it.** Confirm production entity IDs, persisted fields/state, user-authored input/config, read/write code paths, start time, frequency, blast radius, recurrence, and ruled-out hypotheses. Do not say `likely bad data` unless the data was directly inspected.
-9. **Reproduce or document limits.** Every investigation needs `## Reproduction steps`, on the real end-user surface (never `review-chat`/`rating-chat`). Use exact browser/API/CLI steps, prerequisites, expected visible result/error, and screenshots/video when the user asks to reproduce. Screenshots must visibly show the symptom (annotated + captioned). If unsafe or impossible, provide the closest safe partial repro and explain exactly what prevents full reproduction. Use `chrome-devtools-cli` when asked to reproduce; Chrome MCP is fallback.
-10. **Explain for newcomers.** Define codebase-specific services, queues, cron jobs, integrations, tables, features, and acronyms in plain language.
-11. **Write and validate MDX.** Keep prose under 200 lines when possible (diagrams and SQL blocks exempt). Run `npm run build` after content changes when feasible. If access to Linear/Datadog/data/code is missing, state exactly what is unavailable instead of guessing.
+7. **Check the triaged description.** Compare its central explanation of what broke, why, and impact against the runtime/code/data evidence—not against the ticket title or reporter's guess. Set `matches_triaged_description` in frontmatter: `true` only when the central mechanism and outcome materially match; `false` when the stated cause is contradicted or misses the actual failure mechanism; `null` only when no triaged description exists or evidence is insufficient to judge. Never leave it `null` because the check was skipped. State the mismatch or confirming evidence in `## TLDR` or `## Root cause` so the boolean is reviewable.
+8. **Answer "why now".** For behavior with a start date, find the trigger before writing Root cause: commit/PR (author, merge + deploy time), flag/config/migration, or first qualifying input — verified with before/after evidence (error counts by day, deployed versions around first-seen). Map SHAs to commits/PRs and compare the relevant code; decide whether code, data, upstream behavior, branch/release, or migration context changed. No trigger found → say so in the doc and cap confidence at `medium`.
+9. **Verify root cause before claiming it.** Confirm production entity IDs, persisted fields/state, user-authored input/config, read/write code paths, start time, frequency, blast radius, recurrence, and ruled-out hypotheses. Do not say `likely bad data` unless the data was directly inspected.
+10. **Reproduce or document limits.** Every investigation needs `## Reproduction steps`, on the real end-user surface (never `review-chat`/`rating-chat`). Use exact browser/API/CLI steps, prerequisites, expected visible result/error, and screenshots/video when the user asks to reproduce. Screenshots must visibly show the symptom (annotated + captioned). If unsafe or impossible, provide the closest safe partial repro and explain exactly what prevents full reproduction. Use `chrome-devtools-cli` when asked to reproduce; Chrome MCP is fallback.
+11. **Explain for newcomers.** Define codebase-specific services, queues, cron jobs, integrations, tables, features, and acronyms in plain language.
+12. **Write and validate MDX.** Keep prose under 200 lines when possible (diagrams and SQL blocks exempt). Run `npm run build` after content changes when feasible. If access to Linear/Datadog/data/code is missing, state exactly what is unavailable instead of guessing.
 
 ## Extra Depth Requirements
 
@@ -142,6 +143,8 @@ tags:
 created_at: 2026-05-01
 updated_at: 2026-05-01
 linear_url: https://linear.app/...
+golden_test: false
+matches_triaged_description: true # true | false | null; use the evidence rules below
 ---
 ```
 
@@ -149,6 +152,12 @@ Tags must include
 
 - one ticket type -- `chat_review` if linear ticket content contains "Chat Review", otherwise `service_now`
 - one or more issue types, such as `test`, `no_description`, `no_bug`, `auth_access_issue`, `loading_rendering_issue`, `incorrect_sql`, `inefficient_sql`, `data_issue`, `infra_error`, `chat_response_issue`, `user_issue`, `chart_visualization_issue`, `ui_ux_issue`, `feature_request`, or `uncategorized`.
+
+`matches_triaged_description` is an evidence verdict, not a similarity check:
+
+- `true` — the triaged description's central failure mechanism and user-visible outcome match the investigation. Minor wording or scope differences are okay.
+- `false` — its central cause is contradicted, or it attributes the symptom to the wrong layer/mechanism. Explain the correction in the doc.
+- `null` — the ticket has no triaged description, or required evidence is unavailable. State which evidence is missing; do not use `null` as "not checked."
 
 ## Required MDX Structure
 
@@ -179,6 +188,7 @@ Then add `## Summary`. The table below is the required baseline, not a limit: in
 | First seen / reproduced at (ET) | timestamp range                                         |
 | Frequency / blast radius        | one user, one org, all deploys matching condition, etc. |
 | User-visible symptom            | exact symptom from ticket/UI                            |
+| Triaged-description match       | `true` / `false` / `null` — one-line evidence reason    |
 | Error / exception               | exact error text                                        |
 | Downstream dependency           | external service/API if relevant                        |
 | App area                        | e.g. Audience builder → Chat                            |
@@ -236,7 +246,7 @@ After `## Summary`, include:
 - `## Manual validation required` — the honesty section. Numbered, copy-pasteable checks that confirm or break the RCA, each following "Running validation SQL" (store-labeled, schema-verified, cheap, explained up front). Run them yourself via `/query-postgres-hz`/`/query-snowflake-hz` when the environment matches the issue; otherwise flag the disconnect for the user. Include non-SQL checks (UI, Firestore, ask reporter). If nothing manual is needed, say so explicitly — never omit the section.
 - `## Possible fixes` — REQUIRED. Classify each candidate:
   1. **Code change** — which side (frontend / backend / ml / worker) and service; if both FE and BE angles exist, address both.
-  2. **Data fix** — correct/backfill/re-sync/retag the bad data; name the exact table(s) and rows, where the bad data came from, and who owns that pipeline. Say which layer it is (upstream feed / dbt model in `~/blushift` / stale dbt Cloud run / stale supplemental-info cache) with the evidence. A blushift fix = dbt model/YAML change + client resync (`gen_client_schema.py`) + supplemental info refresh; a refresh-only fix = Snowflake is right and only the cache is stale.
+  2. **Data fix** — correct/backfill/re-sync/retag the bad data; name the exact table(s) and rows, where the bad data came from, and who owns that pipeline. Say which layer it is (upstream feed / dbt model in `~/blu-platform-transformations` / stale dbt Cloud run / stale supplemental-info cache) with the evidence. A blu-platform-transformations fix = dbt model/YAML change + client resync (`gen_client_schema.py`) + supplemental info refresh; a refresh-only fix = Snowflake is right and only the cache is stale.
   3. **Context/config change** — platform-injected prompt/context, Databricks config, flags (not the user's prompt).
   4. **User behavioral change** — prompt workaround or alternate flow usable today.
   5. **Not a bug** — training/enablement; say why the behavior is correct.
@@ -265,6 +275,7 @@ Optional when useful:
 - Does the Summary include both `Agent session type(s)` and `Agent session ID(s)`? Do not finalize with either blank; use `Unknown — <where checked>` only when the harness truly does not expose it.
 - Walk each Root cause sentence: every claim points to a quoted log, trace id, `file:line`, SQL result, or Linear comment in the doc — fix or delete any without proof.
 - Is `## Root cause confidence` consistent with open `## Manual validation required` items?
+- Does `matches_triaged_description` follow the evidence rules, and does the TLDR/Root cause explain the verdict? If it is `null`, is the missing description/evidence named?
 - Missing facts labeled `Unknown` with the exact next query/tool needed?
 - No evidence (generated SQL, request/trace IDs) lost during edits?
 - Did `npm run build` pass?

@@ -2,7 +2,7 @@
 name: batch-rca
 description: Batch-create Investigatr MDX docs for filtered Linear tickets using one subagent per ticket. Use when explicitly asked to batch missing Investigatr investigations, fan out Linear tickets, or run investigation subagents.
 disable-model-invocation: true
-compatibility: Requires linear-cli, pup, jq, and npm. Fallback orchestration requires tmux; Codex CLI is optional but preferred for tmux fallback.
+compatibility: Requires linear-cli, pup, jq, npm, and pi-subagents.
 ---
 
 # RCA Batch Authoring
@@ -62,47 +62,11 @@ test -d /Users/pakkio/playground/investigatr/src/content/investigations/<TICKET-
 
 ## Worker orchestration
 
-Prefer a native subagent/task feature if the current harness exposes one. If no subagent feature exists, fall back to tmux sessions.
+Use the `pi-subagents` skill and launch one `general-purpose` subagent per ticket. Do not assign multiple tickets to one subagent. Pass the subagent the prompt contract below and collect the subagent's final response. Require the final response to end with `## TLDR` so the main agent can aggregate it.
 
-### Native subagent mode
+Start at most the configured concurrency. Before launching, list available subagents and verify `general-purpose` is executable. If `general-purpose` is unavailable, stop and report that blocker instead of substituting another orchestration path.
 
-Spawn one subagent per ticket. Do not assign multiple tickets to one subagent. Pass the subagent the prompt contract below and collect the subagent's final response. Require the final response to end with `## TLDR` so the main agent can aggregate it.
-
-### tmux fallback mode
-
-Load the tmux skill. Use the shared private socket convention:
-
-```sh
-SOCKET_DIR=${CLAUDE_TMUX_SOCKET_DIR:-${TMPDIR:-/tmp}/claude-tmux-sockets}
-mkdir -p "$SOCKET_DIR"
-SOCKET="$SOCKET_DIR/claude.sock"
-```
-
-Start at most the configured concurrency. Name sessions `investigatr-<ticket-id>` or `codex-<ticket-id>`. Immediately tell the user how to monitor each session:
-
-```sh
-tmux -S "$SOCKET" attach -t <session>
-tmux -S "$SOCKET" capture-pane -p -J -t <session>:0.0 -S -200
-```
-
-For Codex CLI fallback, prefer a non-interactive invocation with `--output-last-message` so TLDR aggregation is deterministic. Use the installed Codex binary if present (`codex`, `openai-codex`, or `/Applications/Codex.app/Contents/Resources/codex`). Example:
-
-```sh
-CODEX=/Applications/Codex.app/Contents/Resources/codex
-"$CODEX" exec \
-  -m gpt-5.5 \
-  -c model_reasoning_effort=\"xhigh\" \
-  -C /Users/pakkio/playground/investigatr \
-  --add-dir /Users/pakkio/Akkio \
-  --add-dir /Users/pakkio/.wt/pakkio/Akkio \
-  --add-dir /Users/pakkio/blushift \
-  --add-dir /tmp \
-  --output-last-message "$BATCH/<TICKET-ID>.last.md" \
-  - < "$BATCH/<TICKET-ID>.prompt.md" \
-  > "$BATCH/<TICKET-ID>.log" 2>&1
-```
-
-If `linear-cli` or `pup` fails only because the agent sandbox blocks keychain/network access, rerun that ticket with the narrowest stronger sandbox available (for Codex, `-s danger-full-access`) and record that reason in the aggregate. Do not start auth flows unless the user explicitly asks.
+If `linear-cli` or `pup` fails only because the subagent sandbox blocks keychain/network access, rerun that ticket with the narrowest stronger sandbox available through pi-subagents and record that reason in the aggregate. Do not start auth flows unless the user explicitly asks.
 
 ## Per-ticket worker prompt contract
 
@@ -128,7 +92,7 @@ Mandatory:
 
 After each worker finishes:
 
-1. Read the worker's final response (`--output-last-message` file in tmux fallback, or subagent final message in native mode).
+1. Read the worker's final response from the `general-purpose` subagent result.
 2. Verify expected output:
    - if created: `src/content/investigations/<TICKET-ID>/index.mdx` exists
    - if skipped: final TLDR explains existing/duplicate/blocker
@@ -136,6 +100,6 @@ After each worker finishes:
 3. Optionally run a targeted MDX compile for new docs, then run `npm run build` once at the end when feasible.
 4. Write `/tmp/investigatr-batch-<timestamp>/aggregate.md` containing every worker TLDR.
 5. Report to the user with: created docs, skipped docs, duplicate mappings, build status, blockers, and the aggregate path.
-6. If using tmux, repeat the monitor/capture commands in the final report.
+6. Do not include tmux monitor/capture instructions; batch workers must run through pi-subagents.
 
 Do not silently continue to a new timeframe or unrelated ticket batch after completing the requested inventory. Ask before expanding scope.

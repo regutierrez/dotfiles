@@ -9,6 +9,7 @@ USE_SECRETS="${HORIZON_PG_FROM_SECRETS:-0}"
 CACHE_TTL_SECONDS="${HORIZON_PG_CACHE_TTL:-604800}"
 MAX_LINES="${HORIZON_PG_MAX_LINES:-200}"
 SECRET_ID_OVERRIDE="${HORIZON_PG_SECRET_ID:-}"
+PG_CLIENT_IMAGE="${HORIZON_PG_CLIENT_IMAGE:-postgres:16}"
 
 usage() {
   cat <<'EOF'
@@ -24,6 +25,12 @@ Flags:
   --from-secrets                       allow AWS Secrets Manager fetch (profile horizon-<env>)
   --max-lines N                        cap psql output lines (default 200)
 
+Docker VPN sidecars:
+  production/staging default to containers named vpn-horizon-production / vpn-horizon-staging
+  when running. Override with HORIZON_PG_SIDECAR_<ENV> or
+  ~/.config/horizon-pg/<env>.sidecar. Queries then run a postgres client container
+  with --network container:<sidecar>, so both VPNs can stay connected at once.
+
 DB URL resolution per env (first match wins; no AWS unless --from-secrets):
   1. $BACKEND_DB_URL / $HORIZON_PG_URL   (ignored when --env is passed explicitly)
   2. ~/.config/horizon-pg/<env>.url
@@ -34,7 +41,7 @@ DB URL resolution per env (first match wins; no AWS unless --from-secrets):
 Every query prints "env=... host=..." on stderr. All SQL is validated read-only
 before connecting; the target host is TCP-checked first (UNREACHABLE fails fast).
 
-Requires: python3, psql. aws CLI only for --from-secrets.
+Requires: python3, psql for host/local queries, docker for sidecar-routed queries. aws CLI only for --from-secrets.
 EOF
 }
 
@@ -195,11 +202,38 @@ assert_read_only_sql_file() {
   assert_read_only_sql "$file" "$(cat "$file")"
 }
 
+docker_sidecar_for_env() {
+  local env_name="$1"
+  local upper var value config
+  upper="$(printf '%s' "$env_name" | tr '[:lower:]-' '[:upper:]_')"
+  var="HORIZON_PG_SIDECAR_${upper}"
+  value="${!var:-}"
+  if [[ -z "$value" ]]; then
+    var="HORIZON_PG_DOCKER_SIDECAR_${upper}"
+    value="${!var:-}"
+  fi
+  config="${XDG_CONFIG_HOME:-$HOME/.config}/horizon-pg/${env_name}.sidecar"
+  if [[ -z "$value" && -f "$config" ]]; then
+    value="$(grep -vE '^\s*(#|$)' "$config" | head -n 1 | xargs || true)"
+  fi
+  if [[ -z "$value" && ( "$env_name" == "production" || "$env_name" == "staging" ) ]]; then
+    value="vpn-horizon-${env_name}"
+  fi
+  if [[ -n "$value" ]] && command -v docker >/dev/null 2>&1 \
+      && [[ "$(docker inspect -f '{{.State.Running}}' "$value" 2>/dev/null || true)" == "true" ]]; then
+    printf '%s\n' "$value"
+  fi
+}
+
+absolute_path() {
+  python3 -c 'import pathlib,sys; print(pathlib.Path(sys.argv[1]).expanduser().resolve())' "$1"
+}
+
 # Shared resolver: mode "resolve" prints the URL for $ENV_NAME on stdout,
 # mode "envs" prints a reachability table for all envs.
 run_resolver() {
   local mode="$1"
-  python3 - "$mode" "$ENV_NAME" "$ENV_FROM_CLI" "$USE_SECRETS" "$CONNECT_TIMEOUT" "$CACHE_TTL_SECONDS" "$SECRET_ID_OVERRIDE" <<'PY'
+  python3 - "$mode" "$ENV_NAME" "$ENV_FROM_CLI" "$USE_SECRETS" "$CONNECT_TIMEOUT" "$CACHE_TTL_SECONDS" "$SECRET_ID_OVERRIDE" "$PG_CLIENT_IMAGE" <<'PY'
 import json
 import os
 import re
@@ -217,6 +251,7 @@ use_secrets = sys.argv[4] == "1"
 connect_timeout = sys.argv[5]
 cache_ttl = int(sys.argv[6])
 secret_override = sys.argv[7]
+pg_client_image = sys.argv[8]
 
 ENVS = ("production", "staging", "dev", "local")
 ENV_LINE = re.compile(r'^BACKEND_DB_URL=(?:"(.*)"|(.*))$')
@@ -231,13 +266,86 @@ def note(message: str) -> None:
     print(message, file=sys.stderr)
 
 
+def docker_container_running(name: str) -> bool:
+    try:
+        proc = subprocess.run(
+            ["docker", "inspect", "-f", "{{.State.Running}}", name],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        return False
+    return proc.returncode == 0 and proc.stdout.strip() == "true"
+
+
+def sidecar_for_env(env: str) -> str | None:
+    upper = env.upper().replace("-", "_")
+    value = os.environ.get(f"HORIZON_PG_SIDECAR_{upper}") or os.environ.get(f"HORIZON_PG_DOCKER_SIDECAR_{upper}")
+    config = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))) / "horizon-pg" / f"{env}.sidecar"
+    if not value and config.is_file():
+        for line in config.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#"):
+                value = line
+                break
+    if not value and env in {"production", "staging"}:
+        value = f"vpn-horizon-{env}"
+    if value and docker_container_running(value):
+        return value
+    return None
+
+
 def host_port(url: str) -> tuple[str, int]:
     parsed = urllib.parse.urlparse(url)
     return parsed.hostname or "?", parsed.port or 5432
 
 
-def reachable(url: str, timeout: float = 3.0) -> bool:
-    host, port = host_port(url)
+def url_for_sidecar(url: str, sidecar: str | None) -> str:
+    if not sidecar:
+        return url
+    parsed = urllib.parse.urlparse(url)
+    host = (parsed.hostname or "").lower()
+    port = parsed.port or 5432
+    if host not in {"localhost", "127.0.0.1", "::1"}:
+        return url
+    try:
+        ports = json.loads(subprocess.check_output(["docker", "inspect", "-f", "{{json .NetworkSettings.Ports}}", sidecar], text=True))
+    except (FileNotFoundError, subprocess.CalledProcessError, json.JSONDecodeError):
+        return url
+    container_port = None
+    for container_spec, bindings in (ports or {}).items():
+        for binding in bindings or []:
+            if str(binding.get("HostPort")) == str(port):
+                container_port = container_spec.split("/", 1)[0]
+                break
+        if container_port:
+            break
+    if not container_port:
+        return url
+    userinfo = parsed.netloc.rsplit("@", 1)[0] + "@" if "@" in parsed.netloc else ""
+    return urllib.parse.urlunparse(parsed._replace(netloc=f"{userinfo}localhost:{container_port}"))
+
+
+def reachable(url: str, env: str, timeout: float = 3.0) -> bool:
+    sidecar = sidecar_for_env(env)
+    route_url = url_for_sidecar(url, sidecar)
+    host, port = host_port(route_url)
+    if sidecar:
+        try:
+            proc = subprocess.run(
+                ["docker", "run", "--rm", "--network", f"container:{sidecar}", pg_client_image,
+                 "pg_isready", "-q", "-d", route_url, "-t", str(int(timeout))],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=timeout + 5,
+            )
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return False
+        return proc.returncode == 0
+
     try:
         with socket.create_connection((host, port), timeout=timeout):
             return True
@@ -374,16 +482,19 @@ def fetch_from_secrets(env: str) -> str:
 
 
 if mode == "envs":
-    print(f"{'env':<11} {'source':<15} {'host':<62} reachable")
+    print(f"{'env':<11} {'route':<24} {'source':<15} {'host':<62} reachable")
     for env in ENVS:
         url, source = resolve_env(env)
         if not url:
             hint = "(--from-secrets can fetch)" if env != "local" else "(no ml/.env)"
-            print(f"{env:<11} {'-':<15} {'no URL found ' + hint:<62} -")
+            print(f"{env:<11} {'-':<24} {'-':<15} {'no URL found ' + hint:<62} -")
             continue
-        host, port = host_port(url)
         label = source.split(":", 1)[0]
-        print(f"{env:<11} {label:<15} {host + ':' + str(port):<62} {'yes' if reachable(url) else 'no'}")
+        sidecar = sidecar_for_env(env)
+        route_url = url_for_sidecar(url, sidecar)
+        host, port = host_port(route_url)
+        route = f"sidecar:{sidecar}" if sidecar else "host"
+        print(f"{env:<11} {route:<24} {label:<15} {host + ':' + str(port):<62} {'yes' if reachable(url, env) else 'no'}")
     raise SystemExit(0)
 
 # mode == "resolve"
@@ -422,8 +533,11 @@ else:
 if "(stale)" in source:
     note(f"warning: cached URL is older than TTL ({source}); using it anyway — if auth fails, refresh with --from-secrets")
 
+route_env = env_name if label != "custom" else "__host__"
+sidecar = sidecar_for_env(route_env)
+url = url_for_sidecar(url, sidecar)
 host, port = host_port(url)
-if os.environ.get("HORIZON_PG_SKIP_PREFLIGHT") != "1" and not reachable(url):
+if os.environ.get("HORIZON_PG_SKIP_PREFLIGHT") != "1" and not reachable(url, route_env):
     die(
         f"UNREACHABLE: {host}:{port} (env={label}) refused/timed out on TCP within 3s.\n"
         "This environment is likely not routed on the current VPN. Run the 'envs' subcommand "
@@ -431,7 +545,8 @@ if os.environ.get("HORIZON_PG_SKIP_PREFLIGHT") != "1" and not reachable(url):
         "Do not retry this same environment."
     )
 
-note(f"env={label} host={host} source={source.split(':', 1)[0]}")
+route = f"sidecar:{sidecar}" if sidecar else "host"
+note(f"env={label} host={host} route={route} source={source.split(':', 1)[0]}")
 print(with_timeout(url))
 PY
 }
@@ -458,7 +573,28 @@ run_psql() {
   fi
 
   url="$(run_resolver resolve)"
-  psql "$url" -v ON_ERROR_STOP=1 -P pager=off "$sql_mode" "$1" | cap_output
+  local sidecar
+  if [[ "$ENV_FROM_CLI" == "0" && ( -n "${BACKEND_DB_URL:-}" || -n "${HORIZON_PG_URL:-}" ) ]]; then
+    sidecar=""
+  else
+    sidecar="$(docker_sidecar_for_env "$ENV_NAME" || true)"
+  fi
+  if [[ -n "$sidecar" ]]; then
+    require_cmd docker
+    if [[ "$sql_mode" == "-f" ]]; then
+      local abs_file
+      abs_file="$(absolute_path "$1")"
+      docker run --rm -i --network "container:${sidecar}" \
+        -v "${abs_file}:/tmp/query.sql:ro" \
+        "$PG_CLIENT_IMAGE" psql "$url" -v ON_ERROR_STOP=1 -P pager=off -f /tmp/query.sql | cap_output
+    else
+      docker run --rm -i --network "container:${sidecar}" \
+        "$PG_CLIENT_IMAGE" psql "$url" -v ON_ERROR_STOP=1 -P pager=off -c "$1" | cap_output
+    fi
+  else
+    require_cmd psql
+    psql "$url" -v ON_ERROR_STOP=1 -P pager=off "$sql_mode" "$1" | cap_output
+  fi
 }
 
 lookup_chart() {
@@ -565,12 +701,10 @@ main() {
       run_resolver envs
       ;;
     lookup-chart)
-      require_cmd psql
       [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh [--env <env>] lookup-chart <chart_id>"
       lookup_chart "$2"
       ;;
     lookup-project)
-      require_cmd psql
       [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh [--env <env>] lookup-project <project_id>"
       lookup_project "$2"
       ;;
@@ -580,7 +714,6 @@ main() {
       run_psql -c "$2"
       ;;
     -f)
-      require_cmd psql
       [[ $# -eq 2 ]] || die "usage: query-postgres-hz.sh [--env <env>] -f <file.sql>"
       run_psql -f "$2"
       ;;

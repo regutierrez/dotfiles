@@ -37,7 +37,6 @@ akkio-helpers/
 .ssh/config
 .config/karabiner
 .config/zed
-Library/LaunchAgents/
 {{- end }}
 
 {{- if or (ne .chezmoi.os "linux") (ne $profile "cachygaming") }}

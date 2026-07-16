@@ -1,0 +1,6 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- $data := dict -}}
+{{- if and (hasKey .chezmoi "stdin") .chezmoi.stdin -}}
+{{-   $data = fromJson .chezmoi.stdin -}}
+{{- end -}}
+{{ $data | setValueAtPath "doubleEscapeAction" "none" | toPrettyJson }}
