@@ -1,0 +1,194 @@
+AGENTS.md
+  s_79abf69dae5b8f::t_519959539c78db 80
+  s_79abf69dae5b8f::t_fdea2bfcd6cd27 74,76
+dot_agents/skills/query-snowflake-hz/SKILL.md
+  s_c96d51ca381b0c::t_95fd66e4b43050 5
+dot_agents/skills/commit/SKILL.md
+  s_c96d51ca381b0c::t_1c94a9b758cfbd 4
+.chezmoidata.toml
+  s_2a3177f1680888::t_3b5464d6f1e750 47
+  s_79abf69dae5b8f::t_5e7786e07064cd 1-6,8-22,24-27,31-33,35-46,48,58,69,80,91
+  s_c96d51ca381b0c::t_f6c1d1604d404a 7,23,28-30,34
+dot_agents/skills/to-tickets/SKILL.md
+  s_c96d51ca381b0c::t_e8c6c4d173f7e7 3
+  s_c96d51ca381b0c::t_8b02eadf49f227 11,58,60,62-66
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-2,4-10,12-57,59,61,67-93
+dot_agents/skills/improve-codebase-architecture/HTML-REPORT.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-123
+dot_agents/skills/implement/agents/openai.yaml
+  s_c96d51ca381b0c::t_13b72109694dc6 1-5
+dot_agents/skills/prototype/agents/openai.yaml
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-3
+  s_c96d51ca381b0c::t_1e8fe3b72a5b05 4-5
+dot_agents/skills/triage/agents/openai.yaml
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-5
+dot_agents/skills/prototype/SKILL.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 3,25,27
+dot_agents/skills/cloudflare-composition-root/EXAMPLES.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-297
+dot_agents/skills/tdd/agents/openai.yaml
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-3
+  s_c96d51ca381b0c::t_eab902d28bf69d 4-5
+dot_agents/skills/chrome-devtools-cli/SKILL.md
+  s_c96d51ca381b0c::t_7a9f0af5bd0bf2 4
+dot_agents/skills/research/SKILL.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-12
+dot_agents/skills/herdr/SKILL.md
+  s_c96d51ca381b0c::t_2be71b68e86668 4
+dot_agents/skills/grill-me/agents/openai.yaml
+  s_c96d51ca381b0c::t_13b72109694dc6 1-5
+dot_agents/skills/writing-great-skills/agents/openai.yaml
+  s_c96d51ca381b0c::t_13b72109694dc6 1-5
+dot_agents/skills/daily-agent-session-recap/SKILL.md
+  s_c96d51ca381b0c::t_56f89baf89b5a8 5
+dot_agents/skills/improve-codebase-architecture/SKILL.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 3,9,11,13-14,16,18,20,22-23,25,29-33,35,37,39,41,43,45-50,52,54,56,58,60,62,64,66,68-71
+  s_c96d51ca381b0c::t_58e4e281963f7f 27
+.chezmoiremove
+  s_c96d51ca381b0c::t_046e903945ab6b 1
+dot_agents/skills/cloudflare-composition-root/agents/openai.yaml
+  s_c96d51ca381b0c::t_61568d7676c1c9 1-5
+dot_agents/skills/grill-with-docs/SKILL.md
+  s_c96d51ca381b0c::t_e5ffe800d60c37 7
+dot_agents/skills/to-spec/SKILL.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-8,10-18,20-75
+  s_c96d51ca381b0c::t_4dd5713d8c4d20 9,19
+dot_agents/skills/to-tickets/agents/openai.yaml
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-5
+dot_agents/skills/improve-codebase-architecture/agents/openai.yaml
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-5
+README.md
+  s_c96d51ca381b0c::t_a176a79ce96f0c 102
+  s_c96d51ca381b0c::t_bb49e2d6df1532 82
+  s_c96d51ca381b0c::t_9e2959feb5647b 106
+  s_79abf69dae5b8f::t_3bed25daf0fc6b 18,109-117
+dot_agents/skills/teach/agents/openai.yaml
+  s_c96d51ca381b0c::t_13b72109694dc6 1-5
+dot_agents/skills/query-postgres-hz/SKILL.md
+  s_c96d51ca381b0c::t_ca91a29445a175 5
+dot_agents/skills/code-review/agents/openai.yaml
+  s_c96d51ca381b0c::t_f8be771454e963 4-5
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-3
+dot_agents/skills/prototype/UI.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 100,102-103,105
+dot_agents/skills/coding-standards/SKILL.md
+  s_c96d51ca381b0c::t_8dc472193e2b62 4
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 3,6,8-726
+dot_agents/skills/triage/AGENT-BRIEF.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-2,4,6-31,33-170
+  s_c96d51ca381b0c::t_889f565c29fe7d 3,5,32
+dot_agents/skills/grill-with-docs/agents/openai.yaml
+  s_c96d51ca381b0c::t_e5ffe800d60c37 1-5
+dot_agents/skills/rca/SKILL.md
+  s_c96d51ca381b0c::t_fc546c5e1973ba 4
+dot_agents/skills/akkio-coding-standards/SKILL.md
+  s_c96d51ca381b0c::t_c6e38266a4c5ec 4
+dot_agents/skills/uv/SKILL.md
+  s_c96d51ca381b0c::t_a5769f916f3605 4
+dot_agents/skills/tech-spec/SKILL.md
+  s_c96d51ca381b0c::t_460cb8de145831 3,9,13-25,41,115-121,131-132,134-135,137,163,233,235,262-263
+  s_c96d51ca381b0c::t_eb7acb877a5f37 39
+dot_agents/skills/tech-spec/PYTHON.md
+  s_c96d51ca381b0c::t_ea950c77e16683 21,26-37,41-42,78-79,88-89
+  s_c96d51ca381b0c::t_84dbd56eb55466 63,124-127
+  s_c96d51ca381b0c::t_8766294bcfb65c 209
+  s_c96d51ca381b0c::t_861444748d381c 1-20,22-25,38-40,43-62,64-77,80-87,90-123,128-208,210-212
+dot_agents/skills/handoff/agents/openai.yaml
+  s_c96d51ca381b0c::t_13b72109694dc6 1-5
+dot_agents/skills/coding-standards/agents/openai.yaml
+  s_c96d51ca381b0c::t_da8bd28030fbb2 1-5
+dot_agents/skills/research/agents/openai.yaml
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-3
+dot_agents/skills/domain-modeling/agents/openai.yaml
+  s_c96d51ca381b0c::t_13b72109694dc6 1-3
+  s_c96d51ca381b0c::t_13066472a694fa 4-5
+dot_agents/skills/wayfinder/SKILL.md
+  s_c96d51ca381b0c::t_41701f2f5e71c0 21,25,57,69,113-115,123-125
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-20,22-24,26-56,58-68,70-112,116-122,126-128
+dot_agents/skills/to-spec/agents/openai.yaml
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-5
+dot_agents/skills/codebase-design/SKILL.md
+  s_c96d51ca381b0c::t_b1c9efec6cb402 4
+dot_agents/skills/tdd/SKILL.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 9,11,13,15,19,21,23,25,27,29-31,33,35-37
+  s_c96d51ca381b0c::t_b9efc9ccf939b8 4
+dot_pi/agent/extensions/continue-after-compaction.ts
+  s_c96d51ca381b0c::t_9a441c16494ed4 1-51
+dot_agents/skills/code-review/SKILL.md
+  s_c96d51ca381b0c::t_9150d4849e4748 3
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 7,9-10,12,16,18,20,22,24,26,28,32-33,35,37,39,41-42,44,46-57,59,63,65-67,69,71-73,75,77,79,81,83,85,87-88,90
+  s_c96d51ca381b0c::t_3c98ce80ebc35c 14,30-31
+  s_c96d51ca381b0c::t_a7457e492e58cb 61
+dot_agents/skills/grilling/SKILL.md
+  s_c96d51ca381b0c::t_5324857aa4ecbc 4
+dot_agents/skills/grilling/agents/openai.yaml
+  s_c96d51ca381b0c::t_13b72109694dc6 1-3
+  s_c96d51ca381b0c::t_0f9c44480ac949 4-5
+dot_agents/skills/manage-worktree/SKILL.md
+  s_c96d51ca381b0c::t_c1258ba8975b59 4
+dot_agents/skills/prototype/LOGIC.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 39,69,71
+dot_agents/skills/triage/OUT-OF-SCOPE.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-50,54-85,87-105
+  s_c96d51ca381b0c::t_14d53ec9c6f221 51-53,86
+dot_agents/skills/cloudflare-composition-root/SKILL.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-3,5-149
+  s_c96d51ca381b0c::t_23106da5f21b68 4
+dot_agents/skills/triage/SKILL.md
+  s_c96d51ca381b0c::t_fc8733d8825756 3,9,11,41,50-51,62,64,66,68,70,86
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-2,4-8,10,12-40,42-49,52-61,63,65,67,69,71-85,87-107
+  s_c96d51ca381b0c::t_e47917d1ec9b2b 108
+dot_agents/skills/diagnosing-bugs/agents/openai.yaml
+  s_c96d51ca381b0c::t_13b72109694dc6 1-3
+  s_c96d51ca381b0c::t_9ce939d6ca00f9 4-5
+dot_pi/agent/agents/reviewer.md
+  s_c96d51ca381b0c::t_6bb6664526d84f 57-58,62
+dot_agents/skills/wayfinder/agents/openai.yaml
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-5
+dot_agents/skills/tech-spec/agents/openai.yaml
+  s_c96d51ca381b0c::t_02775d285732e0 1-2,4-5
+  s_c96d51ca381b0c::t_fed93968b2a608 3
+dot_agents/skills/tdd/tests.md
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 62-77
+.chezmoiignore
+  s_c96d51ca381b0c::t_424961d79ffa22 94
+  s_79abf69dae5b8f::t_dd894cfa86f811 85-91
+  s_c96d51ca381b0c::t_6ebdab8a1b7394 93
+dot_agents/skills/tsv-viewer/SKILL.md
+  s_c96d51ca381b0c::t_38e420ed76a238 4
+dot_agents/skills/codebase-design/agents/openai.yaml
+  s_c96d51ca381b0c::t_99fdb5a0374f6c 4-5
+  s_c96d51ca381b0c::t_c0784aeb3ac48f 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4d42374f27aebd590bf867314c5bf2d0fc20263c",
+  "prompts": {},
+  "sessions": {
+    "s_2a3177f1680888": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033rhE5eLw3c5wujTotz2j",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_79abf69dae5b8f": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f72bf-0d33-756d-9ec4-e5136789c284",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_c96d51ca381b0c": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f6c92-f084-7179-a58c-6d1d942af59b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
