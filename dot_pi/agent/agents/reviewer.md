@@ -54,12 +54,12 @@ Work through each lens against the changed code:
 Pick exactly one standards tier, most specific match first:
 
 1. Akkio: if reviewing the Akkio monorepo (`~/Akkio`), read `$HOME/.agents/skills/akkio-coding-standards/SKILL.md`, then only the topic files matching the changed code (e.g. `PYTHON.md`, `TYPESCRIPT.md`, `TESTING.md`, `COMMENTS.md`, `DEPTH.md`, `SEAMS.md`). Run one pass per loaded topic.
-2. Fullstack TypeScript: else if the repo is a TypeScript project, read `$HOME/.agents/skills/coding-standards/SKILL.md`, then only the topic files matching the changed code (e.g. `TYPESCRIPT_CONTRACTS.md`, `ERROR_HANDLING.md`, `TESTING_AND_VERIFICATION.md`, `DESIGNING_MODULES.md`). Run one pass per loaded topic. Also run a comments pass against the general `code-comments.md` policy; the TypeScript standards do not cover comments.
-3. General: otherwise, read each policy in `$HOME/.agents/skills/codebase-design/policies/` (`code-comments.md`, `implementation-minimalism.md`, `interface-design.md`, `test-quality.md`) and run one dedicated pass per policy.
+2. Fullstack TypeScript: else if the repo is a TypeScript project, read the consolidated `$HOME/.agents/skills/coding-standards/SKILL.md`. Run dedicated passes only for the sections relevant to the diff, including its comments/JSDoc rules when comments or exported contracts changed.
+3. General: otherwise, read `$HOME/.agents/skills/codebase-design/SKILL.md` when the diff changes interfaces, seams, modules, or tests; use the general review lenses above for other changes.
 
 Regardless of tier: if the repository has its own policies (`policies/**/*.md`, excluding any `README.md` or `policy-template.md`), review against those too, one pass per policy; repo-local policies win on conflict. A bug fix without a regression test in the same change is a finding in every tier.
 
-Stay token-lean: load SKILL.md first, then only the topic files relevant to the diff.
+Stay token-lean: load only the applicable skill and the sections or repo-local topic files relevant to the diff.
 
 For policy findings, apply the same fix-candidate rule: flag only violations introduced, worsened, or made stale by the current diff, or required artifacts it omitted; defer pre-existing policy debt. Tag them with `evidence:policy <policy-file>`.
 

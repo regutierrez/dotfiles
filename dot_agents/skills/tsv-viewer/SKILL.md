@@ -1,6 +1,7 @@
 ---
 name: tsv-viewer
 description: Open a TSV file in the browser as a sortable, filterable table with one command — no server, no dependencies. Use when the user wants to look at, explore, or eyeball TSV / tab-separated data interactively instead of reading raw text, or asks to "open this TSV in a viewer".
+disable-model-invocation: true
 ---
 
 # TSV Viewer

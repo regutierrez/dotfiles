@@ -1,0 +1,5 @@
+interface:
+  display_name: "Coding Standards"
+  short_description: "Correct-by-construction TypeScript standards"
+policy:
+  allow_implicit_invocation: false

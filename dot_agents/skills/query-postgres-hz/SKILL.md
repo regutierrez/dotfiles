@@ -2,6 +2,7 @@
 name: query-postgres-hz
 description: Read-only SQL against Akkio Horizon transactional Postgres (production/staging/dev/local) via a guarded psql wrapper with --env selection. Use for investigation lookups (chart→project/dashboard/tenant IDs) missing from Datadog/logs. Run its `envs` subcommand first to see which environments are reachable and how they route. No writes; agents never run aws sso login.
 compatibility: Requires python3. Host/local queries require psql; Docker VPN sidecar queries require docker and a postgres client image. aws CLI only for --from-secrets.
+disable-model-invocation: true
 ---
 
 # Query Postgres (Horizon)

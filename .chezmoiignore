@@ -82,10 +82,16 @@ bin/
 .agents/
 {{- end }}
 
-{{- /* Per-profile skill deny-list (see exclude_skills in .chezmoidata.toml) */ -}}
-{{- range ($cfg.exclude_skills | default list) }}
-.agents/skills/{{ . }}
+{{- /* Skills are allow-listed by each profile's groups in .chezmoidata.toml. */ -}}
+{{- if index . "skill_groups" }}
+.agents/skills/*
+{{- range ($cfg.skill_groups | default list) }}
+{{-   range (index $.skill_groups . | default list) }}
+!.agents/skills/{{ . }}
+{{-   end }}
 {{- end }}
+{{- end }}
+!.agents/skills/to-prd
 
 {{- if not $cfg.tmux_plugins }}
 .tmux/plugins/

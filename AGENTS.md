@@ -71,13 +71,13 @@ Notable gates:
 - `work` excludes `akkio-helpers/`.
 - non-darwin excludes SSH secrets/config, Karabiner, and Zed.
 - non-`cachygaming` Linux excludes Kitty/Niri/DMS desktop files.
-- `server` skips `~/.config`, `~/bin`, tmux plugins, nvim, but still manages filtered `~/.agents/skills`.
+- `server` skips `~/.config`, `~/bin`, tmux plugins, nvim, but still manages allow-listed `~/.agents/skills` from its selected skill groups.
 - `bootstrap != true` excludes package/lazygit scripts and encrypted SSH secrets/config; encrypted SSH key ignore lists both `.ssh/id_ed25519` and `.ssh/id_ed25519.age`.
-- `exclude_skills` in `.chezmoidata.toml` denies selected skills per profile.
+- `skill_groups` in `.chezmoidata.toml` defines skill membership; each profile's `skill_groups` list selects what it receives. Unclassified skills are ignored everywhere.
 
 ## Skills layout
 
-- `dot_agents/skills/` -> `~/.agents/skills/`; filtered by profile `exclude_skills`. Skill behavior details live in each skill's `SKILL.md`; `tmux` is explicit-only, and `batch-rca` uses pi-subagents `general-purpose` workers instead of tmux sessions.
+- `dot_agents/skills/` -> `~/.agents/skills/`; allow-listed through each profile's groups in `.chezmoidata.toml`. Skill behavior details live in each skill's `SKILL.md`; `tmux` and the Sideshow-backed `visual-explainer` are explicit-only, and `batch-rca` uses pi-subagents `general-purpose` workers instead of tmux sessions.
 - `dot_pi/agent/` -> `~/.pi/` (`APPEND_SYSTEM.md`, `keybindings.json`, `agents/`, `extensions/`, `skills/`). User-facing Pi setup is documented in `README.md`.
 - `archive/skills/` is not managed; retired/reference only.
 - `.agents/skills/` is repo-local helpers, not dotfiles.

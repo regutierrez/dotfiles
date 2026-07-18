@@ -1,16 +1,27 @@
 ---
 name: tech-spec
-description: Write a typed call-stack architecture handoff.
+description: Write a language-aware typed call-stack architecture handoff for TypeScript, Python, or mixed systems.
 disable-model-invocation: true
 ---
 
 # Tech Spec
 
-A tech spec is a **typed call-stack architecture handoff**: code-shaped contracts plus execution flows. Prefer TypeScript pseudocode over prose wherever precision matters.
-
-Treat `../coding-standards/` as the standards package and `../tdd/` as the testing workflow.
+A tech spec is a **typed call-stack architecture handoff**: language-native code-shaped contracts plus execution flows. Prefer precise pseudocode in the affected implementation language over prose wherever precision matters.
 
 This skill is design-only. Do not implement. Save a file only when the user asks for a file; otherwise return the spec inline.
+
+## Language selection
+
+Establish the output language before designing:
+
+1. Inspect the affected files, manifests, framework imports, local instructions, and existing contracts.
+2. Select **TypeScript** when the changed system is TypeScript/JavaScript, **Python** when it is Python, and **mixed** when the behavior crosses both runtimes.
+3. Follow the repository's supported language version and established libraries. Do not introduce Pydantic, FastAPI, Zod, Effect, dataclasses, or Protocols merely because a profile mentions them.
+4. For Python—especially FastAPI/Pydantic systems—read [PYTHON.md](PYTHON.md) and express contracts with Python signatures, Pydantic models, dataclasses, exception families, and Protocols only where each is justified.
+5. For TypeScript, use TypeScript types, interfaces, tagged errors, schemas, and function signatures.
+6. For mixed systems, show each side in its own language and name the single owner of every cross-runtime schema, invariant, and generated artifact.
+
+Completion criterion: every code block is language-native, and mixed-runtime contracts identify ownership and serialization explicitly.
 
 ## Branch selection
 
@@ -25,28 +36,9 @@ Completion criterion: the branch is chosen from actual available context; missin
 
 ### 1. Load standards and local context
 
-Read:
+Select the language profile first. Inspect existing code and docs for local vocabulary, module layout, domain concepts, errors, adapters, observability, runtime patterns, and test style. For TypeScript or mixed work, read `../coding-standards/SKILL.md`. For Python work, inspect the actual FastAPI/Pydantic versions and whether the project uses sync or async I/O before sketching contracts. For every language, read `../tdd/SKILL.md` before producing the test plan.
 
-- `../coding-standards/SKILL.md`
-- `../coding-standards/VOCABULARY.md`
-- `../coding-standards/DESIGNING_MODULES.md`
-- `../coding-standards/DOMAIN_MODELING.md`
-- `../coding-standards/BOUNDARIES_AND_PARSING.md`
-- `../coding-standards/ERROR_HANDLING.md`
-- `../coding-standards/OBSERVABILITY.md`
-- `../coding-standards/TESTING_AND_VERIFICATION.md`
-- `../tdd/SKILL.md`
-
-Load additional standards when relevant:
-
-- `../coding-standards/ASYNC_AND_WORKFLOWS.md` for cancellation, concurrency, retries, transactions, idempotency, or durable workflows.
-- `../coding-standards/TYPESCRIPT_CONTRACTS.md` for public contracts, casts, `any`, collection/object-shape issues, exports, JSDoc, or toolchain changes.
-- `../coding-standards/CLOUDFLARE_ARCHITECTURE.md` for Workers, bindings, Durable Objects, Agents, D1, R2/KV, Queues, Workflows, service bindings, or workerd semantics.
-- `../coding-standards/EFFECT.md` for Effect Services/Layers, typed error channels, Schema, Redacted values, Effect tests, or Effect RPC.
-
-Inspect existing code/docs for local vocabulary, module layout, domain concepts, error handling, adapters, observability, runtime patterns, and test style.
-
-Completion criterion: the spec uses project vocabulary and does not introduce a pattern, library, adapter, schema style, or test strategy before checking local precedent.
+Completion criterion: the spec uses project vocabulary and language-native contracts, and does not introduce a pattern, library, adapter, schema style, or test strategy before checking local precedent.
 
 ### 2. Extract the design problem
 
@@ -120,7 +112,13 @@ For the recommended design, outline every new, changed, or deleted:
 
 Name seams, adapters, implementations, ownership boundaries, and what crosses each boundary. State what each layer may know and what must not leak across the seam.
 
-Completion criterion: every new or changed boundary has a concrete type/interface/API sketch, or an explicit reason no new contract is needed.
+Render each contract in the selected language:
+
+- **TypeScript:** types, interfaces, schemas, tagged errors, and function signatures.
+- **Python:** Pydantic boundary models, dataclasses or ordinary typed classes for internal values when appropriate, explicit function signatures, typed exception families, and `Protocol` only for a real swappable or external seam.
+- **Mixed:** paired language-native contracts plus the serialization format and source of truth that keeps them aligned.
+
+Completion criterion: every new or changed boundary has a concrete language-native contract/API sketch, or an explicit reason no new contract is needed.
 
 ### 5. Specify call stacks and data flow
 
@@ -130,13 +128,13 @@ Include type/data flow:
 
 ```txt
 raw input
-  -> boundary DTO / unknown
-  -> parser
+  -> boundary model / unknown
+  -> parser or validator
   -> canonical domain/application input
-  -> service/module interface
-  -> adapter call
+  -> service/module contract
+  -> adapter or repository call
   -> typed result/error
-  -> projection
+  -> response projection
   -> serialized output
 ```
 
@@ -162,7 +160,7 @@ Completion criterion: every contract and call-stack step maps to a file/module o
 
 Use the sibling TDD workflow and testing standards. Plan vertical Red-Green-Refactor slices: one failing behavior test, minimal implementation, repeat. Do not write a horizontal "all tests first, all code later" plan.
 
-Favor behavior through public interfaces and real seams over implementation-coupled mocks.
+Favor behavior through public interfaces and real seams over implementation-coupled mocks. In FastAPI systems, prefer HTTP-level tests through `httpx.AsyncClient`/`ASGITransport` when the project is async, and replace external boundaries through FastAPI dependency overrides or existing production seams rather than monkeypatching internals.
 
 Cover proportionately:
 
@@ -232,9 +230,9 @@ Use this shape unless the task is tiny enough to compress without losing contrac
 
 ## Proposed Design
 
-## Domain Model and Types
+## Domain Model and Language-Native Types
 
-## Types, Interfaces, and APIs
+## Contracts, Interfaces, and APIs
 
 ## Seams, Boundaries, Adapters, and Implementations
 
@@ -261,8 +259,8 @@ Omit sections that truly do not apply, but do not omit typed contracts, seams, c
 
 ## Writing rules
 
-- Code first: TypeScript pseudocode defines contracts, APIs, and data flow.
-- Prose explains why; types and call stacks define what changes.
+- Code first: language-native pseudocode defines contracts, APIs, and data flow. Never express a Python design in TypeScript merely because the original skill did.
+- Prose explains why; language-native contracts and call stacks define what changes.
 - Focus on types, interfaces, APIs, inputs/outputs, seams, boundaries, adapters, domain modules, service modules, external adapters, and call stacks.
 - Prefer precise domain values over strings, booleans, nullable bags, and loosely shaped objects.
 - Keep seams real: adapters translate framework, persistence, network, time, randomness, telemetry, runtime, or platform boundaries.

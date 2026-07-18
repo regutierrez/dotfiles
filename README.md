@@ -15,7 +15,7 @@ Three mechanisms, each with one job:
 
 1. `.chezmoiignore` (templated) — whether a machine gets a file at all (e.g. zed/karabiner only on darwin, kitty/niri only on linux, bootstrap-only scripts/secrets only when `bootstrap=true`).
 2. `*.tmpl` files — what's inside a file per machine (`dot_zshrc.tmpl`, `dot_tmux.conf.tmpl`, `dot_gitconfig.tmpl`).
-3. `.chezmoidata.toml` — the single place per-profile knobs live (manage_* flags, `exclude_skills`).
+3. `.chezmoidata.toml` — the single place per-profile knobs and skill-group membership live.
 
 ## Quick start (no preinstalled chezmoi)
 
@@ -79,7 +79,7 @@ Profile behavior is centralized in `.chezmoidata.toml`.
   - `manage_nvim = false`
   - `manage_bin = false`
   - `manage_dot_config = false`
-  - `manage_agents = true` (skills filtered via `exclude_skills`)
+  - `manage_agents = true` (skills selected through the profile's `skill_groups`)
   - `use_age = true`
 
 ### CachyGaming-only managed files
@@ -99,15 +99,22 @@ Pi gets a global prompt addendum from `dot_pi/agent/APPEND_SYSTEM.md` -> `~/.pi/
 
 Pi keybindings come from `dot_pi/agent/keybindings.json` -> `~/.pi/agent/keybindings.json`. `app.session.tree` maps `escape` to a single-press tree; `app.interrupt` maps `ctrl+c` to abort; `app.clear` stays unbound so exit stays on `ctrl+d` (empty editor). `modify_dot_pi/agent/settings.json.tmpl` sets `doubleEscapeAction` to `none` so double `ctrl+c` does not also open tree (pi's default double-interrupt behavior). The keybinding file keeps selection cancel on `escape`, unbinds copy from `ctrl+c`, and frees `ctrl+p` / `shift+ctrl+p` by unbinding Pi's model-cycle/session-palette uses for a future command palette.
 
-Nico Bailon's `pi-subagents` custom global agents live under `dot_pi/agent/agents/` -> `~/.pi/agent/agents/`; these use the extension's `name`, `systemPromptMode`, `inheritProjectContext`, and `inheritSkills` frontmatter. Current managed agents include a Composer-backed `general-purpose.md` parent-twin agent for normal multi-step tasks, a Search-flavored `explore.md` agent, `impl.md` for small targeted Composer-backed code changes, a Garfield-style `reviewer.md` agent (tiered review policies: general docs in the `codebase-design` skill's `policies/`, TypeScript via `coding-standards`, Akkio via `akkio-coding-standards`), a read-only `oracle` high-reasoning advisory agent, a `planner` override running claude-fable-5 at `xhigh` thinking that conditionally loads the `coding-standards`, `codebase-design`, `prototype`, and `domain-modeling` skills for plan-only work, and a `librarian` agent for remote repository source lookup; `librarian` preloads the managed `~/.agents/skills/librarian` skill and uses its checkout cache helper.
+Nico Bailon's `pi-subagents` custom global agents live under `dot_pi/agent/agents/` -> `~/.pi/agent/agents/`; these use the extension's `name`, `systemPromptMode`, `inheritProjectContext`, and `inheritSkills` frontmatter. Current managed agents include a Composer-backed `general-purpose.md` parent-twin agent for normal multi-step tasks, a Search-flavored `explore.md` agent, `impl.md` for small targeted Composer-backed code changes, a Garfield-style `reviewer.md` agent (Akkio guidance via `akkio-coding-standards`, TypeScript guidance via consolidated `coding-standards`, and general architecture guidance via `codebase-design` plus built-in review lenses), a read-only `oracle` high-reasoning advisory agent, a `planner` override running claude-fable-5 at `xhigh` thinking that conditionally loads the `coding-standards`, `codebase-design`, `prototype`, and `domain-modeling` skills for plan-only work, and a `librarian` agent for remote repository source lookup; `librarian` preloads the managed `~/.agents/skills/librarian` skill and uses its checkout cache helper.
 
 Pi extensions live under `dot_pi/agent/extensions/` -> `~/.pi/agent/extensions/`. Herdr owns agent-completion notifications, so there is no managed Pi desktop notification extension. `web-tools/` is vendored from `dmmulroy/.dotfiles` and provides `webfetch` plus Kagi-backed `websearch` (`KAGI_API_KEY` required); `run_onchange_after_30-install-pi-web-tools.sh.tmpl` runs `npm ci --omit=dev` for its runtime dependencies when package metadata changes. `dot_zshrc.tmpl` sources `~/.config/secrets/kagi.env` when present; keep that file untracked or age-encrypted.
 
-Each profile has an `exclude_skills` deny-list in `.chezmoidata.toml`. Everything under `.agents/skills/` syncs everywhere by default; a new skill reaches all machines unless you add it to a profile's list. The managed `tmux` skill is explicit-only (`disable-model-invocation = true`) and should not be auto-invoked. The managed `batch-rca` skill orchestrates workers through the pi-subagents `general-purpose` agent, not tmux sessions. The managed `query-postgres-hz` skill can run production/staging queries through Docker VPN sidecars (`vpn-horizon-production` / `vpn-horizon-staging`), even when an env URL points at `localhost`; local and ambient exported URLs stay on the host. The managed `teach` skill uses sideshow surfaces for lessons and keeps Markdown manifests/reference notes in the learning workspace instead of writing standalone lesson HTML files:
+Skills are allow-listed through groups in `.chezmoidata.toml`. Every skill belongs to a named group such as `shared`, `work`, `personal`, or `desktop`, and each profile selects the groups it receives. A new, unclassified directory under `.agents/skills/` is ignored on every machine until it is added to a group. The shared engineering workflow includes dmmulroy-derived `coding-standards`, `code-review`, `codebase-design`, `cloudflare-composition-root`, `improve-codebase-architecture`, `prototype`, `research`, `tdd`, `tech-spec`, `to-spec`, `to-tickets`, `triage`, and `wayfinder`; tracker-mutating flows use Linear through `linear-cli`, require confirmation before external writes, and never start auth flows. `to-spec` replaces the retired `to-prd`, which `.chezmoiremove` deletes on apply. `research` is the only managed skill that allows automatic invocation; every other managed skill is explicit-only (`disable-model-invocation = true`). The custom `visual-explainer` publishes diagrams, plans, reviews, recaps, fact-checks, and slides through Sideshow instead of writing standalone HTML files. The managed `batch-rca` skill orchestrates workers through the pi-subagents `general-purpose` agent, not tmux sessions. The managed `query-postgres-hz` skill can run production/staging queries through Docker VPN sidecars (`vpn-horizon-production` / `vpn-horizon-staging`), even when an env URL points at `localhost`; local and ambient exported URLs stay on the host. The managed `teach` skill uses sideshow surfaces for lessons and keeps Markdown manifests/reference notes in the learning workspace instead of writing standalone lesson HTML files:
 
 ```toml
-[profiles.server]
-exclude_skills = ["datadog-investigate", "query-postgres-hz", "query-snowflake-hz", "zoom-out"]
+[skill_groups]
+personal = ["my-personal-skill"]
+work = ["akkio-coding-standards", "query-postgres-hz"]
+
+[profiles.personal]
+skill_groups = ["shared", "personal", "desktop"]
+
+[profiles.work]
+skill_groups = ["shared", "work", "desktop"]
 ```
 
 ### Bootstrap-only entries

@@ -2,6 +2,7 @@
 name: daily-agent-session-recap
 description: Builds an Obsidian daily recap from local Pi, Claude, and Cursor agent sessions active on a given day. Use when asked to summarize today's agent/chat sessions, collect AI coding sessions, create a daily session TLDR, or attach agent-session notes to Akkio dailies. Produces compact session digests, related-session clusters, frontmatter tags, and a daily note backlink.
 compatibility: macOS/Linux with python3 and sqlite3 stdlib. Designed for /Users/pakkio/Documents/pael-notes/akkio and local Pi/Claude/Cursor session stores.
+disable-model-invocation: true
 ---
 
 # Daily Agent Session Recap

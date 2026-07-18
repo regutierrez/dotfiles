@@ -1,0 +1,5 @@
+interface:
+  display_name: "Cloudflare Composition Root"
+  short_description: "Compose Hono and Cloudflare dependencies"
+policy:
+  allow_implicit_invocation: false

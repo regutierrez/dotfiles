@@ -1,6 +1,7 @@
 ---
 name: akkio-coding-standards
 description: Akkio monorepo (~/Akkio) coding standards and design taste for Python (ml/, packages/) and TypeScript/Vue (src/, apps/web-backend-api). Use when writing, reviewing, or designing code in the Akkio monorepo.
+disable-model-invocation: true
 ---
 
 # Akkio Coding Standards

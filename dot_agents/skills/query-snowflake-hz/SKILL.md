@@ -2,6 +2,7 @@
 name: query-snowflake-hz
 description: Runs read-only SQL against Akkio Horizon Snowflake (BLUSHIFT_HMI_PROD/STAGING/DEV via dbt targets) through a guarded script using ~/.dbt/profiles.yml. Use for investigation data checks, datasource validation, or warehouse analytics. Agents must use the bundled script only; not for writes, DDL/DML, dbt runs, or raw snow/snowsql/connector usage.
 compatibility: Requires uv, ~/.dbt/profiles.yml with a Snowflake profile, network access to Snowflake.
+disable-model-invocation: true
 ---
 
 # Query Snowflake HZ

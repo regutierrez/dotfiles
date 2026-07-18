@@ -1,6 +1,7 @@
 ---
 name: rca
 description: Author deep investigation writeups for the Investigatr Astro site. Use when given a Linear ticket/URL/ID and asked to investigate, document findings, add screenshots/videos, or update investigation MDX; always writes into /Users/pakkio/playground/investigatr, even when invoked from another repository or global skill location.
+disable-model-invocation: true
 ---
 
 # Investigatr Authoring

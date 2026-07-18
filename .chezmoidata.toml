@@ -1,3 +1,51 @@
+[skill_groups]
+shared = [
+  "bro",
+  "chrome-devtools-cli",
+  "code-review",
+  "codebase-design",
+  "cloudflare-composition-root",
+  "coding-standards",
+  "commit",
+  "diagnosing-bugs",
+  "domain-modeling",
+  "grill-me",
+  "grill-with-docs",
+  "grilling",
+  "handoff",
+  "herdr",
+  "implement",
+  "improve-codebase-architecture",
+  "init-deep",
+  "librarian",
+  "manage-worktree",
+  "prototype",
+  "research",
+  "tdd",
+  "teach",
+  "tech-spec",
+  "tmux",
+  "to-spec",
+  "to-tickets",
+  "triage",
+  "tsv-viewer",
+  "ubiquitous-language",
+  "uv",
+  "wayfinder",
+  "writing-great-skills",
+]
+personal = []
+work = [
+  "akkio-coding-standards",
+  "akkio-investigate",
+  "batch-rca",
+  "daily-agent-session-recap",
+  "query-postgres-hz",
+  "query-snowflake-hz",
+  "rca",
+]
+desktop = ["knowledgebase", "visual-explainer", "zoom-out"]
+
 [profiles.personal]
 tmux_plugins = true
 manage_bashrc = false
@@ -7,11 +55,7 @@ manage_bin = true
 manage_dot_config = true
 manage_agents = true
 use_age = true
-exclude_skills = [
-  "datadog-investigate",
-  "query-postgres-hz",
-  "query-snowflake-hz",
-]
+skill_groups = ["shared", "personal", "desktop"]
 
 [profiles.work]
 tmux_plugins = true
@@ -22,7 +66,7 @@ manage_bin = true
 manage_dot_config = true
 manage_agents = true
 use_age = false
-exclude_skills = []
+skill_groups = ["shared", "work", "desktop"]
 
 [profiles.cachygaming]
 tmux_plugins = true
@@ -33,11 +77,7 @@ manage_bin = true
 manage_dot_config = true
 manage_agents = true
 use_age = true
-exclude_skills = [
-  "datadog-investigate",
-  "query-postgres-hz",
-  "query-snowflake-hz",
-]
+skill_groups = ["shared", "personal", "desktop"]
 
 [profiles.server]
 tmux_plugins = false
@@ -48,9 +88,4 @@ manage_bin = false
 manage_dot_config = false
 manage_agents = true
 use_age = true
-exclude_skills = [
-  "datadog-investigate",
-  "query-postgres-hz",
-  "query-snowflake-hz",
-  "zoom-out",
-]
+skill_groups = ["shared"]
