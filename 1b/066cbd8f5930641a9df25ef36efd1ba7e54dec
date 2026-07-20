@@ -1,0 +1,70 @@
+dot_agents/skills/knowledgebase/PROMPTS.md
+  s_2a3177f1680888::t_3b5464d6f1e750 1-63
+dot_agents/skills/visual-explainer/SKILL.md
+  s_79abf69dae5b8f::t_c0ef5928ca991a 1-87
+dot_config/herdr/config.toml
+  s_8f5536b3b76722::t_23debbbaedc0a2 14
+  s_8f5536b3b76722::t_957fb004f1b1dc 4
+dot_agents/skills/visual-explainer/references/workflows.md
+  s_79abf69dae5b8f::t_40350808e9417f 1-91
+dot_agents/skills/visual-explainer/NOTICE.md
+  s_79abf69dae5b8f::t_80a47aacb62c83 1-7
+dot_agents/skills/knowledgebase/SKILL.md
+  s_2a3177f1680888::t_3b5464d6f1e750 1-147
+dot_agents/skills/visual-explainer/licenses/visual-explainer-MIT.txt
+  s_79abf69dae5b8f::t_93da16fed27db4 1-21
+dot_gitconfig.tmpl
+  s_c96d51ca381b0c::t_dd1c910890300a 18-20
+dot_agents/skills/visual-explainer/references/design-rules.md
+  s_79abf69dae5b8f::t_96b43f02b5d59a 1-74
+dot_config/git/ignore
+  s_bb57c34d266278::t_5dd163f4a91885 3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "1b066cbd8f5930641a9df25ef36efd1ba7e54dec",
+  "prompts": {},
+  "sessions": {
+    "s_2a3177f1680888": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033rhE5eLw3c5wujTotz2j",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_79abf69dae5b8f": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f72bf-0d33-756d-9ec4-e5136789c284",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_8f5536b3b76722": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f7515-1872-7eba-a4ec-3357ee74c819",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_bb57c34d266278": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f7313-abc4-771e-805c-c02333280183",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_c96d51ca381b0c": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f6c92-f084-7179-a58c-6d1d942af59b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
