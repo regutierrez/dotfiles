@@ -94,10 +94,4 @@ export default {
       url: tagSpace("akkio"),
     },
   ],
-  handlers: [
-    {
-      match: (url) => isLocal(url),
-      browser: "Google Chrome",
-    },
-  ],
 };
