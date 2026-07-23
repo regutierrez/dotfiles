@@ -181,6 +181,10 @@ if command -v mise >/dev/null 2>&1; then
   eval "$(mise activate zsh)"
 fi
 
+if command -v amp >/dev/null 2>&1; then
+  export AMP_REMOTE_CONTROL_TERMINAL=1
+fi
+
 # fnm
 FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
@@ -213,3 +217,6 @@ add-zsh-hook chpwd __prefer_npm_global_pi
 # zprof
 
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
+# Added by git-ai installer
+export PATH="$HOME/.git-ai/bin:$PATH"

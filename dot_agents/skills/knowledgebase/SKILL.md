@@ -26,7 +26,7 @@ Ready-to-reuse requests for these modes live in [PROMPTS.md](PROMPTS.md). Read t
 
 ## Non-negotiable contract
 
-Before any vault read or write, read `/Users/pakkio/Documents/pael-notes/AGENTS.md`. Its retrieval order, authority rules, metadata model, and editing rules override this skill. For Akkio material, also read `akkio/index.md` and `akkio/README.md` before changing work-note conventions.
+Before any vault read or write, read `/Users/pakkio/Documents/pael-notes/AGENTS.md`. Its retrieval order, authority rules, metadata model, and editing rules override this skill. For Akkio material, also read `akkio/00-index.md` and `akkio/README.md` before changing work-note conventions.
 
 - Search before creating. Update the note that already owns a topic instead of creating a competing note.
 - Do not copy the whole conversation. Preserve synthesized understanding, exact evidence, and useful provenance.

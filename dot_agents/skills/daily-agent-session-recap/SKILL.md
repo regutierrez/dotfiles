@@ -1,7 +1,7 @@
 ---
 name: daily-agent-session-recap
-description: Builds an Obsidian daily recap from local Pi, Claude, and Cursor agent sessions active on a given day. Use when asked to summarize today's agent/chat sessions, collect AI coding sessions, create a daily session TLDR, or attach agent-session notes to Akkio dailies. Produces compact session digests, related-session clusters, frontmatter tags, and a daily note backlink.
-compatibility: macOS/Linux with python3 and sqlite3 stdlib. Designed for /Users/pakkio/Documents/pael-notes/akkio and local Pi/Claude/Cursor session stores.
+description: Builds a raw Obsidian source recap from local Pi, Claude, and Cursor sessions active on a given day. Use when asked to summarize today's agent/chat sessions, collect AI coding sessions, or create a daily session TLDR. Produces compact session digests under 40 Sources and adds a terse link to universal daily capture.
+compatibility: macOS/Linux with python3 and sqlite3 stdlib. Designed for /Users/pakkio/Documents/pael-notes and local Pi/Claude/Cursor session stores.
 disable-model-invocation: true
 ---
 
@@ -16,18 +16,30 @@ Use this skill to:
 - Collect sessions active on the local day from Pi, Claude, and Cursor.
 - Exclude sessions with fewer than 2 substantive user prompts.
 - Compact each qualifying session before writing summaries.
-- Write one Markdown recap into the Akkio Obsidian vault.
-- Attach that recap to the matching daily note via a wiki link.
+- Write one raw source recap into the Obsidian vault.
+- Attach that source tersely to the matching universal daily capture note.
 
-Do not dump raw transcripts into Obsidian. Final notes contain summaries only.
+Do not dump raw transcripts into Obsidian. Final notes contain summaries only and are evidence, not canonical current knowledge. Do not promote or update durable notes; use the `knowledgebase` skill separately when a session contains a decision, fix, learning, project update, or system explanation worth preserving.
 
 ## Paths
 
-- Vault: `/Users/pakkio/Documents/pael-notes/akkio`
-- Recap folder: `workflow/agent-session-recaps/`
-- Recap note: `workflow/agent-session-recaps/YYYY-MM-DD-agent-session-recap.md`
-- Daily note: `dailies/YYYY-MM-DD.md`
-- Daily link: `[[workflow/agent-session-recaps/YYYY-MM-DD-agent-session-recap]]`
+- Vault: `/Users/pakkio/Documents/pael-notes`
+- Recap folder: `40 Sources/Akkio/Agent Session Recaps/`
+- Recap note: `40 Sources/Akkio/Agent Session Recaps/YYYY-MM-DD-agent-session-recap.md`
+- Daily note: `00 Capture/YYYY-MM-DD.md`
+- Daily link: `[[40 Sources/Akkio/Agent Session Recaps/YYYY-MM-DD-agent-session-recap|Agent session recap]]`
+
+Before reading or writing the vault, read `/Users/pakkio/Documents/pael-notes/AGENTS.md`. For Akkio material, also read `akkio/00-index.md` and `akkio/README.md`. Their current conventions override this skill.
+
+## Data boundary
+
+Session stores can contain sensitive prompts and outputs. Treat collector JSON as temporary sensitive material:
+
+- Set `umask 077` before creating the temporary JSON file.
+- Never copy raw prompts, raw assistant output, credentials, tokens, API keys, environment values, customer PII, restricted personnel information, or other prohibited material into the vault.
+- Preserve exact ticket IDs, PRs, commits, session IDs, and non-sensitive paths only when useful for retrieval.
+- If sensitive detail is essential context, summarize the outcome without the detail and say `sensitive details omitted`.
+- Delete the temporary JSON after the recap is written or after any failure you can clean up.
 
 ## Workflow
 
@@ -37,6 +49,7 @@ Do not dump raw transcripts into Obsidian. Final notes contain summaries only.
 2. Run the collector script from this skill directory:
 
    ```bash
+   umask 077
    python3 scripts/collect_sessions.py --date YYYY-MM-DD --pretty > /tmp/agent-sessions-YYYY-MM-DD.json
    ```
 
@@ -54,9 +67,10 @@ Do not dump raw transcripts into Obsidian. Final notes contain summaries only.
    - explicit concepts/entities
    - likely Obsidian tags
 5. Use only compact digests to write the final recap Markdown.
-6. Write or overwrite the recap note idempotently.
-7. Create the daily note if missing; otherwise minimally update it.
-8. Add the recap wiki link under `## Devlog`, avoiding duplicates.
+6. Create the recap folder if missing, then write or overwrite the recap note idempotently.
+7. Create the daily note from `_templates/daily.md` if missing; otherwise minimally update it.
+8. Add a terse recap link under `## Work`, avoiding duplicates.
+9. Remove `/tmp/agent-sessions-YYYY-MM-DD.json`.
 
 ## Collector output contract
 
@@ -103,13 +117,13 @@ Use this frontmatter schema:
 title: Agent Session Recap - YYYY-MM-DD
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-type: agent-session-recap
+type: source
+scope: work
+status: raw
+aliases: []
 date: YYYY-MM-DD
 tags:
-  - type/log
-  - area/dev-tooling
-  - tech/claude-code
-  - status/active
+  - type/source
 agents:
   - pi
   - claude
@@ -119,7 +133,7 @@ agents:
 
 Tag rules:
 
-- Always include `type/log`, `area/dev-tooling`, `tech/claude-code`, `status/active`.
+- Always include only `type/source`.
 - Add inferred topical tags only when obvious from compact digests.
 - Prefer existing vault taxonomy: `area/*`, `tech/*`, `client/*`, `status/*`, `type/*`.
 - Do not invent low-confidence tags.
@@ -127,8 +141,6 @@ Tag rules:
 Body template:
 
 ```md
-# Agent Session Recap - YYYY-MM-DD
-
 ## TLDR
 - Terse all-sessions summary.
 - Include cross-session themes and related work.
@@ -159,26 +171,36 @@ Do not group merely by directory/worktree.
 
 ## Daily note update
 
-If `dailies/YYYY-MM-DD.md` exists:
+If `00 Capture/YYYY-MM-DD.md` exists:
 
-- Add `- [[workflow/agent-session-recaps/YYYY-MM-DD-agent-session-recap]]` under `## Devlog`.
+- Add `- **Agent sessions:** [[40 Sources/Akkio/Agent Session Recaps/YYYY-MM-DD-agent-session-recap|recap]]` under `## Work`.
 - If the link already exists, do nothing.
 - Avoid rewriting unrelated daily content.
 
-If the daily note is missing, create:
+If the daily note is missing, read `_templates/daily.md` and create the note from it. The expected shape is:
 
 ```md
 ---
-title: Weekday, D Mon YYYY
+title: "YYYY-MM-DD"
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 type: daily
+scope: mixed
+status: current
+aliases: []
 tags:
   - type/daily
 ---
 
-## Devlog
-- [[workflow/agent-session-recaps/YYYY-MM-DD-agent-session-recap]]
+## Focus
+
+## Work
+
+- **Agent sessions:** [[40 Sources/Akkio/Agent Session Recaps/YYYY-MM-DD-agent-session-recap|recap]]
+
+## Personal
+
+## Learned or decided
 ```
 
 ## Empty result
