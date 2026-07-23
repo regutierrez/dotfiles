@@ -24,7 +24,7 @@ To open it in a tab you control instead (e.g. for screenshots), pass `--no-open`
 
 ```bash
 html="$(~/.claude/skills/tsv-viewer/scripts/tsv-view.sh --no-open file.tsv | tail -1)"
-chrome-devtools new_page "file://$html" --background true
+~/.agents/skills/web-browser/scripts/nav.js "file://$html"
 ```
 
 Any other browser-automation tool works the same way — the only contract is "open the printed HTML file".

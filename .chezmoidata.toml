@@ -1,7 +1,6 @@
 [skill_groups]
 shared = [
   "bro",
-  "chrome-devtools-cli",
   "code-review",
   "codebase-design",
   "cloudflare-composition-root",
@@ -32,6 +31,7 @@ shared = [
   "ubiquitous-language",
   "uv",
   "wayfinder",
+  "web-browser",
   "writing-great-skills",
 ]
 personal = []

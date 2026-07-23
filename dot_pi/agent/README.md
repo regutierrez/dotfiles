@@ -8,7 +8,6 @@ Vendored from:
 
 ## Included
 
-- `extensions/junior-mode.ts`: `/junior` or `ctrl+alt+j` toggles teaching mode — plain explanations for junior devs, worked examples, ASCII diagrams.
 - `extensions/answer.ts`: adds `/answer` and `ctrl+.` for extracting questions from the last assistant reply into an interactive Q&A TUI.
 - `agents/`: custom agents for Nico Bailon's `pi-subagents`, using `name`, `systemPromptMode`, `inheritProjectContext`, and `inheritSkills` frontmatter.
 - `skills/update-pi`: Pi-specific update helper.

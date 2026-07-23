@@ -109,4 +109,5 @@ bin/
 .pi/agent/package-lock.json
 .pi/agent/todos/
 .pi/todos/
+.agents/skills/web-browser/scripts/node_modules/
 package-lock.json
