@@ -1,0 +1,22 @@
+dot_agents/skills/coding-standards/SKILL.md
+  s_3ff56d4c2e5b5e::t_0a7b7c13d2cf62 6,120-123,166-168,215-220,279-288,564-572,594-599,648-651,684-686,694-696
+  s_3ff56d4c2e5b5e::t_147fe9b39478ec 697
+dot_agents/skills/herdr/SKILL.md
+  s_3ff56d4c2e5b5e::t_0a7b7c13d2cf62 3,7,9,11,14,17,19,21,23,26,29,32-40,43,45,47,49,51-54,56,58,60,63,66,68,71-74,77,79,81,83,85,87-88,90,92,94,96,98,101,104,107,110,112,115-116,119,121-125,127,129,132-134,137,139,141,144-146,149,151,153,156,159,161,164,167,170-172,175,177,179-182,184,186,188,190-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "35ed05dd7b1eeff22c1e8c4974263c464f583f07",
+  "prompts": {},
+  "sessions": {
+    "s_3ff56d4c2e5b5e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-2606ea54-21fe-4169-a953-afe0976a5f58",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
