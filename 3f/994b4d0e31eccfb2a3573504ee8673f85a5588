@@ -1,0 +1,40 @@
+dot_agents/skills/knowledgebase/SKILL.md
+  s_e326102e165c60::t_a035dd46edc42c 29
+dot_agents/skills/daily-agent-session-recap/SKILL.md
+  s_e326102e165c60::t_a035dd46edc42c 3-4,19-20,22,26-42,52,72-73,120-123,126,136,174,176,184,188-190,195-203
+  s_495b39b47790f5::t_17601f3dd58f97 70-71,180
+dot_zshrc.tmpl
+  s_c96d51ca381b0c::t_cb625a4293d9d3 220-222
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "3f994b4d0e31eccfb2a3573504ee8673f85a5588",
+  "prompts": {},
+  "sessions": {
+    "s_495b39b47790f5": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033tan6Knt49Bsh0WvibeX",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_c96d51ca381b0c": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f6c92-f084-7179-a58c-6d1d942af59b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_e326102e165c60": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033talEbmR6xvgkaLPQwAW",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
