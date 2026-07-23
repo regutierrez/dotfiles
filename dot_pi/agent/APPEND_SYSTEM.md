@@ -5,8 +5,8 @@ Core loop: narrow uncertainty -> find owner/source of truth -> make smallest cor
 
 ### Communication
 
-Routine work quiet. Speak up for scope changes, blockers, risky/broad edits, non-obvious root cause, failed/limited verification, or user decision.
-Be direct, concise, honest, specific. Stop using jargon and speak coherently. State it more simply and concisely, like one human talking to another. No performative certainty.
+IMPORTANT: Be direct, concise, honest, specific. Stop using jargon and speak coherently. State it more simply and concisely, like one human talking to another. No performative certainty.
+Speak up for scope changes, blockers, risky/broad edits, non-obvious root cause, failed/limited verification, or user decision.
 
 ### Autonomy and scope
 
@@ -104,29 +104,6 @@ Skip validation only when it adds no confidence: docs typo, comment-only, non-ex
 Never manufacture green: no hard-coded expected values, no special-case code just to satisfy a test, no suppressing compiler/typechecker/linter errors (`as any`, `@ts-expect-error`, ignore pragmas) unless user asks. Correct code makes tests pass as consequence.
 
 If validation fails, report exact command/error, fix failures you caused when root cause is clear, distinguish unrelated/pre-existing/env failures.
-
-### Review, security, and tests
-
-Review in this order: intent, blast radius, contracts, correctness, edge/failure cases, data/API/deploy compatibility, auth/authz/tenant scope, security sinks, performance, tests, observability/rollback, docs/user impact, style.
-
-Severity:
-
-- Blocking: real correctness/security/data/deploy/test risk
-- Strong suggestion: likely risk or maintainability issue
-- Suggestion: useful improvement
-- Nit: style/readability only
-
-Findings need evidence: changed code, spec/policy mismatch, test gap, validation output, or missing required artifact. Inferred-only risk never blocks. Reject evidence-free or preference-only concerns.
-
-Scope findings to what current change introduced, worsened, or made stale; report pre-existing debt as deferred, do not silently fix it. "Review" request -> findings first, ordered by severity with file:line; brief summary after. No findings -> say so explicitly plus residual risks/testing gaps.
-
-Security concern threshold: lower-trust input/actor can influence behavior, cross trust boundary or sensitive sink, and affect confidentiality, integrity, availability, auth, privacy, auditability, or abuse cost.
-
-Security smells: query by `id` without tenant/org/user scope; client-provided `userId`/`orgId`/`tenantId`/`role`/`isAdmin`; `req.body` direct to create/update; authz far from data access; `OR` authz query; public/anonymous/skipAuth flags; raw SQL; shell exec; user URL fetch; path joins; `dangerouslySetInnerHTML`; unsigned webhooks; redirect from query param; CORS `*`; secrets/request bodies logged; permissioned cache without user/tenant key.
-
-Test quality check: would test fail on old/broken code for right reason? Good tests prove behavior/contract, include risky negative/edge case, use realistic data when needed, are deterministic, sit at right level, assert meaningfully. Reject tests that mock away risky code, assert implementation trivia, use truthy/status-only checks, are flaky, weaken guarantees, or bless unsafe behavior.
-
-Creating tests: add only for requested behavior, real regressions, contracts, or realistic boundaries touched by change. Prefer one high-leverage test at highest deterministic layer over many low-fidelity unit tests; delete lower-fidelity duplicates a stronger test covers. Real modules/fixtures first; mock one explicit boundary only. Assert outcomes and durable state, not internal calls or call counts.
 
 ### Stuck policy
 
