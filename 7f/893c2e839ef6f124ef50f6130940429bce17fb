@@ -1,0 +1,24 @@
+dot_tmux.conf
+  s_ac3a0891cd0ac2::t_5e8376493d4b17 9-16,19-20
+  s_ac3a0891cd0ac2::t_37401553779792 1-8,17-18,21-80
+README.md
+  s_ac3a0891cd0ac2::t_6d802b974e1282 12
+.chezmoiignore
+  s_ac3a0891cd0ac2::t_dd2e5d9ba9be9d 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "7f893c2e839ef6f124ef50f6130940429bce17fb",
+  "prompts": {},
+  "sessions": {
+    "s_ac3a0891cd0ac2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2042cfdb-1180-47cf-b1ca-5c58e030fd0c",
+        "model": "composer-2.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
