@@ -7,33 +7,31 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "edit_predictions": {
+    "allow_data_collection": "no"
+  },
+  "ssh_connections": [
+    {
+      "host": "noco",
+      "username": "pael",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/home/pael"
+          ]
+        },
+        {
+          "paths": [
+            "/home/pael/repos/SBS-BES/./"
+          ]
+        }
+      ]
+    }
+  ],
   "diff_view_style": "unified",
   "agent_servers": {
-    "pi-acp": {
-      "favorite_config_option_values": {
-        "model": [
-          "claude-bridge/claude-fable-5",
-          "cursor/composer-2.5:fast",
-          "cursor/grok-4.5:fast",
-          "openai-codex/gpt-5.6-sol",
-          "openai-codex/gpt-5.6-luna"
-        ]
-      },
-      "default_config_options": {
-        "thought_level": "medium",
-        "model": "openai-codex/gpt-5.6-sol"
-      },
-      "type": "registry"
-    },
-    "cursor": {
-      "type": "registry"
-    },
-    "claude-acp": {
-      "default_config_options": {
-        "model": "claude-fable-5[1m]"
-      },
-      "type": "registry"
-    }
+    
   },
   "session": {
     "trust_all_worktrees": true,
@@ -51,6 +49,7 @@
     "dock": "left",
   },
   "git_panel": {
+    "group_by": "status",
     "dock": "left",
   },
   "collaboration_panel": {

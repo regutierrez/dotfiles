@@ -123,7 +123,7 @@ export PATH=/opt/homebrew/opt/libpq/bin:"$PATH"
 
 export EDITOR=nvim
 
-# Local secrets; keep these files untracked.
+# Local secrets; keep this file untracked or chezmoi age-encrypted.
 [ -f "$HOME/.config/secrets/kagi.env" ] && source "$HOME/.config/secrets/kagi.env"
 [ -f "$HOME/.config/secrets/sideshow.env" ] && source "$HOME/.config/secrets/sideshow.env"
 
@@ -222,3 +222,6 @@ if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)
 
 # Added by git-ai installer
 export PATH="$HOME/.git-ai/bin:$PATH"
+
+# Added by git-ai installer on Thu Jul 23 20:34:42 EDT 2026
+export PATH="/Users/pakkio/.git-ai/bin:$PATH"
