@@ -1,0 +1,19 @@
+.chezmoiignore
+  s_ac3a0891cd0ac2::t_5ffeab963a2d90 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c8ecf6abc436a3fe6d596e11f2120e9be2042203",
+  "prompts": {},
+  "sessions": {
+    "s_ac3a0891cd0ac2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2042cfdb-1180-47cf-b1ca-5c58e030fd0c",
+        "model": "composer-2.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
