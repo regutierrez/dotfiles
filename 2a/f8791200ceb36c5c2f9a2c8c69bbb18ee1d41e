@@ -1,0 +1,19 @@
+dot_pi/agent/extensions/answer.ts
+  s_22a49abe1bd5df::t_1651b09fa8a9ea 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2af8791200ceb36c5c2f9a2c8c69bbb18ee1d41e",
+  "prompts": {},
+  "sessions": {
+    "s_22a49abe1bd5df": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033v0Iqaxv1IQsipmKptdq",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
