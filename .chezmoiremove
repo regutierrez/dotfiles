@@ -1,5 +1,6 @@
 .agents/skills/to-prd
 .agents/skills/chrome-devtools-cli
+.agents/skills/bro
 .agents/skills/tmux
 .tmux.conf
 .tmux
