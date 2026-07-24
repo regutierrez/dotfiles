@@ -23,7 +23,6 @@ shared = [
   "tdd",
   "teach",
   "tech-spec",
-  "tmux",
   "to-spec",
   "to-tickets",
   "triage",
@@ -47,7 +46,6 @@ work = [
 desktop = ["knowledgebase", "visual-explainer", "zoom-out"]
 
 [profiles.personal]
-tmux_plugins = true
 manage_bashrc = false
 manage_vimrc = false
 manage_nvim = true
@@ -58,7 +56,6 @@ use_age = true
 skill_groups = ["shared", "personal", "desktop"]
 
 [profiles.work]
-tmux_plugins = true
 manage_bashrc = false
 manage_vimrc = false
 manage_nvim = true
@@ -69,7 +66,6 @@ use_age = false
 skill_groups = ["shared", "work", "desktop"]
 
 [profiles.cachygaming]
-tmux_plugins = true
 manage_bashrc = false
 manage_vimrc = false
 manage_nvim = true
@@ -80,7 +76,6 @@ use_age = true
 skill_groups = ["shared", "personal", "desktop"]
 
 [profiles.server]
-tmux_plugins = false
 manage_bashrc = true
 manage_vimrc = true
 manage_nvim = false

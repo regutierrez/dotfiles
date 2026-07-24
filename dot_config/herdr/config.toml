@@ -14,7 +14,6 @@ pane_history = true
 kitty_graphics = true
 
 [keys]
-# Set prefix to backtick (`) to match tmux config
 prefix = "backtick"
 
 # Direct pane navigation (Alt/Meta + h/j/k/l)
@@ -45,12 +44,6 @@ resize_mode = "prefix+alt+r"
 # type = "shell"
 # command = "~/bin/commando --fzf-tmux"
 # description = "run commando"
-#
-# [[keys.command]]
-# key = "prefix+a"
-# type = "pane"
-# command = "~/bin/agent-sessions-picker"
-# description = "agent sessions"
 
 [theme]
 name = "terminal"

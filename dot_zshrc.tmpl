@@ -125,11 +125,14 @@ export EDITOR=nvim
 
 # Local secrets; keep this file untracked or chezmoi age-encrypted.
 [ -f "$HOME/.config/secrets/kagi.env" ] && source "$HOME/.config/secrets/kagi.env"
+[ -f "$HOME/.config/secrets/sideshow.env" ] && source "$HOME/.config/secrets/sideshow.env"
 
 # Plannotator remote review UI
 export PLANNOTATOR_REMOTE=1
 export PLANNOTATOR_AGENT_TERMINAL_REMOTE=1 
 export PLANNOTATOR_PORT=19432
+
+export SIDESHOW_URL=https://sideshow.sh
 {{- if eq .profile "work" }}
 
 # Akkio stuff
@@ -149,7 +152,6 @@ alias v='nvim'
 alias o='opencode'
 alias amp='PLUGINS=all command amp'
 alias ff='fastfetch'
-alias t='tmux'
 alias c='claude --dangerously-skip-permissions'
 alias co='commando'
 alias ca='chezmoi apply'

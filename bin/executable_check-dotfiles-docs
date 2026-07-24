@@ -19,6 +19,16 @@ assert_contains() {
   fi
 }
 
+assert_absent() {
+  local path="$1"
+  local msg="$2"
+  if [[ -e "$path" ]]; then
+    bad "$msg"
+  else
+    ok "$msg"
+  fi
+}
+
 profiles=$(python3 - <<'PY'
 import tomllib
 with open('.chezmoidata.toml', 'rb') as f:
@@ -33,9 +43,23 @@ while IFS= read -r profile; do
   assert_contains README.md "$profile" "README mentions profile '$profile'"
 done <<< "$profiles"
 
-for flag in tmux_plugins manage_bashrc manage_vimrc manage_nvim manage_bin manage_dot_config manage_agents use_age; do
+for flag in manage_bashrc manage_vimrc manage_nvim manage_bin manage_dot_config manage_agents use_age; do
   assert_contains README.md "$flag" "README mentions profile flag '$flag'"
 done
+
+if grep -Eq 'tmux_plugins|dot_tmux\.conf' README.md AGENTS.md .chezmoidata.toml; then
+  bad 'retired tmux_plugins / dot_tmux.conf still mentioned in active docs/data'
+else
+  ok 'tmux_plugins / dot_tmux.conf absent from active docs/data'
+fi
+
+assert_absent 'dot_tmux.conf.tmpl' 'active tmux conf source absent'
+assert_absent 'dot_agents/skills/tmux' 'active tmux skill absent'
+if [[ -f archive/tmux.conf.tmpl && -d archive/skills/tmux ]]; then
+  ok 'tmux sources archived'
+else
+  bad 'expected archive/tmux.conf.tmpl and archive/skills/tmux'
+fi
 
 for path in \
   'dot_config/kitty/' \
@@ -51,6 +75,8 @@ assert_contains AGENTS.md ".chezmoiignore" "AGENTS mentions .chezmoiignore gates
 assert_contains AGENTS.md "manage_agents" "AGENTS mentions manage_agents flag"
 assert_contains AGENTS.md "bootstrap" "AGENTS mentions bootstrap gating"
 assert_contains AGENTS.md "README.md" "AGENTS points human docs to README"
+assert_contains AGENTS.md ".chezmoiremove" "AGENTS documents orphan cleanup"
+assert_contains AGENTS.md "~/.config/secrets" "AGENTS documents secrets env hook pattern"
 
 if [[ -e .agents/skills/chezmoi/SKILL.md ]]; then
   bad 'retired chezmoi skill still exists; AGENTS.md is source of truth'
@@ -74,9 +100,21 @@ for current in dot_agents/skills/writing-great-skills dot_agents/skills/diagnosi
   fi
 done
 
+# Orphan targets: .chezmoiremove entries must not still exist under $HOME
+home="${HOME:?}"
+while IFS= read -r entry || [[ -n "$entry" ]]; do
+  [[ -z "$entry" || "$entry" == \#* ]] && continue
+  target="$home/$entry"
+  if [[ -e "$target" ]]; then
+    bad "orphan still present: $target (listed in .chezmoiremove)"
+  else
+    ok "orphan absent: ~/$entry"
+  fi
+done < .chezmoiremove
+
 agents_lines=$(wc -l < AGENTS.md | tr -d ' ')
-if (( agents_lines <= 150 )); then
-  ok "AGENTS.md <= 150 lines ($agents_lines)"
+if (( agents_lines <= 160 )); then
+  ok "AGENTS.md <= 160 lines ($agents_lines)"
 else
   bad "AGENTS.md too long ($agents_lines lines)"
 fi

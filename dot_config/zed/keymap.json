@@ -25,6 +25,12 @@
     }
   },
   {
+    "context": "Terminal",
+    "bindings": {
+      "cmd-shift-a": "agent::AddSelectionToThread"
+    }
+  },
+  {
     "bindings": {
       "cmd-`": "terminal_panel::ToggleFocus",
       "cmd-\\": "workspace::ToggleLeftDock",

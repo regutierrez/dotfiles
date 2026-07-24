@@ -10,8 +10,18 @@
   "diff_view_style": "unified",
   "agent_servers": {
     "pi-acp": {
+      "favorite_config_option_values": {
+        "model": [
+          "claude-bridge/claude-fable-5",
+          "cursor/composer-2.5:fast",
+          "cursor/grok-4.5:fast",
+          "openai-codex/gpt-5.6-sol",
+          "openai-codex/gpt-5.6-luna"
+        ]
+      },
       "default_config_options": {
-        "model": "claude-bridge/claude-fable-5"
+        "thought_level": "medium",
+        "model": "openai-codex/gpt-5.6-sol"
       },
       "type": "registry"
     },

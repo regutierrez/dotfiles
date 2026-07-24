@@ -55,7 +55,6 @@ Profiles live in `.chezmoidata.toml`; selected profile is stored in `~/.config/c
 
 | Flag | personal | work | cachygaming | server |
 |---|---:|---:|---:|---:|
-| `tmux_plugins` | yes | yes | yes | no |
 | `manage_bashrc` | no | no | no | yes |
 | `manage_vimrc` | no | no | no | yes |
 | `manage_nvim` | yes | yes | yes | no |
@@ -71,14 +70,14 @@ Notable gates:
 - `work` excludes `akkio-helpers/`.
 - non-darwin excludes SSH secrets/config, Karabiner, and Zed.
 - non-`cachygaming` Linux excludes Kitty/Niri/DMS desktop files.
-- `server` skips `~/.config`, `~/bin`, tmux plugins, nvim, but still manages allow-listed `~/.agents/skills` from its selected skill groups.
+- `server` skips `~/.config`, `~/bin`, nvim, but still manages allow-listed `~/.agents/skills` from its selected skill groups.
 - `bootstrap != true` excludes package/lazygit scripts and encrypted SSH secrets/config; encrypted SSH key ignore lists both `.ssh/id_ed25519` and `.ssh/id_ed25519.age`.
 - `skill_groups` in `.chezmoidata.toml` defines skill membership; each profile's `skill_groups` list selects what it receives. Unclassified skills are ignored everywhere.
 
 ## Skills layout
 
-- `dot_agents/skills/` -> `~/.agents/skills/`; allow-listed through each profile's groups in `.chezmoidata.toml`. Skill behavior details live in each skill's `SKILL.md`; `tmux` and the Sideshow-backed `visual-explainer` are explicit-only, and `batch-rca` uses pi-subagents `general-purpose` workers instead of tmux sessions.
-- `dot_pi/agent/` -> `~/.pi/` (`APPEND_SYSTEM.md`, `keybindings.json`, `agents/`, `extensions/`, `skills/`). User-facing Pi setup is documented in `README.md`.
+- `dot_agents/skills/` -> `~/.agents/skills/`; allow-listed through each profile's groups in `.chezmoidata.toml`. Skill behavior details live in each skill's `SKILL.md`; the Sideshow-backed `visual-explainer` is explicit-only, and `batch-rca` uses pi-subagents `general-purpose` workers.
+- `dot_pi/agent/` -> `~/.pi/` (`APPEND_SYSTEM.md`, `keybindings.json`, `agents/`, `extensions/`, `skills/`). Inventory and hot/cold guidance: `dot_pi/agent/README.md`.
 - `archive/skills/` is not managed; retired/reference only.
 - `.agents/skills/` is repo-local helpers, not dotfiles.
 
@@ -112,3 +111,9 @@ Age encryption. Identity path: `~/.config/chezmoi/key.txt`.
 Encrypted SSH secrets are bootstrap-only: normal `chezmoi apply` skips them; pass `--override-data '{"bootstrap":true}'` to apply them on machines that have the age key. Work profile still skips age secrets via `use_age = false`.
 
 Encrypted source files use `encrypted_` prefix plus `.age`. Keep secrets out of plain-text commits.
+
+For app tokens used by the shell (Kagi, Sideshow, etc.): put public vars in `dot_zshrc.tmpl`, put secrets in untracked `~/.config/secrets/*.env` sourced by zshrc. Never commit those env files.
+
+## Orphan cleanup
+
+`.chezmoiremove` lists retired target paths. Chezmoi deletes them on apply; `bin/executable_check-dotfiles-docs` also fails if any listed path still exists under `$HOME`.

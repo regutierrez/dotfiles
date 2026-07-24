@@ -1,0 +1,10 @@
+{
+  "name": "pi-btw-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npm run typecheck && npm test",
+    "test": "node --test test/btw.test.ts",
+    "typecheck": "tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --allowImportingTsExtensions --skipLibCheck index.ts test/btw.test.ts"
+  }
+}
