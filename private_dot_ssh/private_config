@@ -1,4 +1,4 @@
-Include /Users/pael/.colima/ssh_config
+Include ~/.colima/ssh_config
 
 Host github-regutierrez
 	HostName github.com

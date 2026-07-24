@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v chezmoi >/dev/null 2>&1; then
+  echo "bootstrap: chezmoi is required" >&2
+  exit 1
+fi
+
+source_dir="$(chezmoi source-path)"
+installer="$source_dir/scripts/install-packages.sh.tmpl"
+
+if [[ ! -f "$installer" ]]; then
+  echo "bootstrap: package installer not found at $installer" >&2
+  exit 1
+fi
+
+rendered_installer="$(mktemp)"
+trap 'rm -f "$rendered_installer"' EXIT
+chezmoi execute-template < "$installer" > "$rendered_installer"
+
+if [[ -s "$rendered_installer" ]]; then
+  bash "$rendered_installer"
+fi
+
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  src="$HOME/.config/lazygit"
+  dst="$HOME/Library/Application Support/lazygit"
+
+  mkdir -p "$src" "$HOME/Library/Application Support"
+
+  if [[ -L "$dst" ]]; then
+    current="$(readlink "$dst")"
+    if [[ "$current" != "$src" ]]; then
+      echo "bootstrap: refusing to replace $dst -> $current" >&2
+      exit 1
+    fi
+  elif [[ -e "$dst" ]]; then
+    if [[ -d "$dst" && -z "$(find "$dst" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then
+      rmdir "$dst"
+      ln -s "$src" "$dst"
+    else
+      echo "bootstrap: refusing to replace existing path at $dst" >&2
+      exit 1
+    fi
+  else
+    ln -s "$src" "$dst"
+  fi
+fi
+
+echo "bootstrap: complete"

@@ -6,7 +6,7 @@ set -e -u
 # Usage (local):  bash macos/scripts/init.sh
 # Overrides:
 #   BOOTSTRAP_CONFIG=/path/to/bootstrap.sh bash macos/scripts/init.sh
-#   bootstrap.sh can set: GHUSER, EMAIL, BREW_PACKAGES, BREW_CASKS
+#   bootstrap.sh can set: GHUSER, EMAIL
 
 BOOTSTRAP_CONFIG="${BOOTSTRAP_CONFIG:-$HOME/.config/dotfiles/bootstrap.sh}" # for work
 
@@ -18,8 +18,7 @@ GHUSER="regutierrez"
 EMAIL="rpegutierrez@gmail.com"
 
 # Bootstrap essentials only. The full package set lives in
-# .chezmoidata/packages.toml and is installed by chezmoi apply
-# (run_onchange_before_install-packages.sh.tmpl).
+# .chezmoidata/packages.toml and is installed explicitly after chezmoi init.
 BREW_PACKAGES=(
   chezmoi
 )
@@ -188,8 +187,9 @@ main() {
   echo ""
   echo "Next steps:"
   echo "  1. Run: chezmoi init --apply regutierrez"
-  echo "  2. Restart your terminal (or run: source ~/.zshrc)"
-  echo "  3. Reboot machine for everything to take effect"
+  echo "  2. Run: bash \"\$(chezmoi source-path)/bootstrap\""
+  echo "  3. Restart your terminal (or run: source ~/.zshrc)"
+  echo "  4. Reboot machine for everything to take effect"
   echo ""
 }
 

@@ -1,6 +1,5 @@
 # Single source of truth for installed packages on all machines.
-# Consumed by run_onchange_before_install-packages.sh.tmpl — editing any
-# list here makes chezmoi re-run the installer on each machine's next apply.
+# Run `bash "$(chezmoi source-path)/bootstrap"` after changing these lists.
 
 [packages.darwin]
 formulae = [

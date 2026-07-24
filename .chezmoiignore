@@ -1,25 +1,23 @@
 {{- $profile := (index . "profile" | default "personal") -}}
-{{- $bootstrap := (index . "bootstrap" | default false) -}}
-
-{{- /* Define default config in case .profiles is not available during init */ -}}
-{{- $cfg := (dict "use_age" true "manage_bashrc" false "manage_vimrc" false "manage_nvim" true "manage_bin" true "manage_dot_config" true "manage_agents" true) -}}
-{{- if eq $profile "server" -}}
-{{-   $cfg = (dict "use_age" true "manage_bashrc" true "manage_vimrc" true "manage_nvim" false "manage_bin" false "manage_dot_config" false "manage_agents" true) -}}
-{{- else if eq $profile "work" -}}
-{{-   $cfg = (dict "use_age" false "manage_bashrc" false "manage_vimrc" false "manage_nvim" true "manage_bin" true "manage_dot_config" true "manage_agents" true) -}}
+{{- /* Keep existing CachyGaming machines working after the profile was folded into personal. */ -}}
+{{- if eq $profile "cachygaming" -}}
+{{-   $profile = "personal" -}}
 {{- end -}}
-
-{{- /* Override with actual profile data if available */ -}}
-{{- if index . "profiles" -}}
-{{-   $cfg = (index .profiles $profile) -}}
+{{- $server := eq $profile "server" -}}
+{{- $skillGroups := list "shared" "desktop" -}}
+{{- if eq $profile "work" -}}
+{{-   $skillGroups = list "shared" "work" "desktop" -}}
+{{- else if $server -}}
+{{-   $skillGroups = list "shared" -}}
 {{- end -}}
-
-{{- $use_age := $cfg.use_age -}}
 
 README.md
 AGENTS.md
 TODO.md
 LICENSE
+PLAN.md
+bootstrap
+scripts/
 plans/
 archive/
 macos/
@@ -31,70 +29,40 @@ akkio-helpers/
 {{- end }}
 
 {{- if ne .chezmoi.os "darwin" }}
-.ssh/id_ed25519
-.ssh/id_ed25519.age
-.ssh/id_ed25519.pub
 .ssh/config
 .config/karabiner
 .config/zed
 {{- end }}
 
-{{- if or (ne .chezmoi.os "linux") (ne $profile "cachygaming") }}
+{{- if eq $profile "work" }}
+.ssh/config
+{{- end }}
+
+{{- if or (ne .chezmoi.os "linux") (ne $profile "personal") }}
 .config/kitty
 .config/niri
 .config/systemd/user/dms-auto-resolution-profile.service
 .local/bin/dms-auto-resolution-profile
 {{- end }}
 
-{{- if not $bootstrap }}
-install-packages.sh
-20-link-lazygit-to-xdg.sh
-.ssh/id_ed25519
-.ssh/id_ed25519.age
-.ssh/id_ed25519.pub
-.ssh/config
-{{- end }}
-
-{{- if not $use_age }}
-.ssh/id_ed25519
-.ssh/id_ed25519.age
-.ssh/id_ed25519.pub
-.ssh/config
-{{- end }}
-
-{{- if not $cfg.manage_bashrc }}
+{{- if not $server }}
 .bashrc
-{{- end }}
-
-{{- if not $cfg.manage_vimrc }}
 .vimrc
 {{- end }}
 
-{{- if not $cfg.manage_bin }}
+{{- if $server }}
 bin/
-{{- end }}
-
-{{- if not $cfg.manage_dot_config }}
 .config/
 {{- end }}
 
-{{- if not $cfg.manage_agents }}
-.agents/
-{{- end }}
-
-{{- /* Skills are allow-listed by each profile's groups in .chezmoidata.toml. */ -}}
+{{- /* Skill membership lives in .chezmoidata.toml; profiles select groups here. */ -}}
 {{- if index . "skill_groups" }}
 .agents/skills/*
-{{- range ($cfg.skill_groups | default list) }}
+{{- range $skillGroups }}
 {{-   range (index $.skill_groups . | default list) }}
 !.agents/skills/{{ . }}
 {{-   end }}
 {{- end }}
-{{- end }}
-!.agents/skills/to-prd
-
-{{- if not $cfg.manage_nvim }}
-.config/nvim/
 {{- end }}
 
 # Mirror repo-local .gitignore entries so chezmoi never syncs them.

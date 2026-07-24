@@ -14,7 +14,7 @@ echo ""
 
 # Bootstrap essentials only. The full package set lives in
 # .chezmoidata/packages.toml ([packages.debian]) and is installed by the
-# chezmoi init --apply below (run_onchange_before_install-packages.sh.tmpl).
+# explicit repository bootstrap after chezmoi init.
 APT_PACKAGES=(
   build-essential
   curl
@@ -73,9 +73,11 @@ setup_dotfiles() {
   echo "=== Setting Up Dotfiles ==="
   echo ""
 
-  sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server "$GITHUB_USERNAME"
+  BINDIR="$HOME/.local/bin" sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server "$GITHUB_USERNAME"
+  export PATH="$HOME/.local/bin:$PATH"
+  bash "$(chezmoi source-path)/bootstrap"
 
-  echo "Dotfiles applied successfully."
+  echo "Dotfiles applied and packages installed successfully."
 }
 
 setup_ssh_key() {

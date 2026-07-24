@@ -1,119 +1,70 @@
 # DOTFILES
 
-Personal dev env managed with [chezmoi](https://www.chezmoi.io/). Source state lives in this repo; target state is usually `$HOME`.
+Personal development configuration managed with chezmoi. Source state lives in this repository; rendered targets usually live under `$HOME`.
 
-## Agent rules
+## Working rules
 
-- Prefer editing source files in this repo, not live target files, unless asked.
-- Think: target path -> source path -> rendered output.
-- Preview before apply with `chezmoi cat <target>`, `chezmoi diff`, or `chezmoi apply -n -v`.
-- Do not run real `chezmoi apply` unless asked. When applying, prefer specific targets (`chezmoi apply ~/.zshrc`) over whole-repo apply.
-- If target files changed outside chezmoi and should become source truth, use `chezmoi re-add <target>`.
-- If behavior is surprising, run `chezmoi doctor` first.
-- For encrypted files, do not edit ciphertext directly; use `chezmoi edit` if working from target state.
-- Template/gate rules use Go templates; `.chezmoiignore` usually matches target paths, but encrypted entries may need both decrypted target and `.age` path to avoid pre-decrypt errors when encryption is off.
-- Bootstrap-only entries are gated by `--override-data '{"bootstrap":true}'`.
-- `run_` scripts execute on apply when not ignored; `run_onchange_` runs when contents change; keep scripts idempotent.
-- `README.md` is human-facing; keep user-visible behavior and setup there. Update `AGENTS.md` only with agent workflow facts (source paths, gates, mappings) — do not duplicate README prose.
+- Edit source files here, not live targets, unless the user asks otherwise.
+- Think in this order: target path → source path → rendered output.
+- Preview with `chezmoi cat <target>`, `chezmoi diff`, or `chezmoi apply -n -v`.
+- Do not run a real `chezmoi apply` unless asked. Prefer applying one target.
+- Use `chezmoi re-add <target>` when an externally edited target should become source truth.
+- Run `chezmoi doctor` before debugging surprising chezmoi behavior.
+- Keep `run_` and `run_onchange_` scripts idempotent.
+- Keep user-facing setup in `README.md`; keep only agent workflow facts here.
 
-## Structure
+## Source mapping
 
-```text
-.
-├── .chezmoi.toml.tmpl          # chezmoi config template; profile prompt/data + age config
-├── .chezmoidata.toml           # profile flags
-├── .chezmoidata/packages.toml  # package source of truth for brew/arch/debian
-├── .chezmoiignore              # templated target-path ignore rules
-├── .chezmoiexternal.toml       # external git checkout(s), currently nvim
-├── dot_zshrc.tmpl              # -> ~/.zshrc
-├── dot_config/                 # -> ~/.config/ when profile manages dot_config
-├── dot_local/bin/              # -> ~/.local/bin/
-├── dot_agents/skills/          # -> ~/.agents/skills/ when profile manages agents
-├── dot_pi/                     # -> ~/.pi/ Pi config, extensions, skills
-├── bin/                        # -> ~/bin/ when profile manages bin
-├── private_dot_ssh/            # -> ~/.ssh/ with private perms; age-encrypted key
-├── macos/ linux/               # bootstrap assets; not applied as dotfiles
-├── akkio-helpers/              # helper scripts; excluded on work profile
-└── archive/ plans/             # not applied
-```
-
-## Chezmoi mapping
-
-| Source prefix/suffix | Target effect |
+| Source form | Target effect |
 |---|---|
 | `dot_` | leading `.` |
-| `private_` | `0600` file / `0700` dir |
-| `encrypted_` | decrypt with age on apply |
-| `executable_` | `0755` perms |
-| `.tmpl` | render as Go template |
+| `private_` | private permissions |
+| `executable_` | executable permissions |
+| `.tmpl` | Go-template rendering |
 
-Example: `dot_config/lazygit/config.yml` -> `~/.config/lazygit/config.yml`. Use `chezmoi source-path <target>` / `chezmoi target-path <source>` when mapping is unclear.
+Example: `dot_config/lazygit/config.yml` maps to `~/.config/lazygit/config.yml`. Use `chezmoi source-path` and `chezmoi target-path` when unclear.
+
+Important locations:
+
+- `.chezmoiignore`: profile and OS gates, written as target paths.
+- `.chezmoidata.toml`: skill-group membership only.
+- `.chezmoidata/packages.toml`: package source of truth.
+- `bootstrap` and `scripts/`: source-only package and one-time setup; never applied into `$HOME`.
+- `dot_agents/skills/`: managed `~/.agents/skills`.
+- `dot_pi/agent/`: managed Pi agents, extensions, and configuration.
+- `private_dot_ssh/private_config`: managed personal macOS SSH client configuration, not a private key.
+- `macos/` and `linux/`: source-only machine setup.
 
 ## Profiles
 
-Profiles live in `.chezmoidata.toml`; selected profile is stored in `~/.config/chezmoi/chezmoi.toml` under `[data].profile`. Profile names and CachyGaming-only paths are documented in `README.md`.
+The supported profiles are `personal`, `work`, and `server`. The selected value is stored under `[data].profile` in `~/.config/chezmoi/chezmoi.toml`.
 
-| Flag | personal | work | cachygaming | server |
-|---|---:|---:|---:|---:|
-| `manage_bashrc` | no | no | no | yes |
-| `manage_vimrc` | no | no | no | yes |
-| `manage_nvim` | yes | yes | yes | no |
-| `manage_bin` | yes | yes | yes | no |
-| `manage_dot_config` | yes | yes | yes | no |
-| `manage_agents` | yes | yes | yes | yes |
-| `use_age` | yes | no | yes | yes |
+- Personal and work are workstation profiles.
+- Server skips `~/.config` and `~/bin` but still receives shared agent skills.
+- Personal Linux receives Kitty, Niri, and DMS desktop files.
+- `cachygaming` is accepted only as a legacy alias for `personal`.
+- Work alone receives the `work` skill group and `akkio-helpers/`.
 
-`.chezmoiignore` gates by OS/profile/bootstrap using target paths, not source paths.
+Skill directories are allow-listed from groups in `.chezmoidata.toml`. Unclassified skills are ignored everywhere.
 
-Notable gates:
+## Packages and secrets
 
-- `work` excludes `akkio-helpers/`.
-- non-darwin excludes SSH secrets/config, Karabiner, and Zed.
-- non-`cachygaming` Linux excludes Kitty/Niri/DMS desktop files.
-- `server` skips `~/.config`, `~/bin`, nvim, but still manages allow-listed `~/.agents/skills` from its selected skill groups.
-- `bootstrap != true` excludes package/lazygit scripts and encrypted SSH secrets/config; encrypted SSH key ignore lists both `.ssh/id_ed25519` and `.ssh/id_ed25519.age`.
-- `skill_groups` in `.chezmoidata.toml` defines skill membership; each profile's `skill_groups` list selects what it receives. Unclassified skills are ignored everywhere.
-
-## Skills layout
-
-- `dot_agents/skills/` -> `~/.agents/skills/`; allow-listed through each profile's groups in `.chezmoidata.toml`. Skill behavior details live in each skill's `SKILL.md`; the Sideshow-backed `visual-explainer` is explicit-only, and `batch-rca` uses pi-subagents `general-purpose` workers.
-- `dot_pi/agent/` -> `~/.pi/` (`APPEND_SYSTEM.md`, `keybindings.json`, `agents/`, `extensions/`, `skills/`). Inventory and hot/cold guidance: `dot_pi/agent/README.md`.
-- `archive/skills/` is not managed; retired/reference only.
-- `.agents/skills/` is repo-local helpers, not dotfiles.
-
-## Packages
-
-`.chezmoidata/packages.toml` is the package source of truth. `run_onchange_before_install-packages.sh.tmpl` installs during apply only when `bootstrap=true`.
-
-## Commands
+System package installation is never part of `chezmoi apply`; Pi extension hooks remain separate. Render and run the explicit source bootstrap with:
 
 ```bash
-chezmoi edit ~/.zshrc
+bash "$(chezmoi source-path)/bootstrap"
+```
+
+SSH private keys are machine-local and must never be added to this repository. Shell tokens belong in untracked `~/.config/secrets/*.env` files sourced by `dot_zshrc.tmpl`.
+
+## Validation
+
+```bash
+chezmoi cat ~/.zshrc
 chezmoi diff
 chezmoi apply -n -v
-chezmoi apply            # only when asked
-chezmoi apply ~/.zshrc   # prefer specific targets when possible
-chezmoi source-path <target>
-chezmoi target-path <source>
-chezmoi add ~/.some_config
-chezmoi re-add ~/.some_config
-chezmoi managed
-chezmoi status
-chezmoi data
-chezmoi cat ~/.zshrc
+chezmoi apply ~/.zshrc   # only when asked
 bin/executable_check-dotfiles-docs
 ```
 
-## Secrets
-
-Age encryption. Identity path: `~/.config/chezmoi/key.txt`.
-
-Encrypted SSH secrets are bootstrap-only: normal `chezmoi apply` skips them; pass `--override-data '{"bootstrap":true}'` to apply them on machines that have the age key. Work profile still skips age secrets via `use_age = false`.
-
-Encrypted source files use `encrypted_` prefix plus `.age`. Keep secrets out of plain-text commits.
-
-For app tokens used by the shell (Kagi, Sideshow, etc.): put public vars in `dot_zshrc.tmpl`, put secrets in untracked `~/.config/secrets/*.env` sourced by zshrc. Never commit those env files.
-
-## Orphan cleanup
-
-`.chezmoiremove` lists retired target paths. Chezmoi deletes them on apply; `bin/executable_check-dotfiles-docs` also fails if any listed path still exists under `$HOME`.
+`.chezmoiremove` is reserved for retired managed targets. Never add machine-local SSH keys or other user data to it.

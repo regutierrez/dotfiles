@@ -8,121 +8,82 @@ fail=0
 ok() { printf 'ok: %s\n' "$1"; }
 bad() { printf 'FAIL: %s\n' "$1" >&2; fail=1; }
 
-assert_contains() {
-  local file="$1"
-  local needle="$2"
-  local msg="$3"
-  if grep -Fq -- "$needle" "$file"; then
-    ok "$msg"
-  else
-    bad "$msg"
-  fi
+contains() {
+  local file="$1" text="$2" message="$3"
+  if grep -Fq -- "$text" "$file"; then ok "$message"; else bad "$message"; fi
 }
 
-assert_absent() {
-  local path="$1"
-  local msg="$2"
-  if [[ -e "$path" ]]; then
-    bad "$msg"
-  else
-    ok "$msg"
-  fi
+absent() {
+  local path="$1" message="$2"
+  if [[ ! -e "$path" ]]; then ok "$message"; else bad "$message"; fi
 }
 
-profiles=$(python3 - <<'PY'
-import tomllib
-with open('.chezmoidata.toml', 'rb') as f:
-    data = tomllib.load(f)
-print('\n'.join(data['profiles'].keys()))
-PY
-)
-
-# README: human-facing profile/package/Cachy docs
-while IFS= read -r profile; do
-  [[ -n "$profile" ]] || continue
-  assert_contains README.md "$profile" "README mentions profile '$profile'"
-done <<< "$profiles"
-
-for flag in manage_bashrc manage_vimrc manage_nvim manage_bin manage_dot_config manage_agents use_age; do
-  assert_contains README.md "$flag" "README mentions profile flag '$flag'"
+for profile in personal work server; do
+  contains README.md "$profile" "README mentions profile '$profile'"
+  contains .chezmoi.toml.tmpl "$profile" "config prompt mentions profile '$profile'"
 done
 
-if grep -Eq 'tmux_plugins|dot_tmux\.conf' README.md AGENTS.md .chezmoidata.toml; then
-  bad 'retired tmux_plugins / dot_tmux.conf still mentioned in active docs/data'
+if grep -Eq 'manage_(bashrc|vimrc|nvim|bin|dot_config|agents)|use_age|tmux_plugins' \
+  .chezmoidata.toml .chezmoiignore README.md AGENTS.md; then
+  bad 'retired profile flags still appear in active configuration or docs'
 else
-  ok 'tmux_plugins / dot_tmux.conf absent from active docs/data'
+  ok 'retired profile flags are absent'
 fi
 
-assert_absent 'dot_tmux.conf.tmpl' 'active tmux conf source absent'
-assert_absent 'dot_agents/skills/tmux' 'active tmux skill absent'
-if [[ -f archive/tmux.conf.tmpl && -d archive/skills/tmux ]]; then
-  ok 'tmux sources archived'
+contains README.md 'chezmoi apply' 'README documents configuration sync'
+contains README.md 'source-path)/bootstrap' 'README documents explicit bootstrap'
+contains AGENTS.md 'System package installation is never part' 'AGENTS separates package install from apply'
+contains .chezmoiignore 'bootstrap' 'source bootstrap is ignored as a target'
+absent run_onchange_before_install-packages.sh.tmpl 'package installer is not an apply hook'
+absent run_after_20-link-lazygit-to-xdg.sh.tmpl 'lazygit setup is not an apply hook'
+
+if [[ -f bootstrap && -f scripts/install-packages.sh.tmpl ]]; then
+  ok 'explicit bootstrap files exist'
 else
-  bad 'expected archive/tmux.conf.tmpl and archive/skills/tmux'
+  bad 'explicit bootstrap files are missing'
 fi
 
-for path in \
-  'dot_config/kitty/' \
-  'dot_config/niri/' \
-  'dot_config/systemd/user/dms-auto-resolution-profile.service' \
-  'dot_local/bin/executable_dms-auto-resolution-profile'; do
-  assert_contains README.md "$path" "README mentions CachyGaming path '$path'"
-done
-
-# AGENTS: agent workflow essentials (no duplicate of README prose)
-assert_contains AGENTS.md ".chezmoidata.toml" "AGENTS references profile data source"
-assert_contains AGENTS.md ".chezmoiignore" "AGENTS mentions .chezmoiignore gates"
-assert_contains AGENTS.md "manage_agents" "AGENTS mentions manage_agents flag"
-assert_contains AGENTS.md "bootstrap" "AGENTS mentions bootstrap gating"
-assert_contains AGENTS.md "README.md" "AGENTS points human docs to README"
-assert_contains AGENTS.md ".chezmoiremove" "AGENTS documents orphan cleanup"
-assert_contains AGENTS.md "~/.config/secrets" "AGENTS documents secrets env hook pattern"
-
-if [[ -e .agents/skills/chezmoi/SKILL.md ]]; then
-  bad 'retired chezmoi skill still exists; AGENTS.md is source of truth'
-else
-  ok 'retired chezmoi skill absent'
-fi
-
-for legacy in dot_agents/skills/build-skill dot_agents/skills/diagnose dot_agents/skills/teach-me; do
-  if [[ -e "$legacy" ]]; then
-    bad "legacy active skill still exists: $legacy"
+managed="$(chezmoi managed)"
+for source_only in PLAN.md bootstrap scripts plans archive; do
+  if printf '%s\n' "$managed" | grep -Eq "^${source_only}(/|$)"; then
+    bad "source-only path would leak into HOME: $source_only"
   else
-    ok "legacy active skill absent: $legacy"
+    ok "source-only path is not managed: $source_only"
   fi
+done
+
+absent private_dot_ssh/encrypted_private_id_ed25519.age 'encrypted SSH private key source is absent'
+absent private_dot_ssh/id_ed25519.pub 'machine-specific SSH public key source is absent'
+if find private_dot_ssh -type f -name '*.age' -print -quit | grep -q .; then
+  bad 'encrypted SSH material still exists'
+else
+  ok 'SSH directory contains no encrypted material'
+fi
+if grep -Eq '^\.ssh/id_ed25519($|\.)' .chezmoiremove; then
+  bad '.chezmoiremove must not delete machine-local SSH keys'
+else
+  ok '.chezmoiremove preserves machine-local SSH keys'
+fi
+
+for path in dot_tmux.conf.tmpl dot_agents/skills/tmux; do
+  absent "$path" "retired active source absent: $path"
 done
 
 for current in dot_agents/skills/writing-great-skills dot_agents/skills/diagnosing-bugs; do
-  if [[ -d "$current" ]]; then
-    ok "current skill exists: $current"
-  else
-    bad "expected current skill missing: $current"
-  fi
+  if [[ -d "$current" ]]; then ok "current skill exists: $current"; else bad "missing skill: $current"; fi
 done
 
-# Orphan targets: .chezmoiremove entries must not still exist under $HOME
-home="${HOME:?}"
-while IFS= read -r entry || [[ -n "$entry" ]]; do
-  [[ -z "$entry" || "$entry" == \#* ]] && continue
-  target="$home/$entry"
-  if [[ -e "$target" ]]; then
-    bad "orphan still present: $target (listed in .chezmoiremove)"
-  else
-    ok "orphan absent: ~/$entry"
-  fi
-done < .chezmoiremove
-
+readme_lines=$(wc -l < README.md | tr -d ' ')
 agents_lines=$(wc -l < AGENTS.md | tr -d ' ')
-if (( agents_lines <= 160 )); then
-  ok "AGENTS.md <= 160 lines ($agents_lines)"
+if (( readme_lines <= 140 )); then
+  ok "README.md <= 140 lines ($readme_lines)"
 else
-  bad "AGENTS.md too long ($agents_lines lines)"
+  bad "README.md too long ($readme_lines)"
 fi
-
-if grep -Fq '"manage_agents" true' .chezmoiignore; then
-  ok '.chezmoiignore fallback keeps server manage_agents true'
+if (( agents_lines <= 100 )); then
+  ok "AGENTS.md <= 100 lines ($agents_lines)"
 else
-  bad '.chezmoiignore fallback may not match server manage_agents=true'
+  bad "AGENTS.md too long ($agents_lines)"
 fi
 
 exit "$fail"

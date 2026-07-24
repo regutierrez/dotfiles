@@ -1,12 +1,6 @@
-{{- /* Asked once at `chezmoi init`; scripted: chezmoi init --promptString profile=server */ -}}
-{{- $profile := promptStringOnce . "profile" "profile (personal/work/server/cachygaming)" "personal" }}
-{{ if ne $profile "work" }}encryption = "age"
-
-[age]
-    identity = "~/.config/chezmoi/key.txt"
-    recipient = "age1jjprr9qsy2maxva7f3g2ll0z8px58343z0chunj3ljkjnw60kdhs5ypcjt"
-
-{{ end }}[edit]
+{{- /* Supported: personal, work, server. Scripted: chezmoi init --promptString profile=server */ -}}
+{{- $profile := promptStringOnce . "profile" "profile" "personal" }}
+[edit]
     apply = true
     watch = true
 
