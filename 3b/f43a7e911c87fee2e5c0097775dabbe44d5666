@@ -1,0 +1,22 @@
+dot_zshrc.tmpl
+  s_cbf504c4084d56::t_57bb41a64c9c90 225-227
+  s_cbf504c4084d56::t_b7bff877345848 126
+dot_config/zed/private_settings.json
+  s_cbf504c4084d56::t_bfdeb6877d8b7a 10-31,34,52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3bf43a7e911c87fee2e5c0097775dabbe44d5666",
+  "prompts": {},
+  "sessions": {
+    "s_cbf504c4084d56": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-5929946a-1aa9-4b0e-a43e-1b93497a0281",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
