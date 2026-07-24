@@ -48,6 +48,7 @@ akkio-helpers/
 {{- if not $server }}
 .bashrc
 .vimrc
+.tmux.conf
 {{- end }}
 
 {{- if $server }}

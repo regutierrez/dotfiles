@@ -2,7 +2,6 @@
 .agents/skills/chrome-devtools-cli
 .agents/skills/bro
 .agents/skills/tmux
-.tmux.conf
 .tmux
 .local/share/tmux
 .pi/agent/extensions/better-tui.ts

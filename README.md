@@ -9,7 +9,7 @@ Two values decide what gets applied:
 - **Profile:** `personal`, `work`, or `server`; selected during `chezmoi init`.
 - **OS:** detected automatically by chezmoi.
 
-`personal` and `work` are full workstations. `server` keeps the smaller Bash, Vim, and agent setup and skips `~/.config`, `~/bin`, and Neovim. Personal Linux machines also receive the Kitty, Niri, and DMS desktop files. The retired `cachygaming` value is treated as `personal` so existing machines keep working.
+`personal` and `work` are full workstations. `server` keeps the smaller Bash, Vim, tmux, and agent setup and skips `~/.config`, `~/bin`, and Neovim. Personal Linux machines also receive the Kitty, Niri, and DMS desktop files. The retired `cachygaming` value is treated as `personal` so existing machines keep working.
 
 There are two separate operations:
 
