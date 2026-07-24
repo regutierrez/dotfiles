@@ -1,0 +1,19 @@
+dot_pi/agent/APPEND_SYSTEM.md
+  s_00f279d5cc0ec5::t_65a7da422eb525 8-12,42,46-47,60,66-69,92,94,98,100,111,119,121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f193c093f0a932d7680c75740cccf8fd3dd3c7c8",
+  "prompts": {},
+  "sessions": {
+    "s_00f279d5cc0ec5": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033v0EQDDshUluhEMjzgL7",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
