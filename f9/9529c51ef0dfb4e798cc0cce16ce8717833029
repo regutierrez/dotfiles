@@ -1,0 +1,21 @@
+dot_pi/agent/APPEND_SYSTEM.md
+  s_5cfcd77bee7395::t_e17ccba82ee6d6 8
+.chezmoiremove
+  s_5cfcd77bee7395::t_e17ccba82ee6d6 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f99529c51ef0dfb4e798cc0cce16ce8717833029",
+  "prompts": {},
+  "sessions": {
+    "s_5cfcd77bee7395": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033v0e8QLoEA7orvPHgMTr",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
