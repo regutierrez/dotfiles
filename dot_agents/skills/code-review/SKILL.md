@@ -58,7 +58,7 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 ### 4. Spawn both sub-agents in parallel
 
-Use one parallel `subagent` call with two `general-purpose` tasks and fresh context. Both tasks are review-only: they inspect the repository and return findings without editing files.
+Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both. Both tasks are review-only: they inspect the repository and return findings without editing files.
 
 **Standards sub-agent prompt** — include:
 

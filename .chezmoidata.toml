@@ -7,6 +7,7 @@ shared = [
   "commit",
   "diagnosing-bugs",
   "domain-modeling",
+  "effect-service-design",
   "grill-me",
   "grill-with-docs",
   "grilling",
