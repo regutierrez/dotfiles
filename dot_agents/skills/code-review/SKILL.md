@@ -1,15 +1,16 @@
 ---
 name: code-review
-description: Review committed changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, or asks to "review since X".
+description: Review committed changes since a fixed point (commit, branch, tag, or merge-base) along three axes — Standards, Spec, and Runtime Correctness. Runs independent reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, or asks to "review since X".
 disable-model-invocation: true
 ---
 
-Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
+Three-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 - **Standards** — does the code conform to this repo's documented coding standards?
 - **Spec** — does the code faithfully implement the originating issue / PRD / spec?
+- **Runtime Correctness** — do the affected call paths and runtime assumptions actually preserve the behavior the change relies on?
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
+All available axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
 Linear is the issue tracker. Use `linear-cli` for reads with machine-readable, compact output; use Linear MCP only when `linear-cli` is unavailable. Do not start an auth flow. If access is unavailable, ask the user for the spec instead of guessing.
 
@@ -56,9 +57,9 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 - **Middle Man** — a class or function that mostly just delegates onward. → cut it, call the real target direct.
 - **Refused Bequest** — a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
-### 4. Spawn both sub-agents in parallel
+### 4. Spawn the sub-agents in parallel
 
-Send a single message with two `Agent` tool calls. Use the `general-purpose` subagent for both. Both tasks are review-only: they inspect the repository and return findings without editing files.
+Send a single message with three `Agent` tool calls. Use the `general-purpose` subagent for each. All tasks are review-only: they inspect the repository and return findings without editing files. If the spec is unavailable, omit only the Spec sub-agent.
 
 **Standards sub-agent prompt** — include:
 
@@ -72,19 +73,28 @@ Send a single message with two `Agent` tool calls. Use the `general-purpose` sub
 - The path or fetched contents of the spec.
 - The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
 
+**Runtime Correctness sub-agent prompt** — include:
+
+- The full diff command and commit list.
+- The path or fetched contents of the spec when available, as intent context rather than a review boundary.
+- The brief below verbatim:
+
+> Report concrete runtime defects and missing proof for realistic high-risk behavior. Read every changed file in full. Trace changed symbols through the callers and callees needed to verify their behavior, including unchanged files outside the diff; do not assume a helper is safe from its name or signature. When correctness depends on asynchronous or event-loop responsiveness, follow each relevant awaited call until you find a genuine suspension point, asynchronous library operation, or executor/thread/process boundary. `async`, `await`, and names such as `*_async` are screening clues, not proof: flag reachable synchronous database, HTTP, filesystem, subprocess, or CPU-heavy work that can block the shared loop. Check whether a behavioral test deliberately blocks downstream work and proves an independent heartbeat, probe, callback, or coroutine still progresses; timing-only assertions are not proof. For ports, sockets, files, locks, queues, and process-global state, consider at least two simultaneous processes, containers, or worktrees and identify isolation assumptions. Report only findings with a specific trigger and consequence, with file and line evidence. Separate confirmed defects from missing high-risk test evidence. Under 500 words.
+
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
 ### 5. Aggregate
 
-Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).
+Present the reports under `## Standards`, `## Spec`, and `## Runtime Correctness` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the axes are deliberately separate (see _Why separate axes_). If the Spec sub-agent was skipped, say `No spec available` under its heading.
 
 End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
 
-## Why two axes
+## Why separate axes
 
-A change can pass one axis and fail the other:
+A change can pass one axis and fail another:
 
 - Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
 - Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+- Code that follows the standards and matches the ticket but blocks a shared event loop or collides with another process → **Standards and Spec pass, Runtime Correctness fail.**
 
-Reporting them separately stops one axis from masking the other.
+Reporting them separately stops one axis from masking another.

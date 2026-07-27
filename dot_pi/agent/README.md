@@ -14,6 +14,7 @@ cd ~/.pi/agent && npm install
 | `APPEND_SYSTEM.md` | Global prompt addendum |
 | `keybindings.json` | Pi TUI keybindings |
 | `btw.json` | Optional BTW model/thinking overrides |
+| `cloak.json` | Secret-masking patterns for `pi-cloak` |
 | `claude-bridge.json` | Claude bridge config |
 | `_mcp.json` | MCP server wiring |
 | `package.json` | Shared deps for extensions |
@@ -22,8 +23,8 @@ cd ~/.pi/agent && npm install
 | `intercepted-commands/` | PATH shims used by `uv.ts` |
 | `extensions/btw/` | `/btw` side threads (`index.ts` + tests) |
 | `extensions/web-tools/` | `webfetch` + Kagi `websearch` (own package) |
+| `extensions/pi-cloak/` | Mask secrets in `read` tool results (`/cloak-status`) |
 | `extensions/cpimg/` | Clipboard image helper |
-| `extensions/answer.ts` | `/answer` + `ctrl+.` Q&A from last assistant reply |
 | `extensions/atuin.ts` | Atuin integration |
 | `extensions/context.ts` | Context helpers |
 | `extensions/continue-after-compaction.ts` | Resume after compaction |
@@ -35,15 +36,19 @@ cd ~/.pi/agent && npm install
 ## Edit often vs leave alone
 
 **Edit often (hot):**
-- `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`
+- `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`, `cloak.json`
 - `extensions/btw/`
-- `extensions/answer.ts`
 - `agents/*.md`
 - `package.json` (when adding shared deps)
 
 **Leave alone unless intentionally changing (cold / vendored):**
 - `extensions/web-tools/` (vendored; has its own `package.json` + tests)
+- `extensions/pi-cloak/` (vendored from [dmmulroy/.dotfiles](https://github.com/dmmulroy/.dotfiles); edit `cloak.json` for patterns)
 - Large single-file extensions: `review.ts`, `loop.ts`, `context.ts`, `git-ai.ts`, `atuin.ts`, `uv.ts`, `cpimg/`
+
+## Secret masking (`pi-cloak`)
+
+`extensions/pi-cloak/` redacts matching values from `read` tool results before they reach the model. Patterns live in `cloak.json` (applied to `~/.pi/agent/cloak.json`). Check with `/cloak-status` in pi, then `/reload` after edits.
 
 ## Secrets (env hooks, not in git)
 

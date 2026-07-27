@@ -1,0 +1,19 @@
+{{- if or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux") -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# herdr-plugin.toml: {{ include "dot_local/share/herdr-plugins/pi-file-opener/herdr-plugin.toml" | sha256sum }}
+# open-file.mjs: {{ include "dot_local/share/herdr-plugins/pi-file-opener/open-file.mjs" | sha256sum }}
+
+plugin_id="dotfiles.pi-file-opener"
+plugin_dir="$HOME/.local/share/herdr-plugins/pi-file-opener"
+
+if ! command -v herdr >/dev/null 2>&1; then
+  echo "link-herdr-pi-file-opener: herdr not found; install Herdr first" >&2
+  exit 1
+fi
+
+# Relinking refreshes the manifest while keeping the implementation in chezmoi.
+herdr plugin unlink "$plugin_id" >/dev/null 2>&1 || true
+herdr plugin link "$plugin_dir" --enabled
+{{- end -}}

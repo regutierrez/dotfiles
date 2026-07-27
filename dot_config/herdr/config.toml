@@ -1,17 +1,48 @@
 onboarding = false
 
+[terminal]
+# New panes and tabs start in the current pane's directory.
+new_cwd = "follow"
+
 [ui.toast]
 delivery = "herdr"
+delay_seconds = 1
+
+[ui.toast.herdr]
+position = "top-right"
+
+[ui.toast.clipboard]
+enabled = true
+position = "bottom-center"
 
 [ui]
 pane_borders = true
 pane_gaps = false
 show_agent_labels_on_pane_borders = true
-
 agent_panel_sort = "priority"
+# Close panes/tabs without prompting.
+confirm_close = false
+prompt_new_tab_name = true
+prompt_new_workspace_name = true
+
+[ui.sound]
+enabled = false
+
+[session]
+# Resume supported coding agents when restoring sessions.
+resume_agents_on_restore = true
+
+[remote]
+manage_ssh_config = true
+
 [experimental]
 pane_history = true
 kitty_graphics = true
+allow_nested = false
+
+[advanced]
+# Scrollback limit is byte-based.
+scrollback_limit_bytes = 52428800
 
 [keys]
 prefix = "backtick"
@@ -37,13 +68,6 @@ reload_config = "prefix+r"
 
 # Rebind resize mode since prefix+r is now reload_config
 resize_mode = "prefix+alt+r"
-
-# # Custom commands
-# [[keys.command]]
-# key = "prefix+o"
-# type = "shell"
-# command = "~/bin/commando --fzf-tmux"
-# description = "run commando"
 
 [theme]
 name = "terminal"
