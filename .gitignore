@@ -8,5 +8,6 @@ dot_pi/todos/
 .pi/todos/
 **/.pi/todos/
 package-lock.json
+!dot_pi/agent/extensions/web-tools/package-lock.json
 bun.lock
 .env

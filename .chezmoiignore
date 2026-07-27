@@ -74,4 +74,5 @@ bin/
 .pi/agent/todos/
 .pi/todos/
 .agents/skills/web-browser/scripts/node_modules/
-package-lock.json
+**/package-lock.json
+!.pi/agent/extensions/web-tools/package-lock.json
