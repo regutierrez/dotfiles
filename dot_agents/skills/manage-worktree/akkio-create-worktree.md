@@ -1,6 +1,8 @@
 # Akkio — create worktree
 
-Akkio-specific rules on top of the parent skill's create flow (`wt switch --create`, path resolution, failure handling). Repo root: `~/Akkio`. Create with `-C ~/Akkio`; use `--base` for release branches (e.g. `release/horizon-staging`).
+Akkio-specific rules on top of the parent skill's create flow. Repo root: `~/Akkio`. Create with `-C ~/Akkio`; use `--base` for release branches (e.g. `release/horizon-staging`).
+
+**Agents:** parent skill's [Agents and non-interactive shells](SKILL.md#agents-and-non-interactive-shells) — `wt switch` does not cd in Cursor/Pi; always `cd` to the JSON `.path` before `mise`, `wt-stack`, etc.
 
 **Two layers** (do not conflate):
 
