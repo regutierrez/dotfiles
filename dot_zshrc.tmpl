@@ -6,9 +6,6 @@
 # zmodload zsh/zprof
 
 eval "$(starship init zsh)"
-if command -v atuin >/dev/null 2>&1; then
-  eval "$(atuin init zsh)"
-fi
 {{- if eq .chezmoi.os "darwin" }}
 
 # Homebrew setup
@@ -43,8 +40,13 @@ zinit light Aloxaf/fzf-tab
 # EXTERNAL TOOLS
 # ============================================================================
 
-# fzf - fuzzy finder
+# fzf - fuzzy finder (Ctrl+T / Alt+C). Init before atuin so Ctrl+R stays with atuin.
 source <(fzf --zsh)
+
+# atuin - shell history (Ctrl+R). Must come after fzf --zsh or fzf steals the binding.
+if command -v atuin >/dev/null 2>&1; then
+  eval "$(atuin init zsh)"
+fi
 
 # zoxide - smart jump
 {{- if eq .chezmoi.os "darwin" }}

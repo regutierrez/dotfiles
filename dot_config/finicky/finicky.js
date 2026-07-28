@@ -7,12 +7,26 @@
 // ATC setup (Arc → Settings → Links → Air Traffic Control):
 //   URL contains "finicky_dest_space=akkio"   → Space bound to the akkio profile
 //   URL contains "finicky_dest_space=horizon" → Space bound to the horizon profile
+//
+// AWS SSO: portal hosts are stable (d-9067661171 → horizon, akkio.awsapps.com →
+// akkio). OIDC authorize shares oidc.<region>.amazonaws.com, so route that by
+// client_id from ~/.aws/sso/cache — never blanket-tag all OIDC as one org.
 
 const tagSpace = (space) => (url) => {
   if (url.searchParams.has("finicky_dest_space")) return url;
   url.searchParams.set("finicky_dest_space", space);
   return url;
 };
+
+// From ~/.aws/sso/cache client registrations (clientName botocore-client-*).
+// Refresh these if aws sso login opens the wrong Arc profile after a re-register.
+const HORIZON_SSO_CLIENT_IDS = new Set([
+  "FcglOSUYxCO0IMv8fdwfrnVzLWVhc3QtMQ", // d-9067661171.awsapps.com
+]);
+const AKKIO_SSO_CLIENT_IDS = new Set([
+  "6VvKKLJRqVu7NdiTAT8rh3VzLWVhc3QtMQ", // akkio.awsapps.com
+  "zV32NJ2g6tYS49eMUyTEonVzLWVhc3QtMQ", // akkio.awsapps.com (newer registration)
+]);
 
 const isLocal = (url) =>
   url.hostname === "localhost" ||
@@ -82,9 +96,29 @@ export default {
       match: ["datadoghq.com/*", "*.datadoghq.com/*"],
       url: tagSpace("horizon"),
     },
+    // AWS SSO portals (device-code / start URL). Hostnames are stable.
     {
-      match: (url) => /oidc.*amazonaws/i.test(url.href),
+      match: ["d-9067661171.awsapps.com/*", "d-9067661171.awsapps.com"],
       url: tagSpace("horizon"),
+    },
+    {
+      match: ["akkio.awsapps.com/*", "akkio.awsapps.com"],
+      url: tagSpace("akkio"),
+    },
+    // AWS SSO OIDC authorize shares oidc.<region>.amazonaws.com for every org.
+    // Route by client_id from ~/.aws/sso/cache (registration). When a
+    // registration renews and login lands wrong, update the id lists below.
+    {
+      match: (url) =>
+        /oidc\.[^.]+\.amazonaws\.com/i.test(url.hostname) &&
+        HORIZON_SSO_CLIENT_IDS.has(url.searchParams.get("client_id") || ""),
+      url: tagSpace("horizon"),
+    },
+    {
+      match: (url) =>
+        /oidc\.[^.]+\.amazonaws\.com/i.test(url.hostname) &&
+        AKKIO_SSO_CLIENT_IDS.has(url.searchParams.get("client_id") || ""),
+      url: tagSpace("akkio"),
     },
     {
       match: (url) => {
