@@ -1,0 +1,90 @@
+dot_agents/skills/recapping-weekly-agent-sessions/SKILL.md
+  s_e726073b47c78c::t_a64b70101b0880 2-5,8,10,12,14,16-21,23-41,45-61,63-71,77,80-81,85,87,89-91,94,97-139,142,144-150,154,156,158-161,168,170,173,175,177,179,181,183-186,188,190,192,194,196,198-200,202-214,217-222,224,226,228-235,237,239-265,268-269,272
+dot_agents/skills/knowledgebase/PROMPTS.md
+  s_e31eb67e7a9784::t_b993947fdf57d4 26
+dot_agents/skills/knowledgebase/SKILL.md
+  s_e31eb67e7a9784::t_b993947fdf57d4 20,143
+dot_agents/skills/recapping-weekly-agent-sessions/scripts/collect_sessions.py
+  s_f5ae615da1cf2c::t_0b110fff7fcc6f 18,170,570-576,600-602,651-658,863-865,870-881,907-915,938-944
+  s_ddec97df5a6ef4::t_4602b10c7db686 372-378,384,419,421,449-456,464,507,517,561-569,634,639-646,669-677
+  s_1f0be678d96c34::t_066d9b05447aaa 148-169,171-173,235-237,256-257,259,261-265,311,328,331-340,343-350,359-361
+  s_514c800cf610b8::t_19dafbe863ef91 604
+  s_7b544f5af680a1::t_689f02cd7a8f38 698,708-711,744-747,792-801,816,818,832-861,866-869,896,916-935,949-951
+  s_43162e57db4633::t_d1c1490bc1c28f 5,31-58,100,103,108-112,174,258,260
+.chezmoidata.toml
+  s_e31eb67e7a9784::t_b993947fdf57d4 43
+.chezmoiremove
+  s_e31eb67e7a9784::t_b993947fdf57d4 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f5cfdf897739140aee4d232e22591da7853c59a5",
+  "prompts": {},
+  "sessions": {
+    "s_1f0be678d96c34": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033xNfSGAEkvvoM3gSdUFa",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_43162e57db4633": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033xNf3EBMK7ry5F39qJta",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_514c800cf610b8": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033xNmuxsO6jelujf86JBo",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_7b544f5af680a1": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033xNgX0sQcvTTCTNvu8jk",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_ddec97df5a6ef4": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033xNfwOlAYKsBeEfBLsgj",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_e31eb67e7a9784": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033xNja5jjNQE2Qs9gj7w5",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_e726073b47c78c": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033xNhvu19yhG0vbDw5JBa",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_f5ae615da1cf2c": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033xNkpBxuM1KzBlHFx6Mg",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
