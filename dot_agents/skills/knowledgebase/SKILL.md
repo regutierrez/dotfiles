@@ -17,7 +17,7 @@ Infer the mode from the request or first argument:
 - `capture` (default): capture important material from the current conversation and safely update the vault.
 - `search`: retrieve the current understanding of a topic without editing notes.
 - `transcript`: turn a supplied meeting transcript into a terse daily digest and selective durable notes.
-- `weekly-review`: review the seven most recent capture notes and propose a small promotion set.
+- `weekly-review`: review the latest capture period and its matching weekly agent-session recap, then propose a small promotion set.
 - `maintenance`: audit note health and propose repairs without applying broad changes.
 
 `review-only` is a modifier for any writing mode: show the proposed note operations but do not edit. If the request is just “use the knowledgebase skill,” use `capture`.
@@ -140,7 +140,7 @@ By default, write only a terse digest to the dated capture and promote qualifyin
 
 ## Weekly-review mode
 
-Read the seven most recent notes in `00 Capture/` (or the requested range), then search for existing canonical owners. Return no more than five high-value promotion or merge candidates, with destination, operation, value, and proposed incoming link. This branch is proposal-only unless the user explicitly asks to apply the candidates.
+Read the seven most recent notes in `00 Capture/` (or the requested range). If `40 Sources/Agent Session Recaps/` contains a matching weekly recap, read its `Possible capture gaps` as secondary evidence; do not treat the raw recap as canonical understanding. Deduplicate those gaps against the capture notes and search for existing canonical owners. Return no more than five high-value promotion or merge candidates, with destination, operation, value, and proposed incoming link. This branch is proposal-only unless the user explicitly asks to apply the candidates.
 
 ## Maintenance mode
 

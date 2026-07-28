@@ -11,6 +11,7 @@
 .agents/skills/frontend-design
 .agents/skills/index-knowledge
 .agents/skills/setup-matt-pocock-skills
+.agents/skills/daily-agent-session-recap
 .tmux
 .local/share/tmux
 .config/tmux

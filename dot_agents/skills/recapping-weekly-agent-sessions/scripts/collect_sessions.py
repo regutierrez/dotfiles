@@ -2,7 +2,7 @@
 """Collect local Pi, Claude, and Cursor sessions into normalized JSON.
 
 The script intentionally does not summarize. It normalizes heterogeneous session
-stores so an agent can compact/summarize the result consistently.
+stores over a date range so an agent can compact/summarize the result consistently.
 """
 
 from __future__ import annotations
@@ -11,12 +11,11 @@ import argparse
 import datetime as dt
 import hashlib
 import json
-import os
 import re
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
 
@@ -29,7 +28,34 @@ def parse_day(value: str) -> dt.date:
     try:
         return dt.date.fromisoformat(value)
     except ValueError as exc:
-        raise SystemExit(f"Invalid --date {value!r}; expected YYYY-MM-DD") from exc
+        raise ValueError(f"Invalid date {value!r}; expected YYYY-MM-DD") from exc
+
+
+def parse_week(value: str) -> tuple[dt.date, dt.date]:
+    match = re.fullmatch(r"(\d{4})-W(\d{2})", value, flags=re.I)
+    if not match:
+        raise ValueError(f"Invalid --week {value!r}; expected YYYY-Www")
+    try:
+        start = dt.date.fromisocalendar(int(match.group(1)), int(match.group(2)), 1)
+    except ValueError as exc:
+        raise ValueError(f"Invalid ISO week {value!r}") from exc
+    return start, start + dt.timedelta(days=6)
+
+
+def default_period(today: dt.date) -> tuple[dt.date, dt.date]:
+    """Return this Monday-Sunday week on Sunday, otherwise the prior full week."""
+    this_monday = today - dt.timedelta(days=today.weekday())
+    if today.weekday() == 6:
+        return this_monday, today
+    end = this_monday - dt.timedelta(days=1)
+    return end - dt.timedelta(days=6), end
+
+
+def iso_week_label(start: dt.date, end: dt.date) -> str | None:
+    if start.weekday() != 0 or end != start + dt.timedelta(days=6):
+        return None
+    iso = start.isocalendar()
+    return f"{iso.year}-W{iso.week:02d}"
 
 
 def parse_time(value: Any) -> dt.datetime | None:
@@ -71,12 +97,17 @@ def file_time(path: Path) -> dt.datetime | None:
         return None
 
 
-def any_file_touched_on(day: dt.date, *paths: Path) -> bool:
+def any_file_touched_on_or_after(day: dt.date, *paths: Path) -> bool:
     for path in paths:
         ts = file_time(path)
-        if ts is not None and ts.astimezone(LOCAL_TZ).date() == day:
+        if ts is not None and ts.astimezone(LOCAL_TZ).date() >= day:
             return True
     return False
+
+
+def is_in_period(value: dt.datetime, start: dt.date, end: dt.date) -> bool:
+    local_day = value.astimezone(LOCAL_TZ).date()
+    return start <= local_day <= end
 
 
 def local_iso(value: dt.datetime | None) -> str | None:
@@ -112,6 +143,33 @@ CURSOR_CONTEXT_TAGS = (
     "environment_details",
     "attached_files",
     "recently_viewed_files",
+)
+
+INJECTED_USER_TAGS = (
+    "agent_skills",
+    "skill",
+    "local-command-caveat",
+    "command-name",
+)
+
+NON_SUBSTANTIVE_USER_TEXTS = {
+    "continue",
+    "hello",
+    "hi",
+    "no",
+    "ok",
+    "okay",
+    "pong",
+    "thanks",
+    "thank you",
+    "yes",
+}
+
+TEST_PROMPT_PATTERNS = (
+    r"(?:reply|respond|say|echo) with exactly[: ]+.+",
+    r"echo hello-from-test",
+    r"say hello(?:[-\w]*)?",
+    r"count from \d+ to \d+",
 )
 
 
@@ -174,6 +232,9 @@ def clean_user_text(text: str, agent: str) -> str:
     if queries:
         return normalize_ws("\n\n".join(queries))
 
+    for tag in INJECTED_USER_TAGS:
+        text = re.sub(rf"<{tag}[^>]*>.*?</{tag}>", "", text, flags=re.S | re.I)
+
     if agent == "cursor":
         for tag in CURSOR_CONTEXT_TAGS:
             text = re.sub(rf"<{tag}[^>]*>.*?</{tag}>", "", text, flags=re.S | re.I)
@@ -192,7 +253,16 @@ def is_substantive_user_text(text: str) -> bool:
         return False
     if not re.search(r"[A-Za-z0-9]", text):
         return False
-    if text.lower() in {"/exit", "/quit", "exit", "quit", "/clear", "clear", "/help"}:
+    normalized = text.lower().strip()
+    if normalized in NON_SUBSTANTIVE_USER_TEXTS:
+        return False
+    if normalized in {"/exit", "/quit", "exit", "quit", "/clear", "clear", "/help"}:
+        return False
+    if re.fullmatch(r"/\S+", normalized):
+        return False
+    if re.fullmatch(r"resume\s*=\s*[0-9a-f-]+", normalized):
+        return False
+    if any(re.fullmatch(pattern, normalized) for pattern in TEST_PROMPT_PATTERNS):
         return False
     return True
 
@@ -238,14 +308,7 @@ def add_time(session: dict[str, Any], value: Any, *, created: bool = False) -> N
         session["_created_candidates"].append(parsed)
 
 
-def add_file_times(session: dict[str, Any], *paths: Path) -> None:
-    for path in paths:
-        ts = file_time(path)
-        if ts is not None:
-            session["_activity_times"].append(ts)
-
-
-def add_message(session: dict[str, Any], role: str, text: str, agent: str) -> None:
+def add_message(session: dict[str, Any], role: str, text: str, agent: str, timestamp: Any = None) -> None:
     if role == "user":
         text = clean_user_text(text, agent)
         if not is_substantive_user_text(text):
@@ -262,27 +325,40 @@ def add_message(session: dict[str, Any], role: str, text: str, agent: str) -> No
         if directory:
             session["directory"] = directory
 
-    session["_messages"].append({"role": role, "text": text})
+    session["_messages"].append({"role": role, "text": text, "_at": parse_time(timestamp)})
 
 
-def activity_dates(session: dict[str, Any]) -> set[dt.date]:
-    return {ts.astimezone(LOCAL_TZ).date() for ts in session.get("_activity_times", [])}
+def finish_session(
+    session: dict[str, Any],
+    start_day: dt.date,
+    end_day: dt.date,
+    min_user_turns: int,
+) -> dict[str, Any] | None:
+    times = session.get("_activity_times", [])
+    period_times = [value for value in times if is_in_period(value, start_day, end_day)]
+    if not period_times:
+        return None
 
-
-def finish_session(session: dict[str, Any], target_day: dt.date, min_user_turns: int) -> dict[str, Any] | None:
     messages = session.get("_messages", [])
+    if any(message.get("_at") is not None for message in messages):
+        messages = [
+            message
+            for message in messages
+            if message.get("_at") is None or is_in_period(message["_at"], start_day, end_day)
+        ]
+        session["_messages"] = messages
+
     user_turns = sum(1 for msg in messages if msg.get("role") == "user")
     assistant_turns = sum(1 for msg in messages if msg.get("role") == "assistant")
 
     if user_turns < min_user_turns:
         return None
-    if target_day not in activity_dates(session):
-        return None
 
-    times = session.get("_activity_times", [])
     created_candidates = session.get("_created_candidates", []) or times
     session["created_at"] = min(created_candidates) if created_candidates else None
-    session["last_activity_at"] = max(times) if times else None
+    session["first_activity_at"] = min(period_times)
+    session["last_activity_at"] = max(period_times)
+    session["active_dates"] = sorted({value.astimezone(LOCAL_TZ).date().isoformat() for value in period_times})
     session["user_turns"] = user_turns
     session["assistant_turns"] = assistant_turns
     session["message_count"] = len(messages)
@@ -293,17 +369,22 @@ def finish_session(session: dict[str, Any], target_day: dt.date, min_user_turns:
 # Pi
 
 
-def collect_pi(root: Path, target_day: dt.date, min_user_turns: int, deep_scan: bool) -> list[dict[str, Any]]:
+def collect_pi(
+    root: Path,
+    start_day: dt.date,
+    end_day: dt.date,
+    min_user_turns: int,
+    deep_scan: bool,
+) -> list[dict[str, Any]]:
     sessions: list[dict[str, Any]] = []
     if not root.exists():
         return sessions
 
     for path in sorted(root.glob("*/*.jsonl")):
-        if not deep_scan and not any_file_touched_on(target_day, path):
+        if not deep_scan and not any_file_touched_on_or_after(start_day, path):
             continue
         sid = path.stem.split("_")[-1]
         session = new_session("pi", "pi-jsonl", sid, path)
-        add_file_times(session, path)
 
         try:
             lines = path.read_text(errors="replace").splitlines()
@@ -335,9 +416,9 @@ def collect_pi(root: Path, target_day: dt.date, min_user_turns: int, deep_scan: 
             if msg.get("timestamp"):
                 add_time(session, msg.get("timestamp"))
             text = content_to_text(msg.get("content"))
-            add_message(session, role, text, "pi")
+            add_message(session, role, text, "pi", msg.get("timestamp") or rec.get("timestamp"))
 
-        finished = finish_session(session, target_day, min_user_turns)
+        finished = finish_session(session, start_day, end_day, min_user_turns)
         if finished:
             sessions.append(finished)
 
@@ -365,7 +446,14 @@ def load_claude_session_meta(root: Path) -> dict[str, dict[str, Any]]:
     return meta
 
 
-def collect_claude(projects_root: Path, sessions_root: Path, target_day: dt.date, min_user_turns: int, deep_scan: bool) -> list[dict[str, Any]]:
+def collect_claude(
+    projects_root: Path,
+    sessions_root: Path,
+    start_day: dt.date,
+    end_day: dt.date,
+    min_user_turns: int,
+    deep_scan: bool,
+) -> list[dict[str, Any]]:
     sessions: list[dict[str, Any]] = []
     if not projects_root.exists():
         return sessions
@@ -373,11 +461,10 @@ def collect_claude(projects_root: Path, sessions_root: Path, target_day: dt.date
     session_meta = load_claude_session_meta(sessions_root)
 
     for path in sorted(projects_root.glob("*/*.jsonl")):
-        if not deep_scan and not any_file_touched_on(target_day, path):
+        if not deep_scan and not any_file_touched_on_or_after(start_day, path):
             continue
         sid = path.stem
         session = new_session("claude", "claude-project-jsonl", sid, path)
-        add_file_times(session, path)
 
         try:
             lines = path.read_text(errors="replace").splitlines()
@@ -417,7 +504,7 @@ def collect_claude(projects_root: Path, sessions_root: Path, target_day: dt.date
             if role not in {"user", "assistant"}:
                 continue
             text = content_to_text(msg.get("content"))
-            add_message(session, role, text, "claude")
+            add_message(session, role, text, "claude", rec.get("timestamp"))
 
         meta = session_meta.get(session["id"])
         if meta:
@@ -427,7 +514,7 @@ def collect_claude(projects_root: Path, sessions_root: Path, target_day: dt.date
             add_time(session, meta.get("startedAt"), created=True)
             add_time(session, meta.get("updatedAt"))
 
-        finished = finish_session(session, target_day, min_user_turns)
+        finished = finish_session(session, start_day, end_day, min_user_turns)
         if finished:
             sessions.append(finished)
 
@@ -471,8 +558,22 @@ def load_json_file(path: Path | None) -> dict[str, Any]:
         return {}
 
 
-def collect_cursor_db(db_path: Path, source: str, target_day: dt.date, min_user_turns: int, deep_scan: bool, meta_json_path: Path | None = None) -> dict[str, Any] | None:
-    if not deep_scan and not any_file_touched_on(target_day, db_path, db_path.with_name("store.db-wal"), db_path.with_name("store.db-shm"), *( [meta_json_path] if meta_json_path else [] )):
+def collect_cursor_db(
+    db_path: Path,
+    source: str,
+    start_day: dt.date,
+    end_day: dt.date,
+    min_user_turns: int,
+    deep_scan: bool,
+    meta_json_path: Path | None = None,
+) -> dict[str, Any] | None:
+    prefilter_paths = (
+        db_path,
+        db_path.with_name("store.db-wal"),
+        db_path.with_name("store.db-shm"),
+        *([meta_json_path] if meta_json_path else []),
+    )
+    if not deep_scan and not any_file_touched_on_or_after(start_day, *prefilter_paths):
         return None
 
     meta_json = load_json_file(meta_json_path)
@@ -496,10 +597,11 @@ def collect_cursor_db(db_path: Path, source: str, target_day: dt.date, min_user_
         # store.db `meta` table only has `createdAt`. Do NOT fall back to store.db /
         # -wal / -shm (or meta.json) file mtimes for activity: SQLite WAL/checkpoint/
         # indexing bumps those long after a chat ends, so using them made every
-        # historical cursor session look "active today" and massively over-included
-        # them (120 collected / 104 cursor on 2026-06-22; only ~2 were really today).
+        # historical cursor session look active in a later period and massively
+        # over-included them (120 collected / 104 cursor on 2026-06-22; only ~2
+        # were really created that day).
         # `createdAt` is the only honest activity signal cursor exposes; a session
-        # without it is left undated and dropped by finish_session's date filter.
+        # without it is left undated and dropped by finish_session's period filter.
         add_time(session, db_meta.get("createdAt"), created=True)
 
         try:
@@ -529,17 +631,31 @@ def collect_cursor_db(db_path: Path, source: str, target_day: dt.date, min_user_
                     session["directory"] = directory
             add_message(session, role, text, "cursor")
 
-        return finish_session(session, target_day, min_user_turns)
+        return finish_session(session, start_day, end_day, min_user_turns)
     finally:
         con.close()
 
 
-def collect_cursor(chats_root: Path, acp_root: Path, target_day: dt.date, min_user_turns: int, deep_scan: bool) -> list[dict[str, Any]]:
+def collect_cursor(
+    chats_root: Path,
+    acp_root: Path,
+    start_day: dt.date,
+    end_day: dt.date,
+    min_user_turns: int,
+    deep_scan: bool,
+) -> list[dict[str, Any]]:
     sessions: list[dict[str, Any]] = []
 
     if chats_root.exists():
         for db_path in sorted(chats_root.glob("*/*/store.db")):
-            session = collect_cursor_db(db_path, "cursor-chat-sqlite", target_day, min_user_turns, deep_scan)
+            session = collect_cursor_db(
+                db_path,
+                "cursor-chat-sqlite",
+                start_day,
+                end_day,
+                min_user_turns,
+                deep_scan,
+            )
             if session:
                 sessions.append(session)
 
@@ -550,7 +666,15 @@ def collect_cursor(chats_root: Path, acp_root: Path, target_day: dt.date, min_us
             db_path = session_dir / "store.db"
             if not db_path.exists():
                 continue
-            session = collect_cursor_db(db_path, "cursor-acp-sqlite", target_day, min_user_turns, deep_scan, session_dir / "meta.json")
+            session = collect_cursor_db(
+                db_path,
+                "cursor-acp-sqlite",
+                start_day,
+                end_day,
+                min_user_turns,
+                deep_scan,
+                session_dir / "meta.json",
+            )
             if session:
                 sessions.append(session)
 
@@ -571,7 +695,7 @@ def clip_text(text: str, max_chars: int) -> tuple[str, bool]:
     return text[:head].rstrip() + "\n...[truncated]...\n" + text[-tail:].lstrip(), True
 
 
-def transcript_for_output(messages: list[dict[str, str]], max_chars: int) -> tuple[list[dict[str, str]], bool]:
+def transcript_for_output(messages: list[dict[str, Any]], max_chars: int) -> tuple[list[dict[str, str]], bool]:
     if max_chars <= 0:
         return [], bool(messages)
 
@@ -581,7 +705,10 @@ def transcript_for_output(messages: list[dict[str, str]], max_chars: int) -> tup
         cap = 6_000 if msg.get("role") == "assistant" else 4_000
         clipped, was_clipped = clip_text(msg.get("text", ""), cap)
         text_was_clipped = text_was_clipped or was_clipped
-        prepared.append({"role": msg.get("role", ""), "text": clipped})
+        prepared_message = {"role": msg.get("role", ""), "text": clipped}
+        if msg.get("_at") is not None:
+            prepared_message["timestamp"] = local_iso(msg["_at"]) or ""
+        prepared.append(prepared_message)
 
     total = sum(len(msg["text"]) + len(msg["role"]) + 8 for msg in prepared)
     if total <= max_chars:
@@ -614,7 +741,10 @@ def transcript_for_output(messages: list[dict[str, str]], max_chars: int) -> tup
         cost = len(clipped) + len(msg["role"]) + 8
         if used + cost > max_chars and output:
             break
-        output.append({"role": msg["role"], "text": clipped})
+        output_message = {"role": msg["role"], "text": clipped}
+        if msg.get("timestamp"):
+            output_message["timestamp"] = msg["timestamp"]
+        output.append(output_message)
         used += cost
         previous_index = idx
 
@@ -659,7 +789,16 @@ def dedupe_cursor_sessions(sessions: list[dict[str, Any]]) -> list[dict[str, Any
         existing["title"] = existing.get("title") or session.get("title")
         existing["_activity_times"].extend(session.get("_activity_times", []))
         existing["_created_candidates"].extend(session.get("_created_candidates", []))
-        existing["last_activity_at"] = max(existing["_activity_times"]) if existing.get("_activity_times") else existing.get("last_activity_at")
+        active_dates = set(existing.get("active_dates", [])) | set(session.get("active_dates", []))
+        existing["active_dates"] = sorted(active_dates)
+        period_times = [
+            value
+            for value in existing.get("_activity_times", [])
+            if value.astimezone(LOCAL_TZ).date().isoformat() in active_dates
+        ]
+        if period_times:
+            existing["first_activity_at"] = min(period_times)
+            existing["last_activity_at"] = max(period_times)
 
     return result
 
@@ -674,7 +813,9 @@ def public_session(session: dict[str, Any], max_session_chars: int, no_transcrip
         "directory": session.get("directory"),
         "title": session.get("title"),
         "created_at": local_iso(session.get("created_at")),
+        "first_activity_at": local_iso(session.get("first_activity_at")),
         "last_activity_at": local_iso(session.get("last_activity_at")),
+        "active_dates": session.get("active_dates", []),
         "user_turns": session.get("user_turns", 0),
         "assistant_turns": session.get("assistant_turns", 0),
         "message_count": session.get("message_count", 0),
@@ -688,11 +829,56 @@ def public_session(session: dict[str, Any], max_session_chars: int, no_transcrip
 # CLI
 
 
+def resolve_period(args: argparse.Namespace, parser: argparse.ArgumentParser) -> tuple[dt.date, dt.date]:
+    selectors = sum(
+        (
+            bool(args.week),
+            bool(args.date),
+            bool(args.start_date or args.end_date),
+        )
+    )
+    if selectors > 1:
+        parser.error("Use only one of --week, --date, or --start-date/--end-date")
+
+    try:
+        if args.week:
+            return parse_week(args.week)
+        if args.date:
+            day = parse_day(args.date)
+            return day, day
+        if args.start_date or args.end_date:
+            if not args.start_date or not args.end_date:
+                parser.error("--start-date and --end-date must be supplied together")
+            start, end = parse_day(args.start_date), parse_day(args.end_date)
+            if start > end:
+                parser.error("--start-date must be on or before --end-date")
+            return start, end
+    except ValueError as exc:
+        parser.error(str(exc))
+
+    return default_period(dt.datetime.now(tz=LOCAL_TZ).date())
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Collect local agent sessions active on a date into normalized JSON.")
-    parser.add_argument("--date", default=dt.datetime.now(tz=LOCAL_TZ).date().isoformat(), help="Local date to collect, YYYY-MM-DD. Defaults to today.")
-    parser.add_argument("--min-user-turns", type=int, default=2, help="Minimum substantive user prompts per session. Default: 2.")
-    parser.add_argument("--max-session-chars", type=int, default=30_000, help="Max transcript characters per session. Use 0 for metadata only. Default: 30000.")
+    parser = argparse.ArgumentParser(
+        description="Collect local agent sessions active during a date range into normalized JSON."
+    )
+    parser.add_argument("--week", help="ISO week to collect, YYYY-Www.")
+    parser.add_argument("--start-date", help="First local date to collect, YYYY-MM-DD. Use with --end-date.")
+    parser.add_argument("--end-date", help="Last local date to collect, YYYY-MM-DD. Use with --start-date.")
+    parser.add_argument("--date", help="Collect one local date, YYYY-MM-DD. Retained for single-day compatibility.")
+    parser.add_argument(
+        "--min-user-turns",
+        type=int,
+        default=2,
+        help="Minimum substantive user prompts per session. Default: 2.",
+    )
+    parser.add_argument(
+        "--max-session-chars",
+        type=int,
+        default=30_000,
+        help="Max transcript characters per session. Use 0 for metadata only. Default: 30000.",
+    )
     parser.add_argument("--no-transcript", action="store_true", help="Emit metadata without transcript text.")
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON.")
     parser.add_argument("--deep-scan", action="store_true", help="Scan all stored sessions instead of prefiltering by file mtime. Slower, useful for historical dates.")
@@ -707,7 +893,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
-    target_day = parse_day(args.date)
+    start_day, end_day = resolve_period(args, parser)
 
     roots = {
         "pi": str(Path(args.pi_root).expanduser()),
@@ -718,17 +904,51 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     sessions: list[dict[str, Any]] = []
-    sessions.extend(collect_pi(Path(args.pi_root).expanduser(), target_day, args.min_user_turns, args.deep_scan))
-    sessions.extend(collect_claude(Path(args.claude_projects_root).expanduser(), Path(args.claude_sessions_root).expanduser(), target_day, args.min_user_turns, args.deep_scan))
-    sessions.extend(collect_cursor(Path(args.cursor_chats_root).expanduser(), Path(args.cursor_acp_root).expanduser(), target_day, args.min_user_turns, args.deep_scan))
+    sessions.extend(
+        collect_pi(
+            Path(args.pi_root).expanduser(),
+            start_day,
+            end_day,
+            args.min_user_turns,
+            args.deep_scan,
+        )
+    )
+    sessions.extend(
+        collect_claude(
+            Path(args.claude_projects_root).expanduser(),
+            Path(args.claude_sessions_root).expanduser(),
+            start_day,
+            end_day,
+            args.min_user_turns,
+            args.deep_scan,
+        )
+    )
+    sessions.extend(
+        collect_cursor(
+            Path(args.cursor_chats_root).expanduser(),
+            Path(args.cursor_acp_root).expanduser(),
+            start_day,
+            end_day,
+            args.min_user_turns,
+            args.deep_scan,
+        )
+    )
     sessions = dedupe_cursor_sessions(sessions)
 
-    sessions.sort(key=lambda item: (item.get("last_activity_at") or dt.datetime.min.replace(tzinfo=LOCAL_TZ), item.get("agent", ""), item.get("id", "")))
+    sessions.sort(
+        key=lambda item: (
+            item.get("last_activity_at") or dt.datetime.min.replace(tzinfo=LOCAL_TZ),
+            item.get("agent", ""),
+            item.get("id", ""),
+        )
+    )
 
     public_sessions = [public_session(session, args.max_session_chars, args.no_transcript) for session in sessions]
 
     output = {
-        "date": target_day.isoformat(),
+        "period_start": start_day.isoformat(),
+        "period_end": end_day.isoformat(),
+        "iso_week": iso_week_label(start_day, end_day),
         "generated_at": dt.datetime.now(tz=LOCAL_TZ).isoformat(timespec="seconds"),
         "timezone": str(LOCAL_TZ),
         "min_user_turns": args.min_user_turns,

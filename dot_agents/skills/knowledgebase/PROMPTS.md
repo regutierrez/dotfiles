@@ -23,7 +23,7 @@ Use the knowledgebase skill to search for our current understanding of <topic>. 
 ## Weekly promotion review
 
 ```text
-Use the knowledgebase skill in weekly-review mode. Review the seven most recent notes in 00 Capture and propose at most five high-value promotions or merges. Search for an existing canonical owner for each item. Show the destination, merge-or-create operation, why it is expensive to rediscover, and the meaningful incoming link you would add. Do not edit yet.
+Use the knowledgebase skill in weekly-review mode. Review the seven most recent notes in 00 Capture and the matching raw source under 40 Sources/Agent Session Recaps when present. Treat the recap's Possible capture gaps only as secondary evidence. Propose at most five high-value promotions or merges, search for an existing canonical owner for each, and show the destination, merge-or-create operation, why it is expensive to rediscover, and the meaningful incoming link you would add. Do not edit yet.
 ```
 
 ## Apply an approved weekly review
