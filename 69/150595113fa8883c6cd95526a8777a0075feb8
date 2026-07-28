@@ -1,0 +1,24 @@
+dot_agents/skills/manage-worktree/akkio-create-worktree.md
+  s_09abe94c350484::t_9773e8b4aa5d21 3,5,7-8,10,15,18,20,22,26,28,30-34,36,38,40,42,44,48,51,53,55,57-61,63,65,67-68,71-73,76,78,80,83,86-87,92,99,101-117
+  s_09abe94c350484::t_3919541f8ae177 1-2,4,6,9,11-14,16-17,19,21,23,25,27,29,35,37,39,41,43,45-47,49-50,52,54,56,62,64,66,69-70,74-75,77,79,81-82,84-85,88-91,93-98,100
+  s_09abe94c350484::t_19a71c851f4f1c 24
+dot_agents/skills/manage-worktree/SKILL.md
+  s_09abe94c350484::t_78d5057b539d0a 30
+  s_09abe94c350484::t_08d0085763e289 18,20-24,26,28,32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "69150595113fa8883c6cd95526a8777a0075feb8",
+  "prompts": {},
+  "sessions": {
+    "s_09abe94c350484": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-a0281336-0dc2-4147-927a-4517baedbf8b",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
