@@ -15,55 +15,18 @@ Use Worktrunk for all worktree operations. Run from inside the repo, or pass `-C
 - Use `$HOME`/`~`; never hard-coded `/Users/...` paths.
 - Don't use `git worktree` directly — go through `wt`.
 
-## Akkio repo — create workflow
+## Creating a worktree
 
-When creating a worktree for `~/Akkio`, follow this sequence. Do not skip confirmation or setup.
+1. Propose a branch name (repo-specific rules may apply — see below).
+2. Confirm with the user before `wt switch --create`.
+3. Create: `wt switch --create <branch> -C <repo> [--base <base>]`.
+4. Resolve the worktree path from `wt switch --format json` or `git -C <repo> worktree list`.
+5. Run any repo-specific bootstrap in the new worktree (see below).
 
-### 1. Propose branch name
+Stop on first failure; capture stderr/stdout. Report branch, path, and which bootstrap steps completed.
 
-Branch must be `pael-akkio/<slug>`:
+## Akkio (`~/Akkio`)
 
-- If the user already gave a good branch slug, use it after the prefix.
-- Otherwise derive a slug from the issue/task: **6–8 hyphenated words** that best describe the work (lowercase, no spaces).
-- Examples: `pael-akkio/fix-chart-access-gate`, `pael-akkio/agent-finegrained-observability-hooks`.
+**Only when creating a worktree for the Akkio repo:** read and follow [akkio-create-worktree.md](akkio-create-worktree.md) in full. It adds branch naming, stack-profile selection (`ui-only` / `web-only` / `full-web-ml`), bootstrap (`worktree:setup`, `wt-stack`, VPN), and agent overrides — not the generic `wt` steps above.
 
-### 2. Confirm with user
-
-Before running `wt switch --create`, show the proposed branch name and the short description it encodes. Ask whether the description is good enough to use as the branch slug. Revise until the user approves or supplies their own slug.
-
-### 3. Create worktree
-
-From the Akkio repo:
-
-```sh
-wt switch --create <branch> -C ~/Akkio [--base <base>]
-```
-
-Use `--base` when the task needs a specific release branch (e.g. `release/horizon-staging`, `release/horizon-production`). Resolve the new worktree path from `wt switch --format json` or `git -C ~/Akkio worktree list`.
-
-### 4. Bootstrap the worktree
-
-In the new worktree directory, run in order:
-
-```sh
-cd <worktree_path>
-mise trust
-mise install
-npm install
-"$HOME/repos/akkio-agent-overrides/bin/akkio-bootstrap" <worktree_path>
-"$HOME/.local/bin/akkio-overrides-visibility" hide <worktree_path>
-```
-
-`akkio-bootstrap` wires `~/.local/bin/akkio-*` if needed, installs override hooks into the worktree, and applies overrides once. `hide` sets `skip-worktree` on tracked override files for this worktree only.
-
-Stop on first failure; capture stderr/stdout.
-
-### 5. Report
-
-When all steps succeed, report:
-
-- branch name
-- worktree path
-- that `mise trust`, `mise install`, `npm install`, and agent overrides completed
-
-On failure, report which step failed and the exact error output. Do not claim success for steps that did not finish.
+Do not load that file for switch/list/remove/merge/prune on Akkio or for worktrees in other repos.
