@@ -54,6 +54,20 @@ bash "$(chezmoi source-path)/bootstrap"
 
 The package command only ensures packages are present; it does not deliberately upgrade existing Homebrew packages.
 
+## Amp shell history
+
+The managed Amp plugin at `~/.config/amp/plugins/atuin-history.ts` records commands run through Amp's shell tool in Atuin. Entries use `amp` as the author and include the Amp thread ID and title as intent. Atuin supplies the timestamp, working directory, hostname, exit code, and duration.
+
+View the recorded commands with:
+
+```bash
+atuin search --author amp
+```
+
+This is command history, not a complete audit log. It does not capture Amp's non-shell tools or command output. An `ssh` command is recorded as the local outer command, not as each command run by the remote shell. Commands that are still running when Amp's shell tool returns only reflect that initial result.
+
+Atuin applies its configured history and secret filters. Even so, do not put secrets directly in command arguments: any command that passes those filters is stored in the local Atuin database and may be synced by Atuin.
+
 ## Profiles and skills
 
 Profile behavior lives in [`.chezmoiignore`](.chezmoiignore). Skill membership lives in [`.chezmoidata.toml`](.chezmoidata.toml):
