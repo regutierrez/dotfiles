@@ -1,0 +1,22 @@
+dot_agents/skills/manage-worktree/akkio-create-worktree.md
+  s_a009f79fd3eb28::t_ce8b97d2bf811e 3-5
+dot_agents/skills/manage-worktree/SKILL.md
+  s_a009f79fd3eb28::t_dc5ec30c1b21c8 39-46
+  s_a009f79fd3eb28::t_612d588c121f14 18-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1df01513c515520f5c39a36da666adefe8e5e54f",
+  "prompts": {},
+  "sessions": {
+    "s_a009f79fd3eb28": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-f6d55202-06d3-4561-8ebb-14b01292a0c0",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
