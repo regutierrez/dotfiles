@@ -1,0 +1,43 @@
+dot_config/finicky/finicky.js
+  s_0eac49bc716f48::t_e225b88009717d 99,101,104-122
+  s_0eac49bc716f48::t_81933d019d7060 10-13
+  s_0eac49bc716f48::t_45b235e3c419c7 21-30
+dot_zshrc.tmpl
+  s_bc9b643400c7b6::t_f3590da6976988 43,46-49
+  s_bc9b643400c7b6::t_dda75ee7c5d153 50
+dot_pi/agent/APPEND_SYSTEM.md
+  s_80730d7a29a174::t_e0cf4413c0e0b1 9-19
+  s_80730d7a29a174::t_5ffcba67b40b13 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "ff1debb04b552bfe5ff5ab399d0d2d9e637ebddf",
+  "prompts": {},
+  "sessions": {
+    "s_0eac49bc716f48": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-705fe56e-23e4-430d-b031-75825761ec88",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_80730d7a29a174": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-d56a7ac7-c982-4f76-9cf2-afdd39ad1ede",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_bc9b643400c7b6": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-2782a13a-0afb-47f2-8135-e5bb2b6083b9",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
