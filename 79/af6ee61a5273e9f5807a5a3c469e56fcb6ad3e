@@ -1,0 +1,19 @@
+dot_agents/skills/manage-worktree/SKILL.md
+  s_0d18b285379303::t_8f2c4d3aff6ab8 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "79af6ee61a5273e9f5807a5a3c469e56fcb6ad3e",
+  "prompts": {},
+  "sessions": {
+    "s_0d18b285379303": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-3c141f0a-5ccf-4d0c-ba89-a1b80bafb2c3",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
