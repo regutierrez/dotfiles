@@ -1,0 +1,98 @@
+.chezmoiremove
+  s_f35a6ef90109ba::t_770309a4fdce5e 19-21
+dot_agents/skills/locating-request-origin/SKILL.md
+  s_9cf4d25f33052a::t_15b2e3f7fdaa5b 1-106
+.chezmoidata.toml
+  s_98fde431093c46::t_d7ade902f02b69 41
+dot_pi/agent/agents/reviewer.md
+  s_3e3df9b86e0291::t_1048af01df9fb6 4,7-9
+  s_3e3df9b86e0291::t_494b6854a87c26 101-104
+dot_pi/agent/agents/explore.md
+  s_f35a6ef90109ba::t_578e5ecfd10366 3-4,6-9,12,20,22,24,27,29-30,43
+dot_pi/agent/README.md
+  s_f35a6ef90109ba::t_763687df89ff77 21
+dot_pi/agent/agents/planner.md
+  s_3e3df9b86e0291::t_d3f8e21341529e 34
+  s_3e3df9b86e0291::t_b2b2e1b8bf3701 67-70
+  s_3e3df9b86e0291::t_24d87336ed2d7a 4,8-11
+dot_pi/agent/agents/impl.md
+  s_f35a6ef90109ba::t_da248075a71e61 3-4,7-10,15,17,19,21,23-27,29,33-35,37,40-41
+dot_pi/agent/agents/librarian.md
+  s_3e3df9b86e0291::t_e375b8f8b989da 94-97
+  s_3e3df9b86e0291::t_fa8e7f14405fff 4,8-10
+dot_pi/agent/agents/general-purpose.md
+  s_f35a6ef90109ba::t_61875dcd7b3a71 3-4,7-10,12-15
+dot_agents/skills/batch-rca/SKILL.md
+  s_3e3df9b86e0291::t_f1878745376cb7 5
+  s_f35a6ef90109ba::t_24b09914c3bab3 95
+  s_f35a6ef90109ba::t_04f917ba3e5c33 65,67
+  s_3e3df9b86e0291::t_f83d7d65123b29 69
+  s_3e3df9b86e0291::t_7d635c73a5c74b 103
+dot_config/finicky/finicky.js
+  s_42115ea56afef9::t_0e983214edd250 70
+  s_42115ea56afef9::t_75ab6cc4d6973d 52
+  s_09abe94c350484::t_188de4ed7cbace 69,71-72
+dot_agents/skills/rca/SKILL.md
+  s_9cf4d25f33052a::t_15b2e3f7fdaa5b 95-102,187-188
+dot_pi/agent/agents/oracle.md
+  s_3e3df9b86e0291::t_e96bbdfe42c8de 130-133
+  s_f35a6ef90109ba::t_c37af0fc562d2d 47
+  s_3e3df9b86e0291::t_070e4a54eb5746 4,7-10
+  s_f35a6ef90109ba::t_6420afb1a09e10 118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "19b56f12473b3a649b923b5296ebc5470b2ceaca",
+  "prompts": {},
+  "sessions": {
+    "s_09abe94c350484": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-a0281336-0dc2-4147-927a-4517baedbf8b",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_3e3df9b86e0291": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-c276a12a-cf30-4cc6-bdd1-d02e11113853",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_42115ea56afef9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-d8d99b44-8495-4b71-88be-be1d01567e13",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_98fde431093c46": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033wo8ZUb0bjbsEeyP3br2",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_9cf4d25f33052a": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-033wo6ED2kiEg1jN8XWb3X",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_f35a6ef90109ba": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-8739bca2-efff-428c-b756-bc67ab1c7ef0",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
