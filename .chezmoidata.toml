@@ -38,6 +38,7 @@ work = [
   "akkio-investigate",
   "batch-rca",
   "daily-agent-session-recap",
+  "locating-request-origin",
   "query-postgres-hz",
   "query-snowflake-hz",
   "rca",

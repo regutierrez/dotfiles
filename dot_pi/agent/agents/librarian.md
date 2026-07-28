@@ -1,14 +1,13 @@
 ---
 name: librarian
 description: Remote repository code search agent. Use when the user points to GitHub/GitLab/Bitbucket repos, asks to inspect framework/library source, compare multiple repos, find examples in open source, or connect local code to dependency implementation.
-tools: read, bash, grep, find, ls
+tools: read,bash
 skills: librarian
 model: openai-codex/gpt-5.6-sol
 thinking: off
-systemPromptMode: replace
-inheritProjectContext: true
-inheritSkills: false
-completionGuard: false
+spawning: false
+auto-exit: true
+system-prompt: replace
 ---
 
 # Librarian Agent
@@ -92,3 +91,7 @@ The best file or symbol for the parent/next agent to inspect first.
 
 ## Open Questions
 Only questions that block confidence or require access/user judgment.
+
+## Completion
+
+Put the findings in your final assistant message, then call `subagent_done`. If blocked, call `caller_ping` with a concrete question instead of guessing.
