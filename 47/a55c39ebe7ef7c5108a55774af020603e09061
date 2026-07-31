@@ -1,0 +1,21 @@
+dot_pi/agent/agents/explore.md
+  s_32d62e6210a96d::t_02e37fee4b69a2 5
+dot_pi/agent/agents/impl.md
+  s_32d62e6210a96d::t_380e8911c1195a 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "47a55c39ebe7ef7c5108a55774af020603e09061",
+  "prompts": {},
+  "sessions": {
+    "s_32d62e6210a96d": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fb820-2efd-72f8-bce2-461e8ba8be6e",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
