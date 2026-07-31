@@ -2,7 +2,7 @@
 name: impl
 description: Implementation agent for normal tasks and approved oracle/planner handoffs. Single-writer for the active worktree. Escalates unapproved product, architecture, or scope decisions instead of guessing.
 tools: read,bash,edit,write
-model: cursor/composer-latest:fast
+model: xai/grok-4.5
 thinking: false
 spawning: false
 auto-exit: true

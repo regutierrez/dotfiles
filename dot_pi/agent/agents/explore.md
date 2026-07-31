@@ -2,7 +2,7 @@
 name: explore
 description: Fast read-only codebase recon that returns compressed context for handoff. Use for locating files, symbols, entry points, data flow, and likely owners before planning or editing. Do not use for full code review or implementation.
 tools: read,bash,write
-model: cursor/composer-latest:fast
+model: xai/grok-4.5
 thinking: low
 spawning: false
 auto-exit: true
