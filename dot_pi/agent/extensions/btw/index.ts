@@ -3,6 +3,7 @@ import {
 	createAgentSession,
 	createExtensionRuntime,
 	getAgentDir,
+	getMarkdownTheme,
 	SessionManager,
 	type AgentSession,
 	type ExtensionAPI,
@@ -10,12 +11,14 @@ import {
 	type ResourceLoader,
 } from "@earendil-works/pi-coding-agent";
 import type { AssistantMessage, Model, ThinkingLevel } from "@earendil-works/pi-ai";
-import { Box, Text } from "@earendil-works/pi-tui";
+import { Container, Markdown, Text, type Component } from "@earendil-works/pi-tui";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const MESSAGE_TYPE = "btw-thread";
 const MAX_SLOTS = 9;
+const COLLAPSED_ANSWER_LINES = 3;
+const EXPANDED_ANSWER_LINES = 40;
 const CONFIG_PATH = join(getAgentDir(), "btw.json");
 const BTW_SYSTEM_PROMPT = [
 	"You are BTW, a side-channel assistant embedded in the user's coding agent.",
@@ -184,23 +187,67 @@ function findStringByKey(value: unknown, key: string): string | undefined {
 	return undefined;
 }
 
+export type BtwLifecycleAction = "inject" | "clear" | "fork";
+
 export type BtwCommand =
 	| { action: "show" }
 	| { action: "ask"; question: string; slot?: number }
 	| { action: "select"; slot: number }
-	| { action: "inject" | "clear" | "fork" };
+	| { action: BtwLifecycleAction; slot?: number }
+	| { action: "error"; message: string };
+
+/** Map a 1-based `/btw N` slot to the 0-based in-memory index. */
+export function resolveBtwSlotIndex(slot: number | undefined, activeIndex: number): number {
+	if (slot === undefined) return activeIndex;
+	return slot - 1;
+}
+
+function parseSlotNumber(raw: string): number | { error: string } {
+	const slot = Number(raw);
+	if (!Number.isInteger(slot) || slot < 1 || slot > MAX_SLOTS) {
+		return { error: `BTW slots are 1 through ${MAX_SLOTS}.` };
+	}
+	return slot;
+}
+
+function lifecycleAction(raw: string): BtwLifecycleAction | undefined {
+	if (raw === "inject" || raw === "fork") return raw;
+	if (raw === "clear" || raw === "discard") return "clear";
+	return undefined;
+}
 
 export function parseBtwCommand(args: string): BtwCommand {
 	const trimmed = args.trim();
 	if (!trimmed) return { action: "show" };
-	if (trimmed === "inject" || trimmed === "fork") return { action: trimmed };
-	if (trimmed === "clear" || trimmed === "discard") return { action: "clear" };
 
-	const numbered = trimmed.match(/^(\d+)(?:\s+([\s\S]+))?$/u);
+	// "inject", "inject 2", "discard 1", "fork 3"
+	const actionFirst = trimmed.match(/^(inject|fork|clear|discard)(?:\s+(\d+))?$/u);
+	if (actionFirst) {
+		const action = lifecycleAction(actionFirst[1]!)!;
+		if (!actionFirst[2]) return { action };
+		const slot = parseSlotNumber(actionFirst[2]);
+		if (typeof slot === "object") return { action: "error", message: slot.error };
+		return { action, slot };
+	}
+
+	// Older UI labels looked like "BTW 2.1"; that is a turn id, not a slot command.
+	if (/^\d+\.\d+/u.test(trimmed)) {
+		return {
+			action: "error",
+			message: 'Use "/btw N question" with a space after the slot number (example: /btw 2 what broke?).',
+		};
+	}
+
+	// Allow "/btw 2 q", "/btw #2 q", "/btw 2 inject". Require the number to be its own token.
+	const numbered = trimmed.match(/^#?(\d+)(?:\s+([\s\S]+))?$/u);
 	if (!numbered) return { action: "ask", question: trimmed };
-	const slot = Number(numbered[1]);
-	const question = numbered[2]?.trim();
-	return question ? { action: "ask", slot, question } : { action: "select", slot };
+	const slot = parseSlotNumber(numbered[1]!);
+	if (typeof slot === "object") return { action: "error", message: slot.error };
+	const rest = numbered[2]?.trim();
+	if (!rest) return { action: "select", slot };
+	const lifecycle = lifecycleAction(rest);
+	if (lifecycle) return { action: lifecycle, slot };
+	return { action: "ask", slot, question: rest };
 }
 
 function compactText(value: string, max = 70): string {
@@ -208,8 +255,52 @@ function compactText(value: string, max = 70): string {
 	return oneLine.length <= max ? oneLine : `${oneLine.slice(0, max - 1)}…`;
 }
 
+/** Collapse answer text for the compact BTW widget body. */
+export function previewAnswer(value: string, maxLines = COLLAPSED_ANSWER_LINES, maxChars = 240): string {
+	const normalized = value.replace(/\r\n/gu, "\n").trim();
+	if (!normalized) return "";
+	const lines = normalized.split("\n").map((line) => line.trimEnd());
+	const preview = lines.slice(0, maxLines).join("\n");
+	const lineTruncated = lines.length > maxLines;
+	if (preview.length > maxChars) {
+		return `${preview.slice(0, Math.max(0, maxChars - 1))}…`;
+	}
+	if (lineTruncated) return `${preview}
+…`;
+	return preview;
+}
+
 function completedTurns(slot: BtwSlot): BtwTurn[] {
 	return slot.turns.filter((turn) => turn.answer || turn.error);
+}
+
+/** True when a stored BTW result still belongs to a live (not discarded) generation. */
+export function shouldDisplayBtwRecord(
+	record: Pick<BtwRecord, "kind" | "generation"> | undefined,
+	clearedGenerations: ReadonlySet<string>,
+): boolean {
+	if (!record || record.kind === "cleared") return false;
+	return !clearedGenerations.has(record.generation);
+}
+
+function limitComponent(component: Component, maxLines: number, overflowLine: string): Component {
+	return {
+		invalidate() {
+			component.invalidate();
+		},
+		render(width: number) {
+			const lines = component.render(width);
+			if (lines.length <= maxLines) return lines;
+			// Keep real content on screen. A 1-line budget must not collapse to only "…".
+			if (maxLines <= 1) return lines.slice(0, 1);
+			return [...lines.slice(0, maxLines - 1), overflowLine];
+		},
+	};
+}
+
+function prefixTextLines(text: string, prefix: string, color: (value: string) => string): string[] {
+	const lines = text.length > 0 ? text.split("\n") : [""];
+	return lines.map((line) => `${prefix}${color(line)}`);
 }
 
 function formatTurns(turns: BtwTurn[]): string {
@@ -247,7 +338,9 @@ function promotionText(slot: BtwSlot): string {
 export default function btwExtension(pi: ExtensionAPI): void {
 	let slots: Array<BtwSlot | undefined> = [];
 	let activeIndex = 0;
+	let answerExpanded = false;
 	let lastContext: ExtensionContext | undefined;
+	const clearedGenerations = new Set<string>();
 
 	function listSlots(): BtwSlot[] {
 		return slots.filter((slot): slot is BtwSlot => slot !== undefined);
@@ -288,52 +381,160 @@ export default function btwExtension(pi: ExtensionAPI): void {
 		return "ready";
 	}
 
+	/** Focus an existing slot for actions; do not create empty slots. */
+	function focusExistingSlot(index: number): BtwSlot | undefined {
+		const slot = slots[index];
+		if (!slot) return undefined;
+		if (activeIndex !== index) answerExpanded = false;
+		activeIndex = index;
+		return slot;
+	}
+
 	function renderWidget(ctx: ExtensionContext): void {
 		lastContext = ctx;
 		const existing = listSlots();
 		if (existing.length === 0) {
+			answerExpanded = false;
 			ctx.ui.setWidget("btw", undefined);
 			return;
 		}
 
-		const slot = activeSlot() ?? existing[0];
-		activeIndex = slot.index;
-		const theme = ctx.ui.theme;
-		const labels = existing
-			.map((item) => {
-				const label = String(item.index + 1);
-				if (item.index === activeIndex) return theme.fg("accent", `[${label}]`);
-				if (status(item) === "running") return theme.fg("warning", `${label}●`);
-				if (status(item) === "failed") return theme.fg("error", `${label}!`);
-				if (status(item) === "answered") return theme.fg("success", `${label}✓`);
-				return theme.fg("dim", label);
-			})
-			.join(" ");
-		const latest = slot.turns.at(-1);
-		const tone = status(slot) === "failed" ? "error" : status(slot) === "running" ? "warning" : "success";
-		const lines = [
-			`${theme.fg("accent", "╭─ btw")} ${theme.fg(tone, status(slot))} ${theme.fg("dim", `slots ${labels}`)}`,
-		];
-		if (latest) {
-			lines.push(`${theme.fg("muted", "│ Q")} ${compactText(latest.question, 100)}`);
-			if (latest.status === "running" || latest.status === "queued") {
-				lines.push(theme.fg("warning", "│ … thinking"));
-			} else if (latest.error) {
-				lines.push(`${theme.fg("error", "│ ✗")} ${compactText(latest.error, 100)}`);
-			} else {
-				lines.push(theme.fg("success", `│ ✓ answered — see BTW ${slot.index + 1}.${latest.turn} above`));
-			}
-		}
-		lines.push(theme.fg("dim", "╰─ alt+z compose · alt+c inject · alt+x discard · alt+shift+f fork"));
-		ctx.ui.setWidget("btw", lines, { placement: "aboveEditor" });
+		const active = activeSlot() ?? existing[0];
+		activeIndex = active.index;
+		// Expand/collapse and other actions target the selected (bracketed) slot only.
+		const canExpand = completedTurns(active).some((turn) => Boolean(turn.answer || turn.error));
+		if (!canExpand) answerExpanded = false;
+
+		ctx.ui.setWidget(
+			"btw",
+			(_tui, theme) => {
+				const container = new Container();
+				const rail = theme.fg("muted", "│");
+				// Header keeps only the selected marker — no "btw 1✓ [2]" soup.
+				container.addChild(
+					new Text(
+						`${theme.fg("accent", "╭─ btw")} ${theme.fg("accent", `[${active.index + 1}]`)}`,
+						0,
+						0,
+					),
+				);
+
+				// Color pattern:
+				// - chrome/rails: muted
+				// - selected marker [N]: accent
+				// - idle markers: dim
+				// - questions: bold warning (yellow)
+				// - answers: text (white/readable; toolOutput is too gray)
+				// - running/error: warning/error only on those lines
+				for (const [slotPos, slot] of existing.entries()) {
+					if (slotPos > 0) container.addChild(new Text(rail, 0, 0));
+
+					const isActive = slot.index === activeIndex;
+					const marker = isActive
+						? theme.fg("accent", `[${slot.index + 1}]`)
+						: theme.fg("dim", ` ${slot.index + 1} `);
+					const done = completedTurns(slot);
+					const latest = slot.turns.at(-1);
+					const expandThis = isActive && answerExpanded;
+					// Same collapsed budget for every slot so inactive answers are still readable.
+					const collapsedLines = COLLAPSED_ANSWER_LINES;
+					const collapsedChars = 240;
+					// Visual indent under "│ [N] " / "│  N  ".
+					const indent = `${rail}     `;
+					const markdownPad = 6;
+
+					const questionText = (question: string) => {
+						const text = compactText(question, 100);
+						// Yellow question; bold when this slot is selected.
+						const painted = theme.fg("warning", text);
+						return isActive ? theme.bold(painted) : painted;
+					};
+
+					const questionLine = (question: string, withMarker: boolean) =>
+						new Text(
+							withMarker ? `${rail} ${marker} ${questionText(question)}` : `${indent}${questionText(question)}`,
+							0,
+							0,
+						);
+
+					if (latest && (latest.status === "running" || latest.status === "queued")) {
+						container.addChild(questionLine(latest.question, true));
+						container.addChild(new Text(theme.fg("dim", `${indent}… thinking`), 0, 0));
+						continue;
+					}
+
+					if (done.length === 0 && latest?.error) {
+						container.addChild(questionLine(latest.question, true));
+						container.addChild(
+							new Text(`${indent}${theme.fg("error", compactText(latest.error, 100))}`, 0, 0),
+						);
+						continue;
+					}
+
+					if (done.length === 0) {
+						container.addChild(new Text(`${rail} ${marker} ${theme.fg("dim", "(empty)")}`, 0, 0));
+						continue;
+					}
+
+					const turns = expandThis ? done : done.slice(-1);
+					for (const [turnPos, turn] of turns.entries()) {
+						if (turnPos > 0) container.addChild(new Text(rail, 0, 0));
+						// Slot marker only on the first visible turn of the slot.
+						container.addChild(questionLine(turn.question, turnPos === 0));
+
+						if (turn.error) {
+							const body = expandThis
+								? turn.error
+								: previewAnswer(turn.error, collapsedLines, collapsedChars);
+							for (const line of prefixTextLines(body, indent, (value) => theme.fg("error", value))) {
+								container.addChild(new Text(line, 0, 0));
+							}
+							continue;
+						}
+
+						const answer = (turn.answer ?? "").trim();
+						if (!answer) {
+							container.addChild(new Text(`${indent}${theme.fg("dim", "(no answer)")}`, 0, 0));
+							continue;
+						}
+
+						// Always render through Markdown so **bold** / *italic* / lists work
+						// in both collapsed and expanded views (plain Text showed raw markers).
+						const maxLines = expandThis ? EXPANDED_ANSWER_LINES : collapsedLines;
+						const overflow = expandThis
+							? `${indent}… truncated — inject or fork for the full answer`
+							: `${indent}…`;
+						const markdown = new Markdown(answer, markdownPad, 0, getMarkdownTheme(), {
+							color: (value) => theme.fg("text", value),
+						});
+						container.addChild(limitComponent(markdown, maxLines, theme.fg("dim", overflow)));
+					}
+				}
+
+				const expandHint = canExpand ? (answerExpanded ? "alt+o collapse · " : "alt+o expand · ") : "";
+				container.addChild(
+					new Text(
+						theme.fg(
+							"dim",
+							`╰─ ${expandHint}alt+shift+j/k select · alt+z compose · alt+c inject · alt+x discard · alt+shift+f fork`,
+						),
+						0,
+						0,
+					),
+				);
+				return container;
+			},
+			{ placement: "aboveEditor" },
+		);
 	}
 
 	function appendRecord(record: BtwRecord): void {
+		// Persist for restore/inject/fork only. The widget owns on-screen presentation.
 		pi.sendMessage(
 			{
 				customType: MESSAGE_TYPE,
 				content: record.kind === "result" ? record.answer ?? record.error ?? "" : "",
-				display: record.kind === "result",
+				display: false,
 				details: record,
 			},
 			{ triggerTurn: false, deliverAs: "followUp" },
@@ -357,15 +558,28 @@ export default function btwExtension(pi: ExtensionAPI): void {
 			ctx.ui.notify("No BTW slot to discard.", "warning");
 			return;
 		}
+		// Mark first so in-flight turns drop output immediately.
+		clearedGenerations.add(slot.generation);
+		slots[slot.index] = undefined;
+		answerExpanded = false;
 		appendRecord({
 			kind: "cleared",
 			slot: slot.index + 1,
 			generation: slot.generation,
 			clearedAt: Date.now(),
 		});
-		slots[slot.index] = undefined;
 		await disposeSlotRuntime(slot);
 		activeIndex = listSlots()[0]?.index ?? 0;
+		renderWidget(ctx);
+	}
+
+	function toggleAnswerExpanded(ctx: ExtensionContext): void {
+		const slot = activeSlot();
+		if (!slot || completedTurns(slot).length === 0) {
+			ctx.ui.notify("No BTW answer to expand.", "warning");
+			return;
+		}
+		answerExpanded = !answerExpanded;
 		renderWidget(ctx);
 	}
 
@@ -382,9 +596,17 @@ export default function btwExtension(pi: ExtensionAPI): void {
 		].join("\n");
 	}
 
+	function isLiveTurn(slot: BtwSlot, generation: string): boolean {
+		return (
+			slot.generation === generation &&
+			slots[slot.index] === slot &&
+			!clearedGenerations.has(generation)
+		);
+	}
+
 	async function runTurn(ctx: ExtensionContext, slot: BtwSlot, turn: BtwTurn): Promise<void> {
 		const generation = slot.generation;
-		if (!ctx.model || slots[slot.index] !== slot) return;
+		if (!ctx.model || !isLiveTurn(slot, generation)) return;
 		turn.status = "running";
 		renderWidget(ctx);
 
@@ -417,7 +639,7 @@ export default function btwExtension(pi: ExtensionAPI): void {
 			session.agent.state.messages = mainMessages as typeof session.agent.state.messages;
 			await session.prompt(buildSidePrompt(slot, turn.question), { source: "extension" });
 
-			if (slot.generation !== generation || slots[slot.index] !== slot) return;
+			if (!isLiveTurn(slot, generation)) return;
 			const response = lastAssistant(session);
 			if (!response) throw new Error("BTW finished without an answer.");
 			if (response.stopReason === "error") throw new Error(response.errorMessage || "BTW failed.");
@@ -426,6 +648,8 @@ export default function btwExtension(pi: ExtensionAPI): void {
 			turn.answer = assistantText(response) || "(No text response)";
 			turn.status = "answered";
 			turn.finishedAt = Date.now();
+			// Recheck after mutation: discard during finalization must drop the answer.
+			if (!isLiveTurn(slot, generation)) return;
 			appendRecord({
 				kind: "result",
 				slot: slot.index + 1,
@@ -437,10 +661,11 @@ export default function btwExtension(pi: ExtensionAPI): void {
 				finishedAt: turn.finishedAt,
 			});
 		} catch (error) {
-			if (slot.generation !== generation || slots[slot.index] !== slot) return;
+			if (!isLiveTurn(slot, generation)) return;
 			turn.error = error instanceof Error ? error.message : String(error);
 			turn.status = "failed";
 			turn.finishedAt = Date.now();
+			if (!isLiveTurn(slot, generation)) return;
 			appendRecord({
 				kind: "result",
 				slot: slot.index + 1,
@@ -548,6 +773,8 @@ export default function btwExtension(pi: ExtensionAPI): void {
 	function restore(ctx: ExtensionContext): void {
 		slots = [];
 		activeIndex = 0;
+		answerExpanded = false;
+		clearedGenerations.clear();
 		const generations = new Map<string, { slot: number; generation: string; cleared: boolean; turns: BtwTurn[] }>();
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type !== "custom_message" || entry.customType !== MESSAGE_TYPE) continue;
@@ -563,6 +790,7 @@ export default function btwExtension(pi: ExtensionAPI): void {
 			generations.set(key, generation);
 			if (record.kind === "cleared") {
 				generation.cleared = true;
+				clearedGenerations.add(record.generation);
 			} else if (record.question && (record.answer || record.error)) {
 				generation.turns.push({
 					question: record.question,
@@ -589,22 +817,11 @@ export default function btwExtension(pi: ExtensionAPI): void {
 		renderWidget(ctx);
 	}
 
-	pi.registerMessageRenderer<BtwRecord>(MESSAGE_TYPE, (message, _options, theme) => {
-		const record = message.details;
-		if (!record || record.kind === "cleared") return undefined;
-		const box = new Box(1, 1, (value) => theme.bg("customMessageBg", value));
-		const title = record.error
-			? theme.fg("error", `BTW ${record.slot}.${record.turn ?? "?"} failed`)
-			: theme.fg("accent", `BTW ${record.slot}.${record.turn ?? "?"}`);
-		box.addChild(
-			new Text(
-				`${title} ${theme.fg("muted", "Q")} ${record.question ?? ""}\n\n${record.answer ?? record.error ?? String(message.content ?? "")}`,
-				0,
-				0,
-			),
-		);
-		return box;
-	});
+	// Answers render in the widget. Keep this renderer only to hide legacy display:true rows.
+	pi.registerMessageRenderer<BtwRecord>(MESSAGE_TYPE, () => ({
+		invalidate() {},
+		render: () => [],
+	}));
 
 	pi.on("context", (event) => {
 		const messages = event.messages.filter(
@@ -618,18 +835,44 @@ export default function btwExtension(pi: ExtensionAPI): void {
 	pi.on("session_shutdown", async () => {
 		const currentSlots = listSlots();
 		slots = [];
+		answerExpanded = false;
 		await Promise.all(currentSlots.map((slot) => disposeSlotRuntime(slot)));
 		lastContext?.ui.setWidget("btw", undefined);
 	});
 
 	pi.registerCommand("btw", {
-		description: "Ask a side question. /btw N selects a slot; /btw inject, clear, or fork manages it.",
+		description: "Ask a side question. /btw N selects; /btw N inject|discard|fork targets a slot.",
 		handler: async (args, ctx) => {
 			lastContext = ctx;
 			const command = parseBtwCommand(args);
-			if (command.action === "inject") return injectSlot(ctx);
-			if (command.action === "clear") return clearSlot(ctx);
+			if (command.action === "error") {
+				ctx.ui.notify(command.message, "warning");
+				return;
+			}
+
+			const focusCommandSlot = (): boolean => {
+				if (command.action === "show" || command.action === "ask" || command.action === "select") {
+					return true;
+				}
+				if (command.slot === undefined) return true;
+				const focused = focusExistingSlot(command.slot - 1);
+				if (!focused) {
+					ctx.ui.notify(`BTW slot ${command.slot} is empty.`, "warning");
+					return false;
+				}
+				return true;
+			};
+
+			if (command.action === "inject") {
+				if (!focusCommandSlot()) return;
+				return injectSlot(ctx);
+			}
+			if (command.action === "clear") {
+				if (!focusCommandSlot()) return;
+				return clearSlot(ctx);
+			}
 			if (command.action === "fork") {
+				if (!focusCommandSlot()) return;
 				try {
 					await promoteSlot(ctx);
 				} catch (error) {
@@ -640,12 +883,14 @@ export default function btwExtension(pi: ExtensionAPI): void {
 
 			try {
 				if (command.action === "select") {
-					ensureSlot(command.slot - 1);
+					// Selecting a bare number focuses if present, otherwise opens an empty slot.
+					const index = resolveBtwSlotIndex(command.slot, activeIndex);
+					if (!focusExistingSlot(index)) ensureSlot(index);
 					renderWidget(ctx);
 					return;
 				}
 				if (command.action === "ask") {
-					const slot = command.slot === undefined ? ensureSlot() : ensureSlot(command.slot - 1);
+					const slot = ensureSlot(resolveBtwSlotIndex(command.slot, activeIndex));
 					queueQuestion(ctx, slot, command.question);
 					return;
 				}
@@ -665,6 +910,10 @@ export default function btwExtension(pi: ExtensionAPI): void {
 			ctx.ui.setEditorText(draft.trim() ? `/btw ${draft}` : "/btw ");
 		},
 	});
+	pi.registerShortcut("alt+o", {
+		description: "Expand or collapse the active BTW answer",
+		handler: toggleAnswerExpanded,
+	});
 	pi.registerShortcut("alt+c", { description: "Inject and clear active BTW slot", handler: injectSlot });
 	pi.registerShortcut("alt+x", { description: "Discard active BTW slot", handler: clearSlot });
 	pi.registerShortcut("alt+shift+f", {
@@ -677,33 +926,29 @@ export default function btwExtension(pi: ExtensionAPI): void {
 			}
 		},
 	});
-	pi.registerShortcut("alt+h", {
-		description: "Previous BTW slot",
-		handler: (ctx) => {
-			const existing = listSlots();
-			if (existing.length === 0) return;
-			const position = Math.max(0, existing.findIndex((slot) => slot.index === activeIndex));
-			activeIndex = existing[(position - 1 + existing.length) % existing.length]!.index;
-			renderWidget(ctx);
-		},
+	const selectRelativeSlot = (ctx: ExtensionContext, delta: -1 | 1): void => {
+		const existing = listSlots();
+		if (existing.length === 0) return;
+		const position = Math.max(0, existing.findIndex((slot) => slot.index === activeIndex));
+		const next = existing[(position + delta + existing.length) % existing.length]!;
+		focusExistingSlot(next.index);
+		renderWidget(ctx);
+	};
+	// Vim-style: j/down = next slot; k/up = previous slot.
+	pi.registerShortcut("alt+shift+j", {
+		description: "Select next BTW slot",
+		handler: (ctx) => selectRelativeSlot(ctx, 1),
 	});
-	pi.registerShortcut("alt+l", {
-		description: "Next BTW slot",
-		handler: (ctx) => {
-			const existing = listSlots();
-			if (existing.length === 0) return;
-			const position = Math.max(0, existing.findIndex((slot) => slot.index === activeIndex));
-			activeIndex = existing[(position + 1) % existing.length]!.index;
-			renderWidget(ctx);
-		},
+	pi.registerShortcut("alt+shift+down", {
+		description: "Select next BTW slot",
+		handler: (ctx) => selectRelativeSlot(ctx, 1),
 	});
-	for (let slot = 1; slot <= MAX_SLOTS; slot++) {
-		pi.registerShortcut(`alt+${slot}` as "alt+1", {
-			description: `Open BTW slot ${slot}`,
-			handler: (ctx) => {
-				ensureSlot(slot - 1);
-				renderWidget(ctx);
-			},
-		});
-	}
+	pi.registerShortcut("alt+shift+k", {
+		description: "Select previous BTW slot",
+		handler: (ctx) => selectRelativeSlot(ctx, -1),
+	});
+	pi.registerShortcut("alt+shift+up", {
+		description: "Select previous BTW slot",
+		handler: (ctx) => selectRelativeSlot(ctx, -1),
+	});
 }

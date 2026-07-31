@@ -5,8 +5,11 @@ import {
 	commandForFork,
 	inheritedRuntimeOptions,
 	parseBtwCommand,
+	previewAnswer,
+	resolveBtwSlotIndex,
 	selectBtwModel,
 	shellQuote,
+	shouldDisplayBtwRecord,
 } from "../index.ts";
 
 test("parses BTW questions, slot selection, and lifecycle actions", () => {
@@ -20,10 +23,30 @@ test("parses BTW questions, slot selection, and lifecycle actions", () => {
 		slot: 2,
 		question: "why did this fail?",
 	});
+	assert.deepEqual(parseBtwCommand("#2 why did this fail?"), {
+		action: "ask",
+		slot: 2,
+		question: "why did this fail?",
+	});
 	assert.deepEqual(parseBtwCommand("2"), { action: "select", slot: 2 });
 	assert.deepEqual(parseBtwCommand("inject"), { action: "inject" });
 	assert.deepEqual(parseBtwCommand("discard"), { action: "clear" });
 	assert.deepEqual(parseBtwCommand("fork"), { action: "fork" });
+	assert.deepEqual(parseBtwCommand("inject 2"), { action: "inject", slot: 2 });
+	assert.deepEqual(parseBtwCommand("2 discard"), { action: "clear", slot: 2 });
+	assert.deepEqual(parseBtwCommand("discard 1"), { action: "clear", slot: 1 });
+	assert.deepEqual(parseBtwCommand("#3 fork"), { action: "fork", slot: 3 });
+	assert.equal(parseBtwCommand("2.1 continue").action, "error");
+	assert.equal(parseBtwCommand("0 nope").action, "error");
+	assert.equal(parseBtwCommand("inject 0").action, "error");
+});
+
+test("resolves 1-based slot numbers onto distinct in-memory indexes", () => {
+	assert.equal(resolveBtwSlotIndex(undefined, 0), 0);
+	assert.equal(resolveBtwSlotIndex(undefined, 3), 3);
+	assert.equal(resolveBtwSlotIndex(1, 3), 0);
+	assert.equal(resolveBtwSlotIndex(2, 0), 1);
+	assert.equal(resolveBtwSlotIndex(9, 0), 8);
 });
 
 test("shell-quotes fork arguments without changing their contents", () => {
@@ -67,4 +90,23 @@ test("builds an interactive pi --fork command", () => {
 	assert.ok(command.includes(shellQuote("/tmp/main session.jsonl")));
 	assert.ok(command.includes(shellQuote("BTW: user's question")));
 	assert.ok(command.includes(shellQuote("Answer: it's safe")));
+});
+
+test("hides BTW results after their generation is discarded", () => {
+	const generation = "gen-1";
+	const result = { kind: "result" as const, generation };
+	const cleared = { kind: "cleared" as const, generation };
+	const active = new Set<string>();
+	const discarded = new Set([generation]);
+
+	assert.equal(shouldDisplayBtwRecord(result, active), true);
+	assert.equal(shouldDisplayBtwRecord(result, discarded), false);
+	assert.equal(shouldDisplayBtwRecord(cleared, active), false);
+	assert.equal(shouldDisplayBtwRecord(undefined, active), false);
+});
+
+test("previews answers with line and character limits", () => {
+	assert.equal(previewAnswer("one\ntwo\nthree\nfour", 2), "one\ntwo\n…");
+	assert.equal(previewAnswer("short answer"), "short answer");
+	assert.equal(previewAnswer("abcdefghij", 3, 5), "abcd…");
 });
