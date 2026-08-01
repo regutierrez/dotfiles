@@ -47,6 +47,15 @@ foreground = #E6EDF3
 selection-background = #2C313C
 selection-foreground = #F8FAFC
 cursor-color = #61AFEF
+
+# JetBrainsMono Nerd Font Mono: real bold/italic faces for TUI emphasis.
+font-family = JetBrainsMono Nerd Font Mono
+font-style = Regular
+font-style-italic = Italic
+font-style-bold = Bold
+font-style-bold-italic = Bold Italic
+font-size = 14
+
 desktop-notifications = true
 auto-update=download
 macos-titlebar-style = tabs
