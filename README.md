@@ -18,10 +18,10 @@ There are two separate operations:
 
 ## First install
 
-Register the machine's SSH public key with GitHub, then install chezmoi, choose a profile, and apply the configuration. The `--ssh` flag makes this clone and later `chezmoi update` pulls use SSH:
+Install chezmoi, choose a profile, and apply the configuration. GitHub shorthand uses HTTPS, so public clones and later `chezmoi update` pulls need no authentication:
 
 ```bash
-BINDIR="$HOME/.local/bin" sh -c "$(curl -fsLS get.chezmoi.io)" -- init --ssh --apply regutierrez
+BINDIR="$HOME/.local/bin" sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
 export PATH="$HOME/.local/bin:$PATH"
 bash "$(chezmoi source-path)/bootstrap"
 ```
@@ -29,7 +29,7 @@ bash "$(chezmoi source-path)/bootstrap"
 For a server:
 
 ```bash
-BINDIR="$HOME/.local/bin" sh -c "$(curl -fsLS get.chezmoi.io)" -- init --ssh --apply --promptString profile=server regutierrez
+BINDIR="$HOME/.local/bin" sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server regutierrez
 export PATH="$HOME/.local/bin:$PATH"
 bash "$(chezmoi source-path)/bootstrap"
 ```
