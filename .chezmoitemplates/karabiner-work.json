@@ -1,0 +1,2 @@
+{{- /* The work config starts with the existing bindings but is a separate profile entrypoint. */ -}}
+{{- template "karabiner-personal.json" . -}}

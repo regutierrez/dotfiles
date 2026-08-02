@@ -54,6 +54,12 @@ bash "$(chezmoi source-path)/bootstrap"
 
 The bootstrap only installs missing packages and applications. It does not run a broad system, Homebrew, or Flatpak upgrade.
 
+On macOS, both workstation profiles install Karabiner-Elements and render the matching
+personal or work configuration; Karabiner is ignored on other operating systems.
+
+On personal and work machines, `chezmoi apply` installs the `[packages.pi]` entries
+when Pi is available, including Plannotator and Herdr subagents.
+
 ## Amp shell history
 
 The managed Amp plugin at `~/.config/amp/plugins/atuin-history.ts` records commands run through Amp's shell tool in Atuin. Entries use `amp` as the author and include the Amp thread ID and title as intent. Atuin supplies the timestamp, working directory, hostname, exit code, and duration.

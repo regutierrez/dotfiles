@@ -28,6 +28,7 @@ formulae = [
 ]
 casks = [
   "ghostty",
+  "karabiner-elements",
   "obsidian",
   "raycast",
   "shottr",
@@ -40,7 +41,6 @@ personal_casks = [
   "aldente",
   "homerow",
   "iina",
-  "karabiner-elements",
   "parsec",
 ]
 work_formulae = [
@@ -55,6 +55,12 @@ work_formulae = [
 ]
 work_casks = [
   "google-chrome",
+]
+
+[packages.pi]
+extensions = [
+  "npm:@plannotator/pi-extension",
+  "npm:pi-herdr-subagents",
 ]
 
 [packages.arch]

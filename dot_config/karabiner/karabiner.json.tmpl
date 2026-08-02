@@ -1,0 +1,5 @@
+{{- if eq .profile "work" -}}
+{{- template "karabiner-work.json" . -}}
+{{- else -}}
+{{- template "karabiner-personal.json" . -}}
+{{- end -}}

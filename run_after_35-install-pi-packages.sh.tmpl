@@ -1,0 +1,53 @@
+{{- /* Ensure required Pi packages are present on personal and work machines. */ -}}
+{{- if ne .profile "server" -}}
+#!/bin/bash
+set -euo pipefail
+
+if ! command -v pi >/dev/null 2>&1; then
+  echo "install-pi-packages: pi not found, skipping" >&2
+  exit 0
+fi
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "install-pi-packages: node not found, skipping" >&2
+  exit 0
+fi
+
+settings="${PI_CODING_AGENT_DIR:-${HOME}/.pi/agent}/settings.json"
+
+packages=(
+{{- range .packages.pi.extensions }}
+  {{ . | quote }}
+{{- end }}
+)
+
+for source in "${packages[@]}"; do
+  if node - "$settings" "$source" <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+
+const [, , settingsPath, source] = process.argv;
+const agentDir = path.dirname(settingsPath);
+const packageName = source.slice("npm:".length);
+const packageJson = path.join(agentDir, "npm", "node_modules", ...packageName.split("/"), "package.json");
+
+let settings;
+try {
+  settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+} catch {
+  process.exit(1);
+}
+
+const configured = (settings.packages ?? []).some((entry) =>
+  (typeof entry === "string" ? entry : entry?.source) === source
+);
+process.exit(configured && fs.existsSync(packageJson) ? 0 : 1);
+NODE
+  then
+    echo "install-pi-packages: ${source} already installed"
+  else
+    echo "install-pi-packages: installing ${source}..."
+    pi install "$source"
+  fi
+done
+{{- end -}}
