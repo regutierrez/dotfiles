@@ -52,7 +52,7 @@ After changing [`.chezmoidata/packages.toml`](.chezmoidata/packages.toml), insta
 bash "$(chezmoi source-path)/bootstrap"
 ```
 
-The package command only ensures packages are present; it does not deliberately upgrade existing Homebrew packages.
+The bootstrap only installs missing packages and applications. It does not run a broad system, Homebrew, or Flatpak upgrade.
 
 ## Amp shell history
 
@@ -100,12 +100,17 @@ Personal Linux machines receive:
 
 Private SSH keys stay on each machine. The repository manages only the personal macOS SSH client configuration; work SSH configuration remains local.
 
-Shell tokens belong in untracked files under `~/.config/secrets/`; `dot_zshrc.tmpl` sources these when present:
-
-- `kagi.env` for `KAGI_API_KEY`
-- `sideshow.env` for `SIDESHOW_TOKEN`
+Shell tokens belong in untracked files under `~/.config/secrets/`; `dot_zshrc.tmpl` sources `kagi.env` and `sideshow.env` when present.
 
 ## Platform setup
+
+### Fedora KDE personal workstation
+
+The normal bootstrap reproduces this workstation: Fedora KDE packages, RPM Fusion's NVIDIA/Steam/Proton stack, CLI tools, Zsh and Starship, managed Git identity, a machine-local passwordless Ed25519 key, Herdr, Helium, Obsidian, KDE repeat/power/PolicyKit settings, and the Caps Lock window/application layer. It installs only missing software, checks akmods and Secure Boot, and reports rather than performs a required reboot.
+
+It never formats or mounts disks, modifies `/etc/fstab`, chooses a Steam library, copies credentials, or stores private SSH keys. The existing 4 TB ext4 Steam drive at `/mnt/storage` remains manual and outside this automation.
+
+### macOS
 
 macOS initialization installs the minimum tools and creates a local SSH key:
 

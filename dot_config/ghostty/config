@@ -62,6 +62,9 @@ macos-titlebar-style = tabs
 macos-option-as-alt = true
 keybind = alt+arrow_left=unbind
 keybind = alt+arrow_right=unbind
+# keyd emits these for Cmd+C/V while physical Ctrl+C remains terminal SIGINT.
+keybind = ctrl+insert=copy_to_clipboard:mixed
+keybind = shift+insert=paste_from_clipboard
 # tmux M-H/J/K/L (Option+Shift+hjkl): csi-u from Ghostty often misses Alt+Shift.
 keybind = alt+shift+h=text:\x1bH
 keybind = alt+shift+j=text:\x1bJ

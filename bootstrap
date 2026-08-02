@@ -8,6 +8,7 @@ fi
 
 source_dir="$(chezmoi source-path)"
 installer="$source_dir/scripts/install-packages.sh.tmpl"
+profile="$(chezmoi execute-template <<<'{{ .profile }}')"
 
 if [[ ! -f "$installer" ]]; then
   echo "bootstrap: package installer not found at $installer" >&2
@@ -21,6 +22,9 @@ chezmoi execute-template < "$installer" > "$rendered_installer"
 if [[ -s "$rendered_installer" ]]; then
   bash "$rendered_installer"
 fi
+
+echo "bootstrap: applying managed configuration..."
+chezmoi apply
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
   src="$HOME/.config/lazygit"
@@ -44,6 +48,17 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     fi
   else
     ln -s "$src" "$dst"
+  fi
+elif [[ -r /etc/os-release ]]; then
+  # shellcheck disable=SC1091
+  source /etc/os-release
+  if [[ "${ID:-}" == "fedora" ]]; then
+    fedora_setup="$source_dir/linux/fedora/setup.sh"
+    if [[ ! -f "$fedora_setup" ]]; then
+      echo "bootstrap: Fedora setup not found at $fedora_setup" >&2
+      exit 1
+    fi
+    CHEZMOI_PROFILE="$profile" bash "$fedora_setup"
   fi
 fi
 

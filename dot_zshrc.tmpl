@@ -5,7 +5,10 @@
 # uncomment to profile zsh startup, along with zprof (end of line)
 # zmodload zsh/zprof
 
-eval "$(starship init zsh)"
+export PATH="$HOME/.local/bin:$PATH"
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
 {{- if eq .chezmoi.os "darwin" }}
 
 # Homebrew setup

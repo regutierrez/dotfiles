@@ -45,6 +45,134 @@ else
   echo "install-packages: paru not found, using pacman (repo packages only)..."
   sudo pacman -S --needed --noconfirm "${pkgs[@]}"
 fi
+{{ else if eq $osid "fedora" -}}
+export PATH="$HOME/.local/bin:$PATH"
+
+base_pkgs=({{ .packages.fedora.packages | sortAlpha | uniq | join " " }})
+workstation_pkgs=({{ .packages.fedora.workstation_packages | sortAlpha | uniq | join " " }})
+gaming_pkgs=({{ .packages.fedora.gaming_packages | sortAlpha | uniq | join " " }})
+nvidia_pkgs=({{ .packages.fedora.nvidia_packages | sortAlpha | uniq | join " " }})
+coprs=({{ .packages.fedora.coprs | sortAlpha | uniq | join " " }})
+flatpaks=({{ .packages.fedora.flatpaks | sortAlpha | uniq | join " " }})
+
+info() {
+  printf '\ninstall-packages: %s\n' "$*"
+}
+
+warn() {
+  printf 'install-packages: warning: %s\n' "$*" >&2
+}
+
+enable_rpm_fusion() {
+  local fedora release_rpms=()
+  fedora="$(rpm -E %fedora)"
+
+  if ! rpm -q rpmfusion-free-release >/dev/null 2>&1; then
+    release_rpms+=("https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${fedora}.noarch.rpm")
+  fi
+  if ! rpm -q rpmfusion-nonfree-release >/dev/null 2>&1; then
+    release_rpms+=("https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${fedora}.noarch.rpm")
+  fi
+
+  if (( ${#release_rpms[@]} > 0 )); then
+    info "enabling RPM Fusion"
+    sudo dnf install -y "${release_rpms[@]}"
+  fi
+}
+
+enable_copr() {
+  local copr="$1" repo_id
+  repo_id="copr:copr.fedorainfracloud.org:${copr//\//:}"
+
+  if dnf --quiet repolist --enabled | awk 'NR > 1 { print $1 }' | grep -Fxq "$repo_id"; then
+    return
+  fi
+
+  info "enabling COPR $copr"
+  sudo dnf copr enable -y "$copr"
+}
+
+package_available() {
+  [[ -n "$(dnf --quiet repoquery --available --qf '%{name}' "$1" 2>/dev/null)" ]]
+}
+
+install_missing_packages() {
+  local pkg missing=()
+
+  for pkg in "$@"; do
+    if rpm -q "$pkg" >/dev/null 2>&1; then
+      continue
+    fi
+    if package_available "$pkg"; then
+      missing+=("$pkg")
+    else
+      warn "'$pkg' is not available from the configured repositories; skipping"
+    fi
+  done
+
+  if (( ${#missing[@]} > 0 )); then
+    info "installing missing RPM packages"
+    sudo dnf install -y "${missing[@]}"
+  else
+    info "all requested RPM packages are already installed"
+  fi
+}
+
+has_nvidia_gpu() {
+  grep -ql '^0x10de$' /sys/bus/pci/devices/*/vendor 2>/dev/null
+}
+
+enable_rpm_fusion
+
+if ! dnf copr --help >/dev/null 2>&1; then
+  install_missing_packages dnf5-plugins
+fi
+
+{{ if ne .profile "server" -}}
+for copr in "${coprs[@]}"; do
+  enable_copr "$copr"
+done
+{{ end -}}
+
+packages=("${base_pkgs[@]}")
+{{ if ne .profile "server" -}}
+packages+=("${workstation_pkgs[@]}")
+{{ end -}}
+{{ if or (eq .profile "personal") (eq .profile "cachygaming") -}}
+packages+=("${gaming_pkgs[@]}")
+if has_nvidia_gpu; then
+  packages+=("${nvidia_pkgs[@]}" "kernel-devel-$(uname -r)")
+fi
+{{ end -}}
+
+install_missing_packages "${packages[@]}"
+
+{{ if ne .profile "server" -}}
+# Preserve an existing AppImage install. Fresh Fedora workstations use the
+# official Helium COPR package instead.
+if ! command -v helium >/dev/null 2>&1; then
+  install_missing_packages helium-bin
+fi
+
+if ! flatpak remotes --user --columns=name | grep -Fxq flathub; then
+  info "adding the user Flathub remote"
+  flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+fi
+
+missing_flatpaks=()
+for app in "${flatpaks[@]}"; do
+  if ! flatpak info --user "$app" >/dev/null 2>&1; then
+    missing_flatpaks+=("$app")
+  fi
+done
+
+if (( ${#missing_flatpaks[@]} > 0 )); then
+  info "installing missing user Flatpaks"
+  flatpak install --user -y flathub "${missing_flatpaks[@]}"
+else
+  info "all requested user Flatpaks are already installed"
+fi
+{{ end -}}
 {{ else if or (eq $osid "debian") (eq $osid "ubuntu") (contains "debian" $oslike) -}}
 echo "install-packages: syncing apt packages..."
 sudo apt-get update -y

@@ -100,6 +100,76 @@ aur = [
   "tailscale",
 ]
 
+[packages.fedora]
+# Base packages shared by Fedora profiles.
+packages = [
+  "asciinema",
+  "atuin",
+  "bat",
+  "btop",
+  "cargo",
+  "chezmoi",
+  "curl",
+  "dnf5-plugins",
+  "docker-compose",
+  "eza",
+  "fd-find",
+  "ffmpeg-free",
+  "fzf",
+  "git",
+  "git-delta",
+  "gh",
+  "golang",
+  "jq",
+  "neovim",
+  "openssh-clients",
+  "pandoc-cli",
+  "ripgrep",
+  "rust",
+  "stow",
+  "tree-sitter-cli",
+  "unzip",
+  "uv",
+  "wl-clipboard",
+  "zip",
+  "zoxide",
+  "zsh",
+]
+# Desktop packages for personal and work Fedora profiles.
+workstation_packages = [
+  "dolphin",
+  "flatpak",
+  "ghostty",
+  "keyd",
+  "kdotool",
+  "mokutil",
+  "pciutils",
+  "polkit-kde",
+]
+# Personal gaming packages. Architecture suffixes preserve Proton support.
+gaming_packages = [
+  "gamemode",
+  "mesa-vulkan-drivers.i686",
+  "steam",
+  "steam-devices",
+  "vulkan-loader.i686",
+]
+nvidia_packages = [
+  "akmod-nvidia",
+  "kernel-devel",
+  "kernel-headers",
+  "xorg-x11-drv-nvidia-libs.i686",
+  "xorg-x11-drv-nvidia-power",
+]
+coprs = [
+  "alternateved/keyd",
+  "imput/helium",
+  "scottames/ghostty",
+]
+flatpaks = [
+  "md.obsidian.Obsidian",
+]
+
 [packages.debian]
 packages = [
   "asciinema",

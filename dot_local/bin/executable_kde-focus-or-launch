@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if (( $# < 2 )); then
+  printf 'Usage: %s WINDOW_CLASS COMMAND [ARG ...]\n' "${0##*/}" >&2
+  exit 2
+fi
+
+window_class="$1"
+shift
+
+window_id=""
+if command -v kdotool >/dev/null 2>&1; then
+  window_id="$(kdotool search --case-sensitive --class "$window_class" --limit 1 getwindowid 2>/dev/null | head -n 1)"
+fi
+
+if [[ -n "$window_id" ]]; then
+  exec kdotool windowactivate "$window_id"
+fi
+
+exec "$@"

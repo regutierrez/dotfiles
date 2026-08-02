@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Caps: Center Window
+Comment=Restore, resize, and center the focused window
+Exec=/usr/bin/kdotool getactivewindow windowstate --remove fullscreen --remove maximized_horz --remove maximized_vert windowsize 76%% 76%% windowmove 12%% 12%%
+TryExec=/usr/bin/kdotool
+NoDisplay=true
+Terminal=false
+StartupNotify=false
+X-KDE-Shortcuts=Meta+Ctrl+Alt+Shift+J
