@@ -18,7 +18,7 @@ cd ~/.pi/agent && npm install
 | `claude-bridge.json` | Claude bridge config |
 | `_mcp.json` | MCP server wiring |
 | `package.json` | Shared deps for extensions |
-| `agents/` | Custom herdr-subagent defs (`explore`, `impl`, …) |
+| `agents/` | Custom herdr-subagent defs; prompts are shared and model/reasoning settings render by profile |
 | `skills/update-pi/` | Pi update helper skill |
 | `intercepted-commands/` | PATH shims used by `uv.ts` |
 | `extensions/btw/` | `/btw` side threads (`index.ts` + tests) |
@@ -38,7 +38,7 @@ cd ~/.pi/agent && npm install
 **Edit often (hot):**
 - `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`, `cloak.json`
 - `extensions/btw/`
-- `agents/*.md`
+- `agents/*.md.tmpl`
 - `package.json` (when adding shared deps)
 
 **Leave alone unless intentionally changing (cold / vendored):**

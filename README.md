@@ -73,6 +73,8 @@ Profile behavior lives in [`.chezmoiignore`](.chezmoiignore). Skill membership l
 - `personal`: shared skills.
 - `work`: shared and work skills.
 
+Pi subagent prompts are shared across profiles, but their model and reasoning settings are rendered per profile from `dot_pi/agent/agents/*.md.tmpl`. Personal uses the OpenCode Go selections; work keeps the original xAI and OpenAI Codex selections.
+
 Unclassified skill directories are not installed. Pi-specific files and development notes live under [`dot_pi/agent/`](dot_pi/agent/README.md).
 
 To change profiles, edit `~/.config/chezmoi/chezmoi.toml`:

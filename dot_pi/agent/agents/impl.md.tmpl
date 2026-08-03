@@ -2,8 +2,8 @@
 name: impl
 description: Implementation agent for normal tasks and approved oracle handoffs. Single-writer for the active worktree. Escalates unapproved product, architecture, or scope decisions instead of guessing.
 tools: read,bash,edit,write
-model: opencode-go/deepseek-v4-pro
-thinking: false
+model: {{ if eq (index . "profile") "work" }}xai/grok-4.5{{ else }}opencode-go/deepseek-v4-pro{{ end }}
+thinking: {{ if eq (index . "profile") "work" }}high{{ else }}max{{ end }}
 spawning: false
 auto-exit: true
 session-mode: fork

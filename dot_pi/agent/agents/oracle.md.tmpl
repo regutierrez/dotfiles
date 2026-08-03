@@ -2,8 +2,8 @@
 name: oracle
 description: High-reasoning senior engineering advisor for review, debugging, architecture, planning, and next-step decisions. Use explicitly for risky changes, unclear bugs, complex refactors, security analysis, context drift, or when a second smart model should challenge the current trajectory.
 tools: read,bash
-model: opencode-go/kimi-k3
-thinking: high
+model: {{ if eq (index . "profile") "work" }}openai-codex/gpt-5.6-sol{{ else }}opencode-go/kimi-k3{{ end }}
+thinking: {{ if eq (index . "profile") "work" }}high{{ else }}max{{ end }}
 spawning: false
 auto-exit: true
 session-mode: fork
