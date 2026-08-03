@@ -1,0 +1,21 @@
+dot_agents/skills/bro/SKILL.md
+  s_bec41dac232c1a::t_bc0e8f74d3a11a 1-7
+.chezmoidata.toml
+  s_bec41dac232c1a::t_00648bc4f83a6c 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "08bdb1349f2e06fcfafc950eff5f07ed92f52557",
+  "prompts": {},
+  "sessions": {
+    "s_bec41dac232c1a": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fc89e-63fb-7189-8bf1-67f156a45fe9",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
