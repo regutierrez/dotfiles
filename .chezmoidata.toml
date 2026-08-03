@@ -33,6 +33,7 @@ shared = [
   "visual-explainer",
   "wayfinder",
   "web-browser",
+  "write-discoverable-code",
   "writing-great-skills",
   "zoom-out",
 ]

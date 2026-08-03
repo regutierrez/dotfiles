@@ -12,6 +12,17 @@
 .agents/skills/index-knowledge
 .agents/skills/setup-matt-pocock-skills
 .agents/skills/daily-agent-session-recap
+.agents/skills/coding-standards/ASYNC_AND_WORKFLOWS.md
+.agents/skills/coding-standards/BOUNDARIES_AND_PARSING.md
+.agents/skills/coding-standards/CLOUDFLARE_ARCHITECTURE.md
+.agents/skills/coding-standards/DESIGNING_MODULES.md
+.agents/skills/coding-standards/DOMAIN_MODELING.md
+.agents/skills/coding-standards/EFFECT.md
+.agents/skills/coding-standards/ERROR_HANDLING.md
+.agents/skills/coding-standards/OBSERVABILITY.md
+.agents/skills/coding-standards/TESTING_AND_VERIFICATION.md
+.agents/skills/coding-standards/TYPESCRIPT_CONTRACTS.md
+.agents/skills/coding-standards/VOCABULARY.md
 .tmux
 .local/share/tmux
 .config/tmux

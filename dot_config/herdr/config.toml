@@ -20,6 +20,7 @@ pane_borders = true
 pane_gaps = false
 show_agent_labels_on_pane_borders = true
 agent_panel_sort = "priority"
+sidebar_width = 32
 # Close panes/tabs without prompting.
 confirm_close = false
 prompt_new_tab_name = true
@@ -52,6 +53,12 @@ focus_pane_left = ["prefix+h", "alt+h"]
 focus_pane_down = ["prefix+j", "alt+j"]
 focus_pane_up = ["prefix+k", "alt+k"]
 focus_pane_right = ["prefix+l", "alt+l"]
+
+# Jump to agent panes by priority index
+focus_agent = "prefix+alt+1..9"
+
+# Workspace picker
+workspace_picker = ["prefix+s", "prefix+w"]
 
 # Splits and new tabs (windows)
 split_vertical = "prefix+\\"
