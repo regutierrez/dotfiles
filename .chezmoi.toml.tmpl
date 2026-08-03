@@ -1,5 +1,16 @@
-{{- /* Supported: personal, work, server. Scripted: chezmoi init --promptString profile=server */ -}}
+{{- /* Supported: personal and work. */ -}}
 {{- $profile := promptStringOnce . "profile" "profile" "personal" }}
+{{- if and (ne $profile "personal") (ne $profile "work") -}}
+{{-   fail (printf "unsupported profile %q; expected personal or work" $profile) -}}
+{{- end }}
+{{- $osid := index .chezmoi.osRelease "id" | default "" -}}
+{{- if and (eq $profile "work") (ne .chezmoi.os "darwin") -}}
+{{-   fail "the work profile supports macOS only" -}}
+{{- end -}}
+{{- $personalOS := or (eq .chezmoi.os "darwin") (and (eq .chezmoi.os "linux") (eq $osid "fedora")) -}}
+{{- if and (eq $profile "personal") (not $personalOS) -}}
+{{-   fail "the personal profile supports macOS and Fedora only" -}}
+{{- end }}
 [edit]
     apply = true
     watch = true

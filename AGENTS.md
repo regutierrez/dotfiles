@@ -37,19 +37,19 @@ Important locations:
 
 ## Profiles
 
-The supported profiles are `personal`, `work`, and `server`. The selected value is stored under `[data].profile` in `~/.config/chezmoi/chezmoi.toml`.
+The supported profiles are `personal` and `work`. The selected value is stored under `[data].profile` in `~/.config/chezmoi/chezmoi.toml`.
 
-- Personal and work are workstation profiles.
-- Server skips `~/.config` and `~/bin` but still receives shared agent skills.
-- Personal Linux receives Kitty, Niri, and DMS desktop files.
-- `cachygaming` is accepted only as a legacy alias for `personal`.
+- Both profiles are for workstations.
+- Personal is used on macOS and on the Fedora gaming workstation.
+- Personal Fedora receives Kitty, Niri, DMS, KDE helpers, and gaming packages.
+- Work is used on macOS.
 - Work alone receives the `work` skill group and `akkio-helpers/`.
 
 Skill directories are allow-listed from groups in `.chezmoidata.toml`. Unclassified skills are ignored everywhere.
 
 ## Packages and secrets
 
-System package installation is never part of `chezmoi apply`; Pi extension hooks remain separate. Render and run the explicit source bootstrap with:
+System package installation is never part of `chezmoi apply`. On Fedora, the source bootstrap installs Node and Pi before applying managed Pi extension hooks. Render and run it with:
 
 ```bash
 bash "$(chezmoi source-path)/bootstrap"

@@ -1,6 +1,5 @@
 {{- /* Install runtime npm deps for the managed Pi web-tools extension.
        The rendered checksum makes run_onchange_ rerun when package metadata changes. */ -}}
-{{- if ne .profile "server" -}}
 #!/bin/bash
 set -euo pipefail
 
@@ -21,4 +20,4 @@ fi
 
 echo "install-pi-web-tools: syncing runtime npm dependencies..."
 npm --prefix "${extension_dir}" ci --omit=dev
-{{- end -}}
+{{- /* Keep the rendered EOF stable for run_onchange_ checksum comparisons. */ -}}

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Auto-switches DMS display profiles based on the current resolution of the XG27UCG monitor.
-# Only for Linux gaming with CachyOS, Niri, and DMS.
+# Only for the personal Fedora gaming workstation with Niri and DMS.
 # For automatic switching, enable/start the dms-auto-resolution-profile systemd user service.
 
 MONITOR_MODEL="XG27UCG"

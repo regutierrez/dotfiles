@@ -20,6 +20,7 @@
 .pi/agent/agents/scout.md
 .pi/agent/agents/worker.md
 .pi/agent/agents/delegate.md
+.pi/agent/agents/planner.md
 .pi/agent/extensions/better-tui.ts
 .pi/agent/extensions/junior-mode.ts
 .pi/agent/extensions/agent-status.ts

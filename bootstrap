@@ -23,10 +23,14 @@ if [[ -s "$rendered_installer" ]]; then
   bash "$rendered_installer"
 fi
 
-echo "bootstrap: applying managed configuration..."
-chezmoi apply
+apply_managed() {
+  echo "bootstrap: applying managed configuration..."
+  chezmoi apply
+}
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
+  apply_managed
+
   src="$HOME/.config/lazygit"
   dst="$HOME/Library/Application Support/lazygit"
 
@@ -59,7 +63,11 @@ elif [[ -r /etc/os-release ]]; then
       exit 1
     fi
     CHEZMOI_PROFILE="$profile" bash "$fedora_setup"
+  else
+    apply_managed
   fi
+else
+  apply_managed
 fi
 
 echo "bootstrap: complete"

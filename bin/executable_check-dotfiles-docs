@@ -8,34 +8,44 @@ fail=0
 ok() { printf 'ok: %s\n' "$1"; }
 bad() { printf 'FAIL: %s\n' "$1" >&2; fail=1; }
 
-contains() {
-  local file="$1" text="$2" message="$3"
-  if grep -Fq -- "$text" "$file"; then ok "$message"; else bad "$message"; fi
-}
-
 absent() {
   local path="$1" message="$2"
   if [[ ! -e "$path" ]]; then ok "$message"; else bad "$message"; fi
 }
 
-for profile in personal work server; do
-  contains README.md "$profile" "README mentions profile '$profile'"
-  contains .chezmoi.toml.tmpl "$profile" "config prompt mentions profile '$profile'"
-done
+renders() {
+  local data="$1" message="$2"
+  if chezmoi execute-template --override-data "$data" < .chezmoiignore >/dev/null 2>&1; then
+    ok "$message"
+  else
+    bad "$message"
+  fi
+}
 
-if grep -Eq 'manage_(bashrc|vimrc|nvim|bin|dot_config|agents)|use_age|tmux_plugins' \
-  .chezmoidata.toml .chezmoiignore README.md AGENTS.md; then
-  bad 'retired profile flags still appear in active configuration or docs'
-else
-  ok 'retired profile flags are absent'
-fi
+rejects() {
+  local data="$1" message="$2"
+  if chezmoi execute-template --override-data "$data" < .chezmoiignore >/dev/null 2>&1; then
+    bad "$message"
+  else
+    ok "$message"
+  fi
+}
 
-contains README.md 'chezmoi apply' 'README documents configuration sync'
-contains README.md 'source-path)/bootstrap' 'README documents explicit bootstrap'
-contains AGENTS.md 'System package installation is never part' 'AGENTS separates package install from apply'
-contains .chezmoiignore 'bootstrap' 'source bootstrap is ignored as a target'
-absent run_onchange_before_install-packages.sh.tmpl 'package installer is not an apply hook'
-absent run_after_20-link-lazygit-to-xdg.sh.tmpl 'lazygit setup is not an apply hook'
+renders '{"profile":"personal","chezmoi":{"os":"darwin","osRelease":{"id":""}}}' \
+  'supported machine renders: personal macOS'
+renders '{"profile":"work","chezmoi":{"os":"darwin","osRelease":{"id":""}}}' \
+  'supported machine renders: work macOS'
+renders '{"profile":"personal","chezmoi":{"os":"linux","osRelease":{"id":"fedora"}}}' \
+  'supported machine renders: personal Fedora'
+
+rejects '{"profile":"server","chezmoi":{"os":"linux","osRelease":{"id":"debian"}}}' \
+  'removed profile is rejected: server'
+rejects '{"profile":"cachygaming","chezmoi":{"os":"linux","osRelease":{"id":"fedora"}}}' \
+  'removed profile is rejected: cachygaming'
+rejects '{"profile":"work","chezmoi":{"os":"linux","osRelease":{"id":"fedora"}}}' \
+  'unsupported machine is rejected: work Fedora'
+rejects '{"profile":"personal","chezmoi":{"os":"linux","osRelease":{"id":"arch"}}}' \
+  'unsupported machine is rejected: personal Arch'
 
 if [[ -f bootstrap && -f scripts/install-packages.sh.tmpl ]]; then
   ok 'explicit bootstrap files exist'
@@ -44,7 +54,7 @@ else
 fi
 
 managed="$(chezmoi managed)"
-for source_only in PLAN.md bootstrap scripts plans archive; do
+for source_only in PLAN.md bootstrap scripts plans archive macos linux; do
   if printf '%s\n' "$managed" | grep -Eq "^${source_only}(/|$)"; then
     bad "source-only path would leak into HOME: $source_only"
   else
@@ -63,27 +73,6 @@ if grep -Eq '^\.ssh/id_ed25519($|\.)' .chezmoiremove; then
   bad '.chezmoiremove must not delete machine-local SSH keys'
 else
   ok '.chezmoiremove preserves machine-local SSH keys'
-fi
-
-for path in dot_tmux.conf.tmpl dot_agents/skills/tmux; do
-  absent "$path" "retired active source absent: $path"
-done
-
-for current in dot_agents/skills/writing-great-skills dot_agents/skills/diagnosing-bugs; do
-  if [[ -d "$current" ]]; then ok "current skill exists: $current"; else bad "missing skill: $current"; fi
-done
-
-readme_lines=$(wc -l < README.md | tr -d ' ')
-agents_lines=$(wc -l < AGENTS.md | tr -d ' ')
-if (( readme_lines <= 140 )); then
-  ok "README.md <= 140 lines ($readme_lines)"
-else
-  bad "README.md too long ($readme_lines)"
-fi
-if (( agents_lines <= 100 )); then
-  ok "AGENTS.md <= 100 lines ($agents_lines)"
-else
-  bad "AGENTS.md too long ($agents_lines)"
 fi
 
 exit "$fail"

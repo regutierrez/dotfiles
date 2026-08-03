@@ -6,30 +6,22 @@ Personal development configuration managed by [chezmoi](https://www.chezmoi.io/)
 
 Two values decide what gets applied:
 
-- **Profile:** `personal`, `work`, or `server`; selected during `chezmoi init`.
+- **Profile:** `personal` or `work`; selected during `chezmoi init`.
 - **OS:** detected automatically by chezmoi.
 
-`personal` and `work` are full workstations. `server` keeps the smaller Bash, Vim, tmux, and agent setup and skips `~/.config`, `~/bin`, and Neovim. Personal Linux machines also receive the Kitty, Niri, and DMS desktop files. The retired `cachygaming` value is treated as `personal` so existing machines keep working.
+Both profiles are full workstations. `personal` is used on macOS and on the Fedora gaming workstation; `work` is used on macOS. Personal Fedora also receives the gaming, Kitty, Niri, DMS, and KDE-specific configuration.
 
 There are two separate operations:
 
-- `chezmoi apply` synchronizes configuration and keeps managed Pi extension dependencies current.
-- `bash "$(chezmoi source-path)/bootstrap"` installs missing packages and performs one-time setup.
+- `chezmoi apply` synchronizes configuration and keeps managed Pi extension dependencies current when their prerequisites already exist.
+- `bash "$(chezmoi source-path)/bootstrap"` installs missing packages and prerequisites, applies the configuration, and performs platform setup.
 
 ## First install
 
-Install chezmoi, choose a profile, and apply the configuration. GitHub shorthand uses HTTPS, so public clones and later `chezmoi update` pulls need no authentication:
+Install chezmoi, choose a profile, then let the bootstrap install prerequisites before the first apply. GitHub shorthand uses HTTPS, so public clones and later `chezmoi update` pulls need no authentication:
 
 ```bash
-BINDIR="$HOME/.local/bin" sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply regutierrez
-export PATH="$HOME/.local/bin:$PATH"
-bash "$(chezmoi source-path)/bootstrap"
-```
-
-For a server:
-
-```bash
-BINDIR="$HOME/.local/bin" sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply --promptString profile=server regutierrez
+BINDIR="$HOME/.local/bin" sh -c "$(curl -fsLS get.chezmoi.io)" -- init regutierrez
 export PATH="$HOME/.local/bin:$PATH"
 bash "$(chezmoi source-path)/bootstrap"
 ```
@@ -57,8 +49,8 @@ The bootstrap only installs missing packages and applications. It does not run a
 On macOS, both workstation profiles install Karabiner-Elements and render the matching
 personal or work configuration; Karabiner is ignored on other operating systems.
 
-On personal and work machines, `chezmoi apply` installs the `[packages.pi]` entries
-when Pi is available, including Plannotator and Herdr subagents.
+On Fedora, the bootstrap installs Node and Pi before `chezmoi apply`, so the
+`[packages.pi]` hooks install Plannotator and Herdr subagents on the first run.
 
 ## Amp shell history
 
@@ -78,9 +70,8 @@ Atuin applies its configured history and secret filters. Even so, do not put sec
 
 Profile behavior lives in [`.chezmoiignore`](.chezmoiignore). Skill membership lives in [`.chezmoidata.toml`](.chezmoidata.toml):
 
-- `personal`: shared and desktop skills.
-- `work`: shared, work, and desktop skills.
-- `server`: shared skills only.
+- `personal`: shared skills.
+- `work`: shared and work skills.
 
 Unclassified skill directories are not installed. Pi-specific files and development notes live under [`dot_pi/agent/`](dot_pi/agent/README.md).
 
@@ -88,19 +79,19 @@ To change profiles, edit `~/.config/chezmoi/chezmoi.toml`:
 
 ```toml
 [data]
-profile = "server"
+profile = "work"
 ```
 
-## Linux desktop files
+## Fedora desktop files
 
-Personal Linux machines receive:
+The personal Fedora workstation receives:
 
 - `dot_config/kitty/`
 - `dot_config/niri/`
 - `dot_config/systemd/user/dms-auto-resolution-profile.service`
 - `dot_local/bin/executable_dms-auto-resolution-profile`
-
-`linux/cachyos/setup.sh` remains the CachyOS-specific machine setup script.
+- `dot_local/bin/executable_kde-focus-or-launch`
+- `dot_local/share/applications/caps-*.desktop`
 
 ## Secrets
 
@@ -112,7 +103,7 @@ Shell tokens belong in untracked files under `~/.config/secrets/`; `dot_zshrc.tm
 
 ### Fedora KDE personal workstation
 
-The normal bootstrap reproduces this workstation: Fedora KDE packages, RPM Fusion's NVIDIA/Steam/Proton stack, CLI tools, Zsh and Starship, managed Git identity, a machine-local passwordless Ed25519 key, Herdr, Helium, Obsidian, KDE repeat/power/PolicyKit settings, and the Caps Lock window/application layer. It installs only missing software, checks akmods and Secure Boot, and reports rather than performs a required reboot.
+The normal bootstrap reproduces this gaming workstation: Fedora KDE packages, RPM Fusion's NVIDIA/Steam/Proton stack, CLI tools, Node, Pi, Zsh and Starship, managed Git identity, a machine-local passwordless Ed25519 key, Herdr, Helium, Obsidian, KDE repeat/power/PolicyKit settings, and the Caps Lock window/application layer. It installs prerequisites before the managed configuration, installs only missing software, checks akmods and Secure Boot, and reports rather than performs a required reboot.
 
 It never formats or mounts disks, modifies `/etc/fstab`, chooses a Steam library, copies credentials, or stores private SSH keys. The existing 4 TB ext4 Steam drive at `/mnt/storage` remains manual and outside this automation.
 
@@ -130,8 +121,6 @@ Apply macOS preferences separately:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/settings.sh | bash
 ```
-
-The Arch server installer configuration remains available at `linux/arch-srv/user_configuration.json`. Do not run user-scoped setup scripts through `sudo bash`.
 
 If the external Neovim checkout prevents an apply, skip externals temporarily:
 

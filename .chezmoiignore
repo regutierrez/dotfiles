@@ -1,14 +1,18 @@
 {{- $profile := (index . "profile" | default "personal") -}}
-{{- /* Keep existing CachyGaming machines working after the profile was folded into personal. */ -}}
-{{- if eq $profile "cachygaming" -}}
-{{-   $profile = "personal" -}}
+{{- if and (ne $profile "personal") (ne $profile "work") -}}
+{{-   fail (printf "unsupported profile %q; expected personal or work" $profile) -}}
 {{- end -}}
-{{- $server := eq $profile "server" -}}
-{{- $skillGroups := list "shared" "desktop" -}}
+{{- $osid := index .chezmoi.osRelease "id" | default "" -}}
+{{- if and (eq $profile "work") (ne .chezmoi.os "darwin") -}}
+{{-   fail "the work profile supports macOS only" -}}
+{{- end -}}
+{{- $personalOS := or (eq .chezmoi.os "darwin") (and (eq .chezmoi.os "linux") (eq $osid "fedora")) -}}
+{{- if and (eq $profile "personal") (not $personalOS) -}}
+{{-   fail "the personal profile supports macOS and Fedora only" -}}
+{{- end -}}
+{{- $skillGroups := list "shared" -}}
 {{- if eq $profile "work" -}}
-{{-   $skillGroups = list "shared" "work" "desktop" -}}
-{{- else if $server -}}
-{{-   $skillGroups = list "shared" -}}
+{{-   $skillGroups = list "shared" "work" -}}
 {{- end -}}
 
 README.md
@@ -21,7 +25,6 @@ plans/
 archive/
 macos/
 linux/
-srv/
 
 {{- if ne $profile "work" }}
 akkio-helpers/
@@ -37,32 +40,17 @@ akkio-helpers/
 .ssh/config
 {{- end }}
 
-{{- if or (ne .chezmoi.os "linux") (ne $profile "personal") }}
+{{- if or (ne .chezmoi.os "linux") (ne $osid "fedora") (ne $profile "personal") }}
 .config/kitty
 .config/niri
 .config/systemd/user/dms-auto-resolution-profile.service
 .local/bin/dms-auto-resolution-profile
-{{- end }}
-
-{{- $osid := index .chezmoi.osRelease "id" | default "" }}
-{{- if or (ne .chezmoi.os "linux") (ne $osid "fedora") (ne $profile "personal") }}
 .local/bin/kde-focus-or-launch
 .local/share/applications/caps-launch-dolphin.desktop
 .local/share/applications/caps-launch-ghostty.desktop
 .local/share/applications/caps-launch-helium.desktop
 .local/share/applications/caps-launch-obsidian.desktop
 .local/share/applications/caps-window-center.desktop
-{{- end }}
-
-{{- if not $server }}
-.bashrc
-.vimrc
-.tmux.conf
-{{- end }}
-
-{{- if $server }}
-bin/
-.config/
 {{- end }}
 
 {{- /* Skill membership lives in .chezmoidata.toml; profiles select groups here. */ -}}

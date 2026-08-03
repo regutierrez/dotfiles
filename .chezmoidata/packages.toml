@@ -63,51 +63,8 @@ extensions = [
   "npm:pi-herdr-subagents",
 ]
 
-[packages.arch]
-# Installed with paru when available, pacman otherwise (repo packages only).
-packages = [
-  "asciinema",
-  "ast-grep",
-  "atuin",
-  "bat",
-  "chezmoi",
-  "docker-compose",
-  "eza",
-  "fakeroot",
-  "fd",
-  "ffmpeg",
-  "fnm",
-  "fzf",
-  "git",
-  "git-delta",
-  "github-cli",
-  "go",
-  "jq",
-  "lazygit",
-  "neovim",
-  "pandoc-cli",
-  "qemu-guest-agent",
-  "ripgrep",
-  "rust",
-  "starship",
-  "stow",
-  "tree-sitter-cli",
-  "uv",
-  "wl-clipboard",
-  "zoxide",
-  "zsh",
-]
-# AUR + desktop apps; needs paru, skipped on server profile.
-aur = [
-  "flatpak",
-  "google-chrome",
-  "helium-browser-bin",
-  "joplin-bin",
-  "tailscale",
-]
-
 [packages.fedora]
-# Base packages shared by Fedora profiles.
+# Personal Fedora gaming workstation packages.
 packages = [
   "asciinema",
   "atuin",
@@ -117,19 +74,27 @@ packages = [
   "chezmoi",
   "curl",
   "dnf5-plugins",
+  "dolphin",
   "docker-compose",
   "eza",
   "fd-find",
   "ffmpeg-free",
+  "flatpak",
   "fzf",
   "git",
   "git-delta",
   "gh",
+  "ghostty",
   "golang",
   "jq",
+  "keyd",
+  "kdotool",
+  "mokutil",
   "neovim",
   "openssh-clients",
   "pandoc-cli",
+  "pciutils",
+  "polkit-kde",
   "ripgrep",
   "rust",
   "stow",
@@ -140,17 +105,6 @@ packages = [
   "zip",
   "zoxide",
   "zsh",
-]
-# Desktop packages for personal and work Fedora profiles.
-workstation_packages = [
-  "dolphin",
-  "flatpak",
-  "ghostty",
-  "keyd",
-  "kdotool",
-  "mokutil",
-  "pciutils",
-  "polkit-kde",
 ]
 # Personal gaming packages. Architecture suffixes preserve Proton support.
 gaming_packages = [
@@ -174,39 +128,4 @@ coprs = [
 ]
 flatpaks = [
   "md.obsidian.Obsidian",
-]
-
-[packages.debian]
-packages = [
-  "asciinema",
-  "ast-grep",
-  "bat",
-  "btop",
-  "build-essential",
-  "cargo",
-  "curl",
-  "dpkg",
-  "eza",
-  "fakeroot",
-  "fd-find",
-  "ffmpeg",
-  "fzf",
-  "git",
-  "golang-go",
-  "jq",
-  "mise",
-  "neovim",
-  "openssh-client",
-  "openssh-server",
-  "python3-pymupdf",
-  "qemu-guest-agent",
-  "ripgrep",
-  "rustc",
-  "spice-vdagent",
-  "starship",
-  "tree-sitter-cli",
-  "uv",
-  "zip",
-  "zoxide",
-  "zsh",
 ]

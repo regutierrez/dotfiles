@@ -1,5 +1,4 @@
-{{- /* Ensure required Pi packages are present on personal and work machines. */ -}}
-{{- if ne .profile "server" -}}
+{{- /* Ensure required Pi packages are present. */ -}}
 #!/bin/bash
 set -euo pipefail
 
@@ -50,4 +49,3 @@ NODE
     pi install "$source"
   fi
 done
-{{- end -}}

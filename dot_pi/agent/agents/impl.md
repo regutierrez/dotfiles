@@ -1,8 +1,8 @@
 ---
 name: impl
-description: Implementation agent for normal tasks and approved oracle/planner handoffs. Single-writer for the active worktree. Escalates unapproved product, architecture, or scope decisions instead of guessing.
+description: Implementation agent for normal tasks and approved oracle handoffs. Single-writer for the active worktree. Escalates unapproved product, architecture, or scope decisions instead of guessing.
 tools: read,bash,edit,write
-model: xai/grok-4.5
+model: opencode-go/deepseek-v4-pro
 thinking: false
 spawning: false
 auto-exit: true

@@ -27,29 +27,13 @@ brew install {{ $formulae | sortAlpha | uniq | join " " }}
 brew install --cask --adopt {{ $casks | sortAlpha | uniq | join " " }}
 {{ else if eq .chezmoi.os "linux" -}}
 {{- $osid := index .chezmoi.osRelease "id" | default "" -}}
-{{- $oslike := index .chezmoi.osRelease "idLike" | default "" -}}
 #!/bin/bash
 set -euo pipefail
 
-{{ if or (eq $osid "arch") (contains "arch" $oslike) -}}
-pkgs=({{ .packages.arch.packages | sortAlpha | uniq | join " " }})
-
-if command -v paru >/dev/null 2>&1; then
-  echo "install-packages: syncing packages with paru..."
-  paru -S --needed --noconfirm "${pkgs[@]}"
-{{ if ne .profile "server" -}}
-  echo "install-packages: syncing AUR/desktop apps with paru..."
-  paru -S --needed --noconfirm {{ .packages.arch.aur | sortAlpha | uniq | join " " }}
-{{ end -}}
-else
-  echo "install-packages: paru not found, using pacman (repo packages only)..."
-  sudo pacman -S --needed --noconfirm "${pkgs[@]}"
-fi
-{{ else if eq $osid "fedora" -}}
+{{ if eq $osid "fedora" -}}
 export PATH="$HOME/.local/bin:$PATH"
 
 base_pkgs=({{ .packages.fedora.packages | sortAlpha | uniq | join " " }})
-workstation_pkgs=({{ .packages.fedora.workstation_packages | sortAlpha | uniq | join " " }})
 gaming_pkgs=({{ .packages.fedora.gaming_packages | sortAlpha | uniq | join " " }})
 nvidia_pkgs=({{ .packages.fedora.nvidia_packages | sortAlpha | uniq | join " " }})
 coprs=({{ .packages.fedora.coprs | sortAlpha | uniq | join " " }})
@@ -128,17 +112,12 @@ if ! dnf copr --help >/dev/null 2>&1; then
   install_missing_packages dnf5-plugins
 fi
 
-{{ if ne .profile "server" -}}
 for copr in "${coprs[@]}"; do
   enable_copr "$copr"
 done
-{{ end -}}
 
 packages=("${base_pkgs[@]}")
-{{ if ne .profile "server" -}}
-packages+=("${workstation_pkgs[@]}")
-{{ end -}}
-{{ if or (eq .profile "personal") (eq .profile "cachygaming") -}}
+{{ if eq .profile "personal" -}}
 packages+=("${gaming_pkgs[@]}")
 if has_nvidia_gpu; then
   packages+=("${nvidia_pkgs[@]}" "kernel-devel-$(uname -r)")
@@ -147,7 +126,6 @@ fi
 
 install_missing_packages "${packages[@]}"
 
-{{ if ne .profile "server" -}}
 # Preserve an existing AppImage install. Fresh Fedora workstations use the
 # official Helium COPR package instead.
 if ! command -v helium >/dev/null 2>&1; then
@@ -172,21 +150,6 @@ if (( ${#missing_flatpaks[@]} > 0 )); then
 else
   info "all requested user Flatpaks are already installed"
 fi
-{{ end -}}
-{{ else if or (eq $osid "debian") (eq $osid "ubuntu") (contains "debian" $oslike) -}}
-echo "install-packages: syncing apt packages..."
-sudo apt-get update -y
-
-# Skip packages this release doesn't ship instead of failing the whole run.
-installable=()
-for pkg in {{ .packages.debian.packages | sortAlpha | uniq | join " " }}; do
-  if apt-cache show "$pkg" >/dev/null 2>&1; then
-    installable+=("$pkg")
-  else
-    echo "install-packages: '$pkg' not available, skipping" >&2
-  fi
-done
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${installable[@]}"
 {{ else -}}
 echo "install-packages: unsupported linux distro '{{ $osid }}', skipping" >&2
 {{ end -}}

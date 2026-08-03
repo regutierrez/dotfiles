@@ -2,7 +2,7 @@
 name: general-purpose
 description: Lightweight parent-twin subagent for normal multi-step coding tasks. Use when a task needs an autonomous subagent but no specialist persona fits.
 tools: read,bash,edit,write
-model: openai-codex/gpt-5.6-sol
+model: opencode-go/glm-5.2
 thinking: medium
 spawning: false
 auto-exit: true

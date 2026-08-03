@@ -16,6 +16,7 @@ shared = [
   "implement",
   "improve-codebase-architecture",
   "init-deep",
+  "knowledgebase",
   "librarian",
   "manage-worktree",
   "prototype",
@@ -29,9 +30,11 @@ shared = [
   "tsv-viewer",
   "ubiquitous-language",
   "uv",
+  "visual-explainer",
   "wayfinder",
   "web-browser",
   "writing-great-skills",
+  "zoom-out",
 ]
 work = [
   "akkio-coding-standards",
@@ -43,4 +46,3 @@ work = [
   "recapping-weekly-agent-sessions",
   "rca",
 ]
-desktop = ["knowledgebase", "visual-explainer", "zoom-out"]

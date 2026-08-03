@@ -2,8 +2,9 @@
 set -Eeuo pipefail
 
 profile="${CHEZMOI_PROFILE:-personal}"
-if [[ "$profile" == "cachygaming" ]]; then
-  profile="personal"
+if [[ "$profile" != "personal" ]]; then
+  printf 'fedora-setup: Fedora supports the personal profile only\n' >&2
+  exit 1
 fi
 source_dir="$(chezmoi source-path)"
 local_bin="$HOME/.local/bin"
@@ -75,6 +76,31 @@ install_user_tools() {
     info "installing ast-grep from its upstream Rust crate"
     cargo install ast-grep --locked --root "$HOME/.local"
   fi
+}
+
+install_node() {
+  export PATH="$HOME/.local/share/fnm:$PATH"
+  require_command fnm
+
+  info "ensuring the latest LTS Node.js is active"
+  eval "$(fnm env --shell bash)"
+  fnm install --lts
+  fnm use --lts
+  require_command node
+  require_command npm
+}
+
+install_pi() {
+  export PATH="$HOME/.npm-global/bin:$PATH"
+
+  if [[ ! -x "$HOME/.npm-global/bin/pi" ]]; then
+    info "installing Pi"
+    npm install --global --ignore-scripts \
+      --prefix "$HOME/.npm-global" \
+      @earendil-works/pi-coding-agent
+  fi
+
+  require_command pi
 }
 
 configure_git() {
@@ -269,6 +295,12 @@ main() {
 
   cache_sudo
   install_user_tools
+  install_node
+  install_pi
+
+  info "applying managed configuration and Pi dependencies"
+  chezmoi apply
+
   configure_git
   configure_ssh
   configure_login_shell

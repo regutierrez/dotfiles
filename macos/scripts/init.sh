@@ -5,8 +5,8 @@ set -e -u
 # Usage (remote): curl -fsSL https://raw.githubusercontent.com/regutierrez/dotfiles/main/macos/scripts/init.sh | bash
 # Usage (local):  bash macos/scripts/init.sh
 # Overrides:
-#   BOOTSTRAP_CONFIG=/path/to/bootstrap.sh bash macos/scripts/init.sh
-#   bootstrap.sh can set: GHUSER, EMAIL
+#   BOOTSTRAP_CONFIG=/path/to/private-config.sh bash macos/scripts/init.sh
+#   The private config can set: GHUSER, EMAIL
 
 BOOTSTRAP_CONFIG="${BOOTSTRAP_CONFIG:-$HOME/.config/dotfiles/bootstrap.sh}" # for work
 
@@ -186,7 +186,7 @@ main() {
   echo "=== Setup Complete ==="
   echo ""
   echo "Next steps:"
-  echo "  1. Run: chezmoi init --apply regutierrez"
+  echo "  1. Run: chezmoi init regutierrez"
   echo "  2. Run: bash \"\$(chezmoi source-path)/bootstrap\""
   echo "  3. Restart your terminal (or run: source ~/.zshrc)"
   echo "  4. Reboot machine for everything to take effect"
