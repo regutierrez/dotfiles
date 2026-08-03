@@ -1,6 +1,5 @@
 .agents/skills/to-prd
 .agents/skills/chrome-devtools-cli
-.agents/skills/bro
 .agents/skills/tmux
 .agents/skills/akkio-base
 .agents/skills/analyzing-excel-files
