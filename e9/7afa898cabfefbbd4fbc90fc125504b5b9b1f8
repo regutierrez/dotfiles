@@ -1,0 +1,78 @@
+dot_agents/skills/coding-standards/references/workflows-transactions-and-idempotency.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-24
+dot_agents/skills/coding-standards/references/errors.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-98
+dot_agents/skills/coding-standards/agents/openai.yaml
+  s_f77813b9b1deae::t_946f36400c60bc 3
+dot_config/herdr/config.toml
+  s_f77813b9b1deae::t_3d055b18395459 23,57-61
+  s_f77813b9b1deae::t_6e50122eb8a8e8 62
+dot_config/git/config.tmpl
+  s_f77813b9b1deae::t_edb6d47037ac2b 1-48
+dot_agents/skills/coding-standards/references/effect.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-30
+dot_agents/skills/coding-standards/references/typescript-safety.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-50
+dot_agents/skills/coding-standards/references/comments-and-jsdoc.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-53
+dot_agents/skills/coding-standards/references/effect-testing.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-108
+dot_agents/skills/coding-standards/references/sensitive-data-and-observability.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-23
+dot_agents/skills/coding-standards/references/testing.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-70
+dot_agents/skills/research/SKILL.md
+  s_f77813b9b1deae::t_e06a60a062df91 6,8-17
+dot_agents/skills/coding-standards/references/configuration-and-resources.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-15
+.chezmoiremove
+  s_f77813b9b1deae::t_456452b47204c8 15-25
+.chezmoidata.toml
+  s_f77813b9b1deae::t_50561c77d2f512 36
+dot_agents/skills/coding-standards/references/effect-http-clients.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-91
+dot_agents/skills/coding-standards/references/effect-scheduling-and-retry.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-141
+dot_agents/skills/coding-standards/references/imports-exports-and-files.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-49
+dot_agents/skills/coding-standards/references/effect-configuration.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-69
+dot_agents/skills/coding-standards/references/effect-services.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-149
+dot_agents/skills/coding-standards/references/effect-caching.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-55
+dot_agents/skills/coding-standards/references/modules-services-and-adapters.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-153
+dot_agents/skills/coding-standards/references/effect-schema-and-data.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-133
+dot_agents/skills/coding-standards/references/effect-streams.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-126
+dot_agents/skills/coding-standards/references/persistence.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-18
+dot_agents/skills/coding-standards/SKILL.md
+  s_f77813b9b1deae::t_e06a60a062df91 3,7-9,13,16-20,24-32,34,36,38,40,42,44,46,48-60,62,64,66,68,70,72,74,76,78,80,82
+dot_agents/skills/effect-service-design/SKILL.md
+  s_f77813b9b1deae::t_1ad61d67d835b7 8,10,12-14,16,18,20-21,23
+dot_agents/skills/coding-standards/references/parsing-and-schemas.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-52
+dot_agents/skills/write-discoverable-code/SKILL.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-107
+dot_agents/skills/coding-standards/references/domain-types-and-state.md
+  s_f77813b9b1deae::t_e06a60a062df91 1-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "e97afa898cabfefbbd4fbc90fc125504b5b9b1f8",
+  "prompts": {},
+  "sessions": {
+    "s_f77813b9b1deae": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fc8a0-7bef-7390-97c2-261bb355c33d",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
