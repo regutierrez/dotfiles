@@ -60,7 +60,6 @@ work_casks = [
 [packages.pi]
 extensions = [
   "npm:@plannotator/pi-extension",
-  "npm:pi-herdr-subagents",
 ]
 
 [packages.fedora]

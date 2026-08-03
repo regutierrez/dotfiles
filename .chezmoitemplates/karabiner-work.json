@@ -1,2 +1,2 @@
-{{- /* The work config starts with the existing bindings but is a separate profile entrypoint. */ -}}
+{{- /* The shared template selects work-specific app bindings from .profile. */ -}}
 {{- template "karabiner-personal.json" . -}}

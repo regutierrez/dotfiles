@@ -1,3 +1,4 @@
+{{- $work := eq .profile "work" -}}
 {
   "profiles": [
     {
@@ -79,16 +80,16 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Joplin.app'",
+                "description": "Hyper + Q, {{ if $work }}A: Open Google Chrome{{ else }}0: Open Joplin{{ end }}",
                 "from": {
-                  "key_code": "0",
+                  "key_code": "{{ if $work }}a{{ else }}0{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Joplin.app'"
+                    "shell_command": "open -a '{{ if $work }}Google Chrome.app{{ else }}Joplin.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
@@ -101,16 +102,16 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'iPhone Mirroring.app'",
+                "description": "Hyper + Q, {{ if $work }}G: Open Arc{{ else }}M: Open iPhone Mirroring{{ end }}",
                 "from": {
-                  "key_code": "m",
+                  "key_code": "{{ if $work }}g{{ else }}m{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'iPhone Mirroring.app'"
+                    "shell_command": "open -a '{{ if $work }}Arc.app{{ else }}iPhone Mirroring.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
@@ -123,16 +124,16 @@
                     "value": 1
                   }
                 ],
+                "description": "Hyper + Q, {{ if $work }}B: Open Bitwarden{{ else }}G: Open Helium{{ end }}",
                 "from": {
-                  "description": "Open -a 'Helium.app'",
-                  "key_code": "g",
+                  "key_code": "{{ if $work }}b{{ else }}g{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Helium.app'"
+                    "shell_command": "open -a '{{ if $work }}Bitwarden.app{{ else }}Helium.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
@@ -145,7 +146,7 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Zed.app'",
+                "description": "Hyper + Q, V: Open Zed",
                 "from": {
                   "key_code": "v",
                   "modifiers": {
@@ -167,9 +168,9 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Finder.app'",
+                "description": "Hyper + Q, {{ if $work }}Period{{ else }}F{{ end }}: Open Finder",
                 "from": {
-                  "key_code": "f",
+                  "key_code": "{{ if $work }}period{{ else }}f{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
@@ -189,16 +190,16 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Discord.app'",
+                "description": "Hyper + Q, {{ if $work }}W: Open MacWhisper{{ else }}D: Open Discord{{ end }}",
                 "from": {
-                  "key_code": "d",
+                  "key_code": "{{ if $work }}w{{ else }}d{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Discord.app'"
+                    "shell_command": "open -a '{{ if $work }}MacWhisper.app{{ else }}Discord.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
@@ -211,7 +212,7 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Slack.app'",
+                "description": "Hyper + Q, S: Open Slack",
                 "from": {
                   "key_code": "s",
                   "modifiers": {
@@ -233,16 +234,16 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Messages.app'",
+                "description": "Hyper + Q, {{ if $work }}M: Open Microsoft Outlook{{ else }}N: Open Messages{{ end }}",
                 "from": {
-                  "key_code": "n",
+                  "key_code": "{{ if $work }}m{{ else }}n{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Messages.app'"
+                    "shell_command": "open -a '{{ if $work }}Microsoft Outlook.app{{ else }}Messages.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
@@ -255,16 +256,16 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Calendar.app'",
+                "description": "Hyper + Q, {{ if $work }}T: Open Microsoft Teams{{ else }}C: Open Calendar{{ end }}",
                 "from": {
-                  "key_code": "",
+                  "key_code": "{{ if $work }}t{{ else }}c{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Calendar.app'"
+                    "shell_command": "open -a '{{ if $work }}Microsoft Teams.app{{ else }}Calendar.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
@@ -277,7 +278,7 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Ghostty.app'",
+                "description": "Hyper + Q, Return: Open Ghostty",
                 "from": {
                   "key_code": "return_or_enter",
                   "modifiers": {
@@ -299,16 +300,16 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Moonlight.app'",
+                "description": "Hyper + Q, {{ if $work }}O: Open Obsidian{{ else }}9: Open Moonlight{{ end }}",
                 "from": {
-                  "key_code": "9",
+                  "key_code": "{{ if $work }}o{{ else }}9{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Moonlight.app'"
+                    "shell_command": "open -a '{{ if $work }}Obsidian.app{{ else }}Moonlight.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
@@ -321,16 +322,16 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Bitwarden.app'",
+                "description": "Hyper + Q, {{ if $work }}Z: Open Zoom{{ else }}B: Open Bitwarden{{ end }}",
                 "from": {
-                  "key_code": "b",
+                  "key_code": "{{ if $work }}z{{ else }}b{{ end }}",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Bitwarden.app'"
+                    "shell_command": "open -a '{{ if $work }}zoom.us.app{{ else }}Bitwarden.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
@@ -343,7 +344,7 @@
                     "value": 1
                   }
                 ],
-                "description": "Open -a 'Reminders.app'",
+                "description": "Hyper + Q, R: Open Reminders",
                 "from": {
                   "key_code": "r",
                   "modifiers": {
