@@ -1,0 +1,20 @@
+dot_config/ghostty/config
+  s_34d29a0ce427a1::t_ae7da667db0b6b 51-52
+  s_34d29a0ce427a1::t_a158a71289eac3 58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "6bbd7b8d6946740018c9e2d1695dec9876a29e9d",
+  "prompts": {},
+  "sessions": {
+    "s_34d29a0ce427a1": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fc8e6-1718-755e-8ee0-ad58e0f0ab30",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
