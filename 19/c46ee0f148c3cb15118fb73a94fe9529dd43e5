@@ -1,0 +1,56 @@
+dot_pi/agent/agents/impl.md.tmpl
+  s_6046bf05e2939f::t_b07d24188d2c50 5
+  s_24354679bc1be8::t_732e0f2c5b243d 6
+dot_pi/agent/agents/explore.md.tmpl
+  s_24354679bc1be8::t_732e0f2c5b243d 6
+  s_6046bf05e2939f::t_b07d24188d2c50 5
+dot_pi/agent/agents/reviewer.md.tmpl
+  s_6046bf05e2939f::t_b07d24188d2c50 5
+  s_24354679bc1be8::t_732e0f2c5b243d 6
+README.md
+  s_c76f59e99057fd::t_615cd1ebe7579a 77
+  s_24354679bc1be8::t_732e0f2c5b243d 76
+dot_pi/agent/README.md
+  s_c76f59e99057fd::t_615cd1ebe7579a 41
+  s_24354679bc1be8::t_732e0f2c5b243d 21
+dot_pi/agent/agents/librarian.md.tmpl
+  s_6046bf05e2939f::t_b07d24188d2c50 6
+dot_pi/agent/agents/oracle.md.tmpl
+  s_6046bf05e2939f::t_b07d24188d2c50 5
+  s_24354679bc1be8::t_732e0f2c5b243d 6
+dot_pi/agent/agents/general-purpose.md.tmpl
+  s_6046bf05e2939f::t_b07d24188d2c50 5
+  s_24354679bc1be8::t_732e0f2c5b243d 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "19c46ee0f148c3cb15118fb73a94fe9529dd43e5",
+  "prompts": {},
+  "sessions": {
+    "s_24354679bc1be8": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0340Us0bIevyqjck4mTGU7",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_6046bf05e2939f": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0340UgaRlzGRdC0BGC6i9E",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_c76f59e99057fd": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0340UihgpMnC4gtYKGS799",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
