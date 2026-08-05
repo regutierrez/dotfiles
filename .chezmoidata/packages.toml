@@ -60,6 +60,13 @@ work_casks = [
 [packages.pi]
 extensions = [
   "npm:@plannotator/pi-extension",
+  "npm:pi-mcp-adapter",
+]
+
+# CLIs required by managed Pi MCP servers (installed into ~/.npm-global).
+[packages.npm]
+globals = [
+  "open-computer-use",
 ]
 
 [packages.fedora]

@@ -1,0 +1,15 @@
+name = "AKKIO"
+description = "Akkio amp runners: master + active worktrees"
+working_dir = "~/Akkio"
+
+[[tabs]]
+name = "master"
+command = "amp --no-tui"
+
+[[tabs]]
+name = "Poller health check fix"
+command = "cd ~/.wt/pakkio/Akkio/pael-akkio-fix-temporal-busy-worker-liveness && amp threads continue T-019f8f3e-17d6-768b-b0f2-77fa24704370"
+
+[[tabs]]
+name = "pael-akkio-reuse-common-datasource-in-supp-info-refresh"
+command = "cd ~/.wt/pakkio/Akkio/pael-akkio-reuse-common-datasource-in-supp-info-refresh && amp --no-tui"

@@ -16,7 +16,7 @@ cd ~/.pi/agent && npm install
 | `btw.json` | Optional BTW model/thinking overrides |
 | `cloak.json` | Secret-masking patterns for `pi-cloak` |
 | `claude-bridge.json` | Claude bridge config |
-| `_mcp.json` | MCP server wiring |
+| `mcp.json` | MCP server wiring for `pi-mcp-adapter` |
 | `package.json` | Shared deps for extensions |
 | `agents/` | Custom herdr-subagent defs; prompts are shared and model/reasoning settings render by profile |
 | `skills/update-pi/` | Pi update helper skill |

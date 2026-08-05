@@ -1,0 +1,7 @@
+name = "knowledgebase"
+description = "Pael notes vault with amp runner"
+working_dir = "~/Documents/pael-notes"
+
+[[tabs]]
+name = "notes"
+command = "amp --no-tui"

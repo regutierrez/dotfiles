@@ -49,3 +49,24 @@ NODE
     pi install "$source"
   fi
 done
+
+npm_prefix="${NPM_CONFIG_PREFIX:-${HOME}/.npm-global}"
+mkdir -p "${npm_prefix}"
+export PATH="${npm_prefix}/bin:${PATH}"
+
+npm_globals=(
+{{- range (.packages.npm.globals | default list) }}
+  {{ . | quote }}
+{{- end }}
+)
+
+for pkg in "${npm_globals[@]+"${npm_globals[@]}"}"; do
+  # Package name may include a scope; binary often matches the unscoped name.
+  bin_name="${pkg##*/}"
+  if command -v "${bin_name}" >/dev/null 2>&1; then
+    echo "install-pi-packages: npm global ${pkg} already present"
+  else
+    echo "install-pi-packages: installing npm global ${pkg}..."
+    npm --prefix "${npm_prefix}" install -g "${pkg}"
+  fi
+done

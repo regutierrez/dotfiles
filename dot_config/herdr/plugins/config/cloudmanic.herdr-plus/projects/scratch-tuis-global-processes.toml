@@ -1,0 +1,15 @@
+name = "scratch-tuis-global-processes"
+description = "Scratch amp runner plus display caffeinate"
+working_dir = "~/playground/scratch"
+
+[[tabs]]
+name = "processes"
+
+[[tabs.panes]]
+command = "amp --no-tui"
+label = "amp"
+
+[[tabs.panes]]
+command = "caffeinate -d"
+split = "down"
+label = "caffeinate"

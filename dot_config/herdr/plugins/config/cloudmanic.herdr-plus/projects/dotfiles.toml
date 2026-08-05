@@ -1,0 +1,7 @@
+name = "dotfiles"
+description = "Chezmoi source with amp runner"
+working_dir = "~/.local/share/chezmoi"
+
+[[tabs]]
+name = "amp-runner"
+command = "amp --no-tui"

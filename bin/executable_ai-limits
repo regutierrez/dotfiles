@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Alias for ai_limits (hyphenated name).
+exec "$(dirname "$0")/ai_limits" "$@"

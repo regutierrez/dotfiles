@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# ai_limits — TUI for Claude / Codex / SuperGrok subscription usage.
+set -euo pipefail
+
+resolve_src() {
+	if command -v chezmoi >/dev/null 2>&1; then
+		local root
+		root="$(chezmoi source-path 2>/dev/null || true)"
+		if [[ -n "${root}" && -f "${root}/scripts/ai_limits/main.go" ]]; then
+			printf '%s\n' "${root}/scripts/ai_limits"
+			return 0
+		fi
+	fi
+	# Fallback when chezmoi is unavailable: walk up from this script's real path.
+	local here
+	here="$(cd "$(dirname "$0")" && pwd)"
+	if [[ -f "${here}/../.local/share/chezmoi/scripts/ai_limits/main.go" ]]; then
+		printf '%s\n' "${here}/../.local/share/chezmoi/scripts/ai_limits"
+		return 0
+	fi
+	if [[ -f "${HOME}/.local/share/chezmoi/scripts/ai_limits/main.go" ]]; then
+		printf '%s\n' "${HOME}/.local/share/chezmoi/scripts/ai_limits"
+		return 0
+	fi
+	return 1
+}
+
+src="$(resolve_src)" || {
+	echo "ai_limits: cannot find source at scripts/ai_limits (chezmoi source-path)" >&2
+	exit 1
+}
+
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/ai_limits"
+mkdir -p "$cache"
+bin="$cache/ai_limits"
+
+if [[ -x "$bin" && "$bin" -nt "$src/main.go" && "$bin" -nt "$src/go.mod" ]]; then
+	exec "$bin" "$@"
+fi
+
+if ! command -v go >/dev/null 2>&1; then
+	echo "ai_limits: go is required (brew install go)" >&2
+	exit 1
+fi
+
+if go build -C "$src" -o "$bin" .; then
+	exec "$bin" "$@"
+fi
+
+exec go run -C "$src" . "$@"

@@ -1,0 +1,39 @@
+# Henry local stack from akkio-helper-agents ARCHITECTURE.md / deploy docs.
+# herdr-plus allows at most 4 panes per tab, so services and amp are split.
+#
+# services:
+#   - investigatr web (Astro :4321)
+#   - flue runtime (:3583)
+#   - slack bot
+#   - cloudflared Access-protected tunnel to local Investigatr
+# amp:
+#   - amp runner for agent work in this repo
+name = "henry"
+description = "Henry local processes + amp runner"
+working_dir = "~/playground/akkio-helper-agents"
+
+[[tabs]]
+name = "processes"
+
+[[tabs.panes]]
+command = "pnpm dev:investigatr"
+label = "investigatr"
+
+[[tabs.panes]]
+command = "pnpm dev:agent-runtime-flue"
+split = "down"
+label = "flue"
+
+[[tabs.panes]]
+command = "pnpm start:slack-bot"
+split = "down"
+label = "slack-bot"
+
+[[tabs.panes]]
+command = "pnpm start:investigatr-tunnel"
+split = "down"
+label = "tunnel"
+
+[[tabs]]
+name = "amp"
+command = "amp --no-tui"

@@ -1,0 +1,12 @@
+# herdr-plus has one working_dir per project; later tabs cd into their repo.
+name = "tool-shed"
+description = "Akkio tooling repos with amp runners"
+working_dir = "~/repos/akkio-dev-stacks"
+
+[[tabs]]
+name = "wt-stack"
+command = "amp --no-tui"
+
+[[tabs]]
+name = "akkio-agent-overrides"
+command = "cd ~/repos/akkio-agent-overrides && amp --no-tui"

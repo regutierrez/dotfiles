@@ -11,6 +11,7 @@
 .agents/skills/index-knowledge
 .agents/skills/setup-matt-pocock-skills
 .agents/skills/daily-agent-session-recap
+.agents/skills/effect-service-design
 .agents/skills/coding-standards/ASYNC_AND_WORKFLOWS.md
 .agents/skills/coding-standards/BOUNDARIES_AND_PARSING.md
 .agents/skills/coding-standards/CLOUDFLARE_ARCHITECTURE.md
@@ -43,3 +44,4 @@ bin/agent-status-claude-hook
 bin/agent-status-claude-notify
 bin/agent-status-cursor-hook
 bin/agent-sessions-picker
+.pi/agent/_mcp.json

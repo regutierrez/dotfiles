@@ -1,0 +1,19 @@
+name = "rca-and-triage"
+description = "Investigatr RCA + ticket triage"
+working_dir = "~/playground/investigatr"
+
+[[tabs]]
+name = "rca"
+
+[[tabs.panes]]
+command = "npm run dev -- --port 4322"
+label = "dev"
+
+[[tabs.panes]]
+command = "amp --no-tui"
+split = "down"
+label = "amp"
+
+[[tabs]]
+name = "triage"
+command = "cd ~/playground/ticket-cleaner && amp --no-tui"
