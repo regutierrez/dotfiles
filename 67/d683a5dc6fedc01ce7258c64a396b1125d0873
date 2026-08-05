@@ -1,0 +1,132 @@
+dot_config/herdr/plugins/config/cloudmanic.herdr-plus/projects/dotfiles.toml
+  s_a42979af671396::t_7265e67ae0c763 1-7
+bin/executable_git-credential-gh-user
+  s_18bb1fa02d70a3::t_79e656dd9ec0db 1-37
+.chezmoiremove
+  s_803bd89d40692d::t_73f4c0ad70e589 47
+  s_803bd89d40692d::t_9df359f7acb050 14
+run_after_35-install-pi-packages.sh.tmpl
+  s_803bd89d40692d::t_c87a81a28abc97 52-72
+dot_config/herdr/plugins/config/cloudmanic.herdr-plus/projects/akkio.toml
+  s_a42979af671396::t_7265e67ae0c763 1-10,12-15
+  s_a42979af671396::t_3c21ffbbb4e540 11
+dot_config/herdr/plugins/config/cloudmanic.herdr-plus/projects/knowledgebase.toml
+  s_a42979af671396::t_7265e67ae0c763 1-7
+dot_config/herdr/plugins/config/cloudmanic.herdr-plus/projects/scratch-tuis-global-processes.toml
+  s_a42979af671396::t_7265e67ae0c763 1-15
+.chezmoidata/packages.toml
+  s_803bd89d40692d::t_1fc94aad9eee8b 63-69
+scripts/ai_limits/main.go
+  s_0ea153d273e276::t_53680d99f84d6a 2,6-890,894-901,908-913,934,937,943,949,951,955,961,963,966-967,975,978,981,984-986,993,995,1003,1005-1006,1011,1020,1022-1023,1030-1031,1033,1038,1041,1043,1049-1050,1052,1057,1060,1062,1068,1070
+  s_0ea153d273e276::t_e7cb2625214b27 891-893,902-907
+  s_0ea153d273e276::t_a0a6ba5c49e926 1
+  s_0ea153d273e276::t_07a89deefb8ba5 3-5
+  s_0ea153d273e276::t_6c384767682448 914-916,931-933
+  s_0ea153d273e276::t_4d12d52d39b75c 935-936
+  s_0ea153d273e276::t_ca6fe67d68e36f 938-942
+  s_0ea153d273e276::t_85560842615480 944-948
+  s_0ea153d273e276::t_19973c782110d3 950
+  s_0ea153d273e276::t_300dbed4070885 952-954
+  s_0ea153d273e276::t_36602a668c9b9f 956-960
+  s_0ea153d273e276::t_20808e10cab74e 962
+  s_0ea153d273e276::t_e0790c79fa64da 964-965
+  s_0ea153d273e276::t_32f9fd40cb5128 968-970,972-974
+  s_0ea153d273e276::t_2e244d9ac4a4ca 976-977
+  s_0ea153d273e276::t_bd4dcbff42ebdd 979-980
+  s_0ea153d273e276::t_0cc43f6944ad47 982-983
+  s_0ea153d273e276::t_578c1155b57a2c 987-992
+  s_0ea153d273e276::t_e9b3759ac26a6d 994
+  s_0ea153d273e276::t_e86cb13a1515ad 996-998,1000-1002
+  s_0ea153d273e276::t_9b8c392ebdd659 1004
+  s_0ea153d273e276::t_67751416e5b804 1007-1010
+  s_0ea153d273e276::t_1f0fb0fd567bc6 1012-1014,1017-1019
+  s_0ea153d273e276::t_f2fee5146844f4 1021
+  s_0ea153d273e276::t_1337e2e0ea6c19 1024-1029
+  s_0ea153d273e276::t_5f971d472caa1b 1032
+  s_0ea153d273e276::t_d1ade93eff08d9 1034-1037
+  s_0ea153d273e276::t_766626cd11052d 1039-1040
+  s_0ea153d273e276::t_3a5075cca4dfc3 1042
+  s_0ea153d273e276::t_5c8f37c711510a 1044-1048
+  s_0ea153d273e276::t_5c9218bc5429bb 1051
+  s_0ea153d273e276::t_311d3092453f24 1053-1056
+  s_0ea153d273e276::t_d7396d71c2eeeb 1058-1059
+  s_0ea153d273e276::t_be6034e7c13c1c 1061
+  s_0ea153d273e276::t_79f9997bf98482 1063-1067
+  s_0ea153d273e276::t_06bb435ee64a3d 1069
+  s_0ea153d273e276::t_4460df98717aed 1071-1073
+  s_0ea153d273e276::t_4eb5cb3db66faa 917-930,971,999,1015-1016,1074-1076
+dot_pi/agent/README.md
+  s_803bd89d40692d::t_e369f835cbbdb3 19
+bin/executable_ai_limits
+  s_11a8ecdb2be5bd::t_e46e6e8b2755b2 1-50
+dot_config/herdr/plugins/config/cloudmanic.herdr-plus/projects/tool-shed.toml
+  s_a42979af671396::t_7265e67ae0c763 1-12
+dot_config/herdr/plugins/config/cloudmanic.herdr-plus/projects/henry.toml
+  s_a42979af671396::t_7265e67ae0c763 1-39
+bin/executable_ai-limits
+  s_11a8ecdb2be5bd::t_29fdb966995587 1-3
+dot_config/herdr/plugins/config/cloudmanic.herdr-plus/projects/rca-and-triage.toml
+  s_a42979af671396::t_7265e67ae0c763 1-19
+scripts/ai_limits/go.mod
+  s_11a8ecdb2be5bd::t_2c8eee904817b6 1-7
+scripts/ai_limits/go.sum
+  s_11a8ecdb2be5bd::t_0ba4bd8c68ed46 1-4
+dot_pi/agent/mcp.json
+  s_6efee5688495e0::t_9dac936c887ea4 3-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "67d683a5dc6fedc01ce7258c64a396b1125d0873",
+  "prompts": {},
+  "sessions": {
+    "s_0ea153d273e276": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fd383-3625-7ca2-ae01-a89480932058",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_11a8ecdb2be5bd": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fcd7a-1e51-7da9-83db-dd63d1e0d1f4",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_18bb1fa02d70a3": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fc946-3040-7932-8cad-3d30ae695199",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_6efee5688495e0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2b40842e-3345-408b-b520-7e47188fb6c1",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_803bd89d40692d": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fce4d-fea5-701d-b0ec-a733b7ccbe4a",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_a42979af671396": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fd2da-3c67-7d0d-88d6-a827ebc430d9",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
