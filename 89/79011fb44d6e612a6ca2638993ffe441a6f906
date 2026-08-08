@@ -1,0 +1,20 @@
+scripts/ai_limits/main.go
+  s_2c3dfa19391e66::t_aa874451a15f3f 62-64,515,696-700
+  s_2c3dfa19391e66::t_3b79dd40ac58fb 43,437,445-454,468-490,492-497,499-500
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "8979011fb44d6e612a6ca2638993ffe441a6f906",
+  "prompts": {},
+  "sessions": {
+    "s_2c3dfa19391e66": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fd7dd-5fda-7c9e-a8f8-4cc828209ac9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
