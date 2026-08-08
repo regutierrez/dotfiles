@@ -40,7 +40,7 @@ const (
 
 	xaiClientID   = "b1a00492-073a-47ea-816f-4c329264a828"
 	xaiTokenURL   = "https://auth.x.ai/oauth2/token"
-	xaiBillingURL = "https://cli-chat-proxy.grok.com/v1/billing"
+	xaiBillingURL = "https://cli-chat-proxy.grok.com/v1/billing?format=credits"
 
 	codexClientID   = "app_EMoamEEZ73f0CkXaXp7hrann"
 	codexTokenURL   = "https://auth.openai.com/oauth/token"
@@ -59,9 +59,9 @@ const (
 
 // UsageWindow is one rate-limit or billing window (5h, 7d, month, …).
 type UsageWindow struct {
-	Label      string
-	UsedPct    float64 // 0–100
-	ResetsAt   time.Time
+	Label    string
+	UsedPct  float64 // 0–100
+	ResetsAt time.Time
 }
 
 // ProviderUsage is one provider card in the TUI.
@@ -434,7 +434,7 @@ func refreshOAuthForm(tokenURL, clientID, refreshToken string, skew time.Duratio
 // ---------- Providers ----------
 
 func (a *app) fetchGrokUsage() ProviderUsage {
-	u := ProviderUsage{Name: "SuperGrok (CLI pool)", Plan: "xAI OAuth (Pi)"}
+	u := ProviderUsage{Name: "SuperGrok", Plan: "xAI OAuth (Pi)"}
 	c, err := a.freshPiOAuthCredential("xai", xaiTokenURL, xaiClientID, refreshSkew)
 	if err != nil {
 		u.Err = err.Error()
@@ -442,6 +442,16 @@ func (a *app) fetchGrokUsage() ProviderUsage {
 	}
 	var body struct {
 		Config struct {
+			CreditUsagePercent *float64 `json:"creditUsagePercent"`
+			CurrentPeriod      *struct {
+				Type  string `json:"type"`
+				Start string `json:"start"`
+				End   string `json:"end"`
+			} `json:"currentPeriod"`
+			ProductUsage []struct {
+				Product      string  `json:"product"`
+				UsagePercent float64 `json:"usagePercent"`
+			} `json:"productUsage"`
 			MonthlyLimit struct {
 				Val float64 `json:"val"`
 			} `json:"monthlyLimit"`
@@ -455,16 +465,39 @@ func (a *app) fetchGrokUsage() ProviderUsage {
 		u.Err = err.Error()
 		return u
 	}
+
+	if period := body.Config.CurrentPeriod; period != nil {
+		pct := 0.0 // xAI omits proto3 zero values after a period reset.
+		if body.Config.CreditUsagePercent != nil {
+			pct = *body.Config.CreditUsagePercent
+		}
+		label := "usage"
+		if strings.Contains(period.Type, "WEEKLY") {
+			label = "week"
+		} else if strings.Contains(period.Type, "MONTHLY") {
+			label = "month"
+		}
+		reset, _ := time.Parse(time.RFC3339Nano, period.End)
+		u.Windows = []UsageWindow{{Label: label, UsedPct: pct, ResetsAt: reset}}
+		var products []string
+		for _, product := range body.Config.ProductUsage {
+			name := strings.TrimPrefix(product.Product, "Grok")
+			products = append(products, fmt.Sprintf("%s %.1f%%", name, product.UsagePercent))
+		}
+		if len(products) > 0 {
+			u.Note = "products: " + strings.Join(products, " · ")
+		}
+		return u
+	}
+
+	// Older accounts can still receive the separate monthly Grok CLI allowance.
 	lim, used := body.Config.MonthlyLimit.Val, body.Config.Used.Val
-	pct := 0.0
-	if lim > 0 {
-		pct = used / lim * 100
+	if lim <= 0 {
+		u.Err = "no SuperGrok usage period in response"
+		return u
 	}
-	var reset time.Time
-	if t, err := time.Parse(time.RFC3339, body.Config.BillingPeriodEnd); err == nil {
-		reset = t
-	}
-	u.Windows = []UsageWindow{{Label: "month", UsedPct: pct, ResetsAt: reset}}
+	reset, _ := time.Parse(time.RFC3339, body.Config.BillingPeriodEnd)
+	u.Windows = []UsageWindow{{Label: "CLI month", UsedPct: used / lim * 100, ResetsAt: reset}}
 	u.Note = fmt.Sprintf("%.0f / %.0f used", used, lim)
 	return u
 }
@@ -479,7 +512,7 @@ func (a *app) fetchCodexUsage() (ProviderUsage, []CodexResetCredit) {
 	var body struct {
 		PlanType  string `json:"plan_type"`
 		RateLimit *struct {
-			LimitReached bool `json:"limit_reached"`
+			LimitReached bool             `json:"limit_reached"`
 			Primary      *codexRateWindow `json:"primary_window"`
 			Secondary    *codexRateWindow `json:"secondary_window"`
 		} `json:"rate_limit"`
@@ -660,11 +693,11 @@ func (a *app) fetchClaudeUsage() ProviderUsage {
 		return u
 	}
 	labels := map[string]string{
-		"five_hour":             "5h",
-		"seven_day":             "7d",
-		"seven_day_opus":        "7d opus",
-		"seven_day_sonnet":      "7d sonnet",
-		"seven_day_oauth_apps":  "7d oauth apps",
+		"five_hour":            "5h",
+		"seven_day":            "7d",
+		"seven_day_opus":       "7d opus",
+		"seven_day_sonnet":     "7d sonnet",
+		"seven_day_oauth_apps": "7d oauth apps",
 	}
 	for _, key := range []string{"five_hour", "seven_day", "seven_day_opus", "seven_day_sonnet", "seven_day_oauth_apps"} {
 		raw, ok := body[key]
