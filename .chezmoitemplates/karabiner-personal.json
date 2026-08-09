@@ -168,9 +168,9 @@
                     "value": 1
                   }
                 ],
-                "description": "Hyper + Q, {{ if $work }}Period{{ else }}F{{ end }}: Open Finder",
+                "description": "Hyper + Q, Period: Open Finder",
                 "from": {
-                  "key_code": "{{ if $work }}period{{ else }}f{{ end }}",
+                  "key_code": "period",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
@@ -300,16 +300,38 @@
                     "value": 1
                   }
                 ],
-                "description": "Hyper + Q, {{ if $work }}O: Open Obsidian{{ else }}9: Open Moonlight{{ end }}",
+                "description": "Hyper + Q, 9: Open Moonlight",
                 "from": {
-                  "key_code": "{{ if $work }}o{{ else }}9{{ end }}",
+                  "key_code": "9",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a '{{ if $work }}Obsidian.app{{ else }}Moonlight.app{{ end }}'"
+                    "shell_command": "open -a 'Moonlight.app'"
+                  }
+                ],
+                "type": "basic"
+              },
+              {
+                "conditions": [
+                  {
+                    "name": "hyper_sublayer_q",
+                    "type": "variable_if",
+                    "value": 1
+                  }
+                ],
+                "description": "Hyper + Q, O: Open Obsidian",
+                "from": {
+                  "key_code": "o",
+                  "modifiers": {
+                    "mandatory": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "shell_command": "open -a 'Obsidian.app'"
                   }
                 ],
                 "type": "basic"
