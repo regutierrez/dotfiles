@@ -46,4 +46,5 @@ work = [
   "query-snowflake-hz",
   "recapping-weekly-agent-sessions",
   "rca",
+  "use-computer-mcp",
 ]
