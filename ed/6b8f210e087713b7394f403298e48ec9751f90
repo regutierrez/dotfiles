@@ -1,0 +1,23 @@
+dot_agents/skills/use-computer-mcp/SKILL.md
+  s_c257d4ad0e5c14::t_f9ce7796fb06d0 1-91
+dot_agents/skills/use-computer-mcp/REFERENCE.md
+  s_c257d4ad0e5c14::t_f8ddb02b47737b 1-44
+.chezmoidata.toml
+  s_c257d4ad0e5c14::t_eb356eb812b051 49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ed6b8f210e087713b7394f403298e48ec9751f90",
+  "prompts": {},
+  "sessions": {
+    "s_c257d4ad0e5c14": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fec42-ca85-7107-8c6a-d45f05d15724",
+        "model": "grok-4.5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
