@@ -52,9 +52,15 @@ personal or work configuration; Karabiner is ignored on other operating systems.
 On Fedora, the bootstrap installs Node and Pi before `chezmoi apply`, so the
 `[packages.pi]` hooks install Plannotator and Herdr subagents on the first run.
 
-## Amp shell history
+## Amp plugins
 
-The managed Amp plugin at `~/.config/amp/plugins/atuin-history.ts` records commands run through Amp's shell tool in Atuin. Entries use `amp` as the author and include the Amp thread ID and title as intent. Atuin supplies the timestamp, working directory, hostname, exit code, and duration.
+Managed Amp plugins live under `dot_config/private_amp/plugins/` and apply to `~/.config/amp/plugins/`:
+
+- `atuin-history.ts` records commands run through Amp's shell tool in Atuin. Entries use `amp` as the author and include the Amp thread ID and title as intent. Atuin supplies the timestamp, working directory, hostname, exit code, and duration.
+- `git-ai.ts` records Amp tool edits through git-ai.
+- `plannotator.ts` adds Plannotator command-palette actions (review, annotate file, annotate last answer). It needs the `plannotator` CLI on `PATH` (for example `~/.local/bin/plannotator` from the upstream installer).
+
+After apply, run `plugins: reload` in Amp or restart Amp.
 
 View the recorded commands with:
 
@@ -97,9 +103,13 @@ The personal Fedora workstation receives:
 
 ## Secrets
 
-Private SSH keys stay on each machine. The repository manages only the personal macOS SSH client configuration; work SSH configuration remains local.
+Private SSH keys stay on each machine. The repository manages only public SSH host routing; work SSH configuration and all key material remain local.
 
 Shell tokens belong in untracked files under `~/.config/secrets/`; `dot_zshrc.tmpl` sources `kagi.env` and `sideshow.env` when present.
+
+## Remote GitHub account routing
+
+Set `github_account_routing = true` in chezmoi's machine-local data to enable mixed Akkio, Horizon, and personal GitHub development. New `chezmoi init` runs ask whether to enable it. The routing configuration selects SSH identities, Git authors, and authenticated `gh` accounts from a repository's GitHub owner without storing keys or tokens in this repository.
 
 ## Platform setup
 

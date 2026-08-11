@@ -27,8 +27,30 @@ const path = require("node:path");
 
 const [, , settingsPath, source] = process.argv;
 const agentDir = path.dirname(settingsPath);
-const packageName = source.slice("npm:".length);
-const packageJson = path.join(agentDir, "npm", "node_modules", ...packageName.split("/"), "package.json");
+
+function packageJsonPath(source) {
+  if (source.startsWith("npm:")) {
+    let name = source.slice("npm:".length);
+    if (name.startsWith("@")) {
+      name = name.replace(/^(@[^/]+\/[^@]+)(?:@.+)?$/, "$1");
+    } else {
+      name = name.replace(/^([^@]+)(?:@.+)?$/, "$1");
+    }
+    return path.join(agentDir, "npm", "node_modules", ...name.split("/"), "package.json");
+  }
+
+  if (source.startsWith("git:")) {
+    let rest = source.slice("git:".length);
+    const slash = rest.lastIndexOf("/");
+    const at = rest.lastIndexOf("@");
+    if (at > slash) {
+      rest = rest.slice(0, at);
+    }
+    return path.join(agentDir, "git", ...rest.split("/"), "package.json");
+  }
+
+  return null;
+}
 
 let settings;
 try {
@@ -40,7 +62,8 @@ try {
 const configured = (settings.packages ?? []).some((entry) =>
   (typeof entry === "string" ? entry : entry?.source) === source
 );
-process.exit(configured && fs.existsSync(packageJson) ? 0 : 1);
+const packageJson = packageJsonPath(source);
+process.exit(configured && packageJson && fs.existsSync(packageJson) ? 0 : 1);
 NODE
   then
     echo "install-pi-packages: ${source} already installed"

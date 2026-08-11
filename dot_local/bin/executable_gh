@@ -1,0 +1,65 @@
+#!/bin/sh
+
+real_gh=/usr/bin/gh
+real_git=/usr/bin/git
+
+# Preserve gh's normal account-management behavior and explicit token overrides.
+if [ "${1-}" = "auth" ] || [ -n "${GH_TOKEN-}" ]; then
+  exec "$real_gh" "$@"
+fi
+
+account=${GH_ACCOUNT-}
+repo_hint=${GH_REPO-}
+expect_repo=false
+
+for argument in "$@"; do
+  if [ "$expect_repo" = true ]; then
+    repo_hint=$argument
+    expect_repo=false
+    continue
+  fi
+
+  case "$argument" in
+    -R|--repo)
+      expect_repo=true
+      ;;
+    --repo=*)
+      repo_hint=${argument#--repo=}
+      ;;
+  esac
+done
+
+if [ -z "$repo_hint" ] && "$real_git" rev-parse --git-dir >/dev/null 2>&1; then
+  repo_hint=$("$real_git" config --get remote.origin.url 2>/dev/null || true)
+
+  if [ -z "$repo_hint" ]; then
+    first_remote=$("$real_git" remote 2>/dev/null | sed -n '1p')
+    if [ -n "$first_remote" ]; then
+      repo_hint=$("$real_git" config --get "remote.$first_remote.url" 2>/dev/null || true)
+    fi
+  fi
+fi
+
+if [ -z "$account" ]; then
+  normalized_repo=$(printf '%s' "$repo_hint" | tr '[:upper:]' '[:lower:]')
+
+  case "$normalized_repo" in
+    *regutierrez/*)
+      account=regutierrez
+      ;;
+    *horizonmedia/*)
+      account=pael-hz
+      ;;
+    *)
+      account=pael-akkio
+      ;;
+  esac
+fi
+
+token=$("$real_gh" auth token --hostname github.com --user "$account") || {
+  printf 'gh: no usable GitHub token is configured for %s\n' "$account" >&2
+  exit 1
+}
+
+export GH_TOKEN=$token
+exec "$real_gh" "$@"

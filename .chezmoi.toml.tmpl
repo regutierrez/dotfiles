@@ -1,5 +1,6 @@
 {{- /* Supported: personal and work. */ -}}
 {{- $profile := promptStringOnce . "profile" "profile" "personal" }}
+{{- $githubAccountRouting := promptBoolOnce . "github_account_routing" "enable GitHub account routing for remote development" false }}
 {{- if and (ne $profile "personal") (ne $profile "work") -}}
 {{-   fail (printf "unsupported profile %q; expected personal or work" $profile) -}}
 {{- end }}
@@ -20,3 +21,4 @@
 
 [data]
     profile = "{{ $profile }}"
+    github_account_routing = {{ $githubAccountRouting }}
