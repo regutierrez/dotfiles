@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect local Pi, Claude, and Cursor sessions into normalized JSON.
+"""Collect local Pi and Claude sessions into normalized JSON.
 
 The script intentionally does not summarize. It normalizes heterogeneous session
 stores over a date range so an agent can compact/summarize the result consistently.
@@ -9,10 +9,8 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import hashlib
 import json
 import re
-import sqlite3
 import sys
 from pathlib import Path
 from typing import Any
@@ -133,18 +131,6 @@ SKIP_CONTENT_TYPES = {
     "server_tool_use",
 }
 
-CURSOR_CONTEXT_TAGS = (
-    "user_info",
-    "git_status",
-    "agent_transcripts",
-    "rules",
-    "additional_data",
-    "workspace_context",
-    "environment_details",
-    "attached_files",
-    "recently_viewed_files",
-)
-
 INJECTED_USER_TAGS = (
     "agent_skills",
     "skill",
@@ -219,26 +205,11 @@ def normalize_ws(text: str) -> str:
     return text.strip()
 
 
-def extract_tag(text: str, tag: str) -> list[str]:
-    return [m.strip() for m in re.findall(rf"<{tag}[^>]*>(.*?)</{tag}>", text, flags=re.S | re.I) if m.strip()]
-
-
-def clean_user_text(text: str, agent: str) -> str:
+def clean_user_text(text: str) -> str:
     text = normalize_ws(text)
-
-    # Cursor wraps the actual prompt in <user_query> while a bootstrap user blob
-    # contains huge environment/rules context. Prefer the real query when present.
-    queries = extract_tag(text, "user_query")
-    if queries:
-        return normalize_ws("\n\n".join(queries))
 
     for tag in INJECTED_USER_TAGS:
         text = re.sub(rf"<{tag}[^>]*>.*?</{tag}>", "", text, flags=re.S | re.I)
-
-    if agent == "cursor":
-        for tag in CURSOR_CONTEXT_TAGS:
-            text = re.sub(rf"<{tag}[^>]*>.*?</{tag}>", "", text, flags=re.S | re.I)
-        text = re.sub(r"</?user_query[^>]*>", "", text, flags=re.I)
 
     return normalize_ws(text)
 
@@ -265,20 +236,6 @@ def is_substantive_user_text(text: str) -> bool:
     if any(re.fullmatch(pattern, normalized) for pattern in TEST_PROMPT_PATTERNS):
         return False
     return True
-
-
-def extract_workspace_path(text: str) -> str | None:
-    for pattern in (
-        r"Workspace Path:\s*([^\n]+)",
-        r"Git repo:\s*([^\n]+)",
-        r"cwd[\"']?\s*[:=]\s*[\"']([^\"']+)[\"']",
-    ):
-        match = re.search(pattern, text)
-        if match:
-            value = match.group(1).strip()
-            if value:
-                return value
-    return None
 
 
 # ---------------------------------------------------------------------------
@@ -308,9 +265,9 @@ def add_time(session: dict[str, Any], value: Any, *, created: bool = False) -> N
         session["_created_candidates"].append(parsed)
 
 
-def add_message(session: dict[str, Any], role: str, text: str, agent: str, timestamp: Any = None) -> None:
+def add_message(session: dict[str, Any], role: str, text: str, timestamp: Any = None) -> None:
     if role == "user":
-        text = clean_user_text(text, agent)
+        text = clean_user_text(text)
         if not is_substantive_user_text(text):
             return
     elif role == "assistant":
@@ -319,11 +276,6 @@ def add_message(session: dict[str, Any], role: str, text: str, agent: str, times
             return
     else:
         return
-
-    if session.get("directory") is None and agent == "cursor":
-        directory = extract_workspace_path(text)
-        if directory:
-            session["directory"] = directory
 
     session["_messages"].append({"role": role, "text": text, "_at": parse_time(timestamp)})
 
@@ -416,7 +368,7 @@ def collect_pi(
             if msg.get("timestamp"):
                 add_time(session, msg.get("timestamp"))
             text = content_to_text(msg.get("content"))
-            add_message(session, role, text, "pi", msg.get("timestamp") or rec.get("timestamp"))
+            add_message(session, role, text, msg.get("timestamp") or rec.get("timestamp"))
 
         finished = finish_session(session, start_day, end_day, min_user_turns)
         if finished:
@@ -504,7 +456,7 @@ def collect_claude(
             if role not in {"user", "assistant"}:
                 continue
             text = content_to_text(msg.get("content"))
-            add_message(session, role, text, "claude", rec.get("timestamp"))
+            add_message(session, role, text, rec.get("timestamp"))
 
         meta = session_meta.get(session["id"])
         if meta:
@@ -517,166 +469,6 @@ def collect_claude(
         finished = finish_session(session, start_day, end_day, min_user_turns)
         if finished:
             sessions.append(finished)
-
-    return sessions
-
-
-# ---------------------------------------------------------------------------
-# Cursor
-
-
-def decode_cursor_meta_value(value: str) -> dict[str, Any]:
-    if not value:
-        return {}
-    try:
-        if re.fullmatch(r"[0-9a-fA-F]+", value) and len(value) % 2 == 0:
-            value = bytes.fromhex(value).decode("utf-8", "replace")
-        obj = json.loads(value)
-        return obj if isinstance(obj, dict) else {}
-    except Exception:
-        return {}
-
-
-def read_cursor_db_meta(con: sqlite3.Connection) -> dict[str, Any]:
-    meta: dict[str, Any] = {}
-    try:
-        for _key, value in con.execute("select key, value from meta"):
-            decoded = decode_cursor_meta_value(value)
-            meta.update(decoded)
-    except sqlite3.Error:
-        pass
-    return meta
-
-
-def load_json_file(path: Path | None) -> dict[str, Any]:
-    if path is None or not path.exists():
-        return {}
-    try:
-        obj = json.loads(path.read_text(errors="replace"))
-        return obj if isinstance(obj, dict) else {}
-    except (OSError, json.JSONDecodeError):
-        return {}
-
-
-def collect_cursor_db(
-    db_path: Path,
-    source: str,
-    start_day: dt.date,
-    end_day: dt.date,
-    min_user_turns: int,
-    deep_scan: bool,
-    meta_json_path: Path | None = None,
-) -> dict[str, Any] | None:
-    prefilter_paths = (
-        db_path,
-        db_path.with_name("store.db-wal"),
-        db_path.with_name("store.db-shm"),
-        *([meta_json_path] if meta_json_path else []),
-    )
-    if not deep_scan and not any_file_touched_on_or_after(start_day, *prefilter_paths):
-        return None
-
-    meta_json = load_json_file(meta_json_path)
-
-    try:
-        con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-    except sqlite3.Error:
-        return None
-
-    try:
-        db_meta = read_cursor_db_meta(con)
-        sid = db_meta.get("agentId") or db_path.parent.name
-        session = new_session("cursor", source, str(sid), db_path)
-
-        if meta_json_path and meta_json_path.exists():
-            session["source_paths"].append(str(meta_json_path))
-
-        session["title"] = db_meta.get("name") or meta_json.get("title")
-        session["directory"] = meta_json.get("cwd") or None
-        # Cursor stores NO per-message timestamps and no "last updated" field — the
-        # store.db `meta` table only has `createdAt`. Do NOT fall back to store.db /
-        # -wal / -shm (or meta.json) file mtimes for activity: SQLite WAL/checkpoint/
-        # indexing bumps those long after a chat ends, so using them made every
-        # historical cursor session look active in a later period and massively
-        # over-included them (120 collected / 104 cursor on 2026-06-22; only ~2
-        # were really created that day).
-        # `createdAt` is the only honest activity signal cursor exposes; a session
-        # without it is left undated and dropped by finish_session's period filter.
-        add_time(session, db_meta.get("createdAt"), created=True)
-
-        try:
-            rows = con.execute("select rowid, id, data from blobs order by rowid")
-        except sqlite3.Error:
-            return None
-
-        for _rowid, _blob_id, data in rows:
-            if not isinstance(data, bytes):
-                continue
-            stripped = data.lstrip()
-            if not stripped.startswith((b"{", b"[")):
-                continue
-            try:
-                obj = json.loads(data.decode("utf-8"))
-            except (UnicodeDecodeError, json.JSONDecodeError):
-                continue
-            if not isinstance(obj, dict):
-                continue
-            role = obj.get("role")
-            if role not in {"user", "assistant"}:
-                continue
-            text = content_to_text(obj.get("content"))
-            if session.get("directory") is None:
-                directory = extract_workspace_path(text)
-                if directory:
-                    session["directory"] = directory
-            add_message(session, role, text, "cursor")
-
-        return finish_session(session, start_day, end_day, min_user_turns)
-    finally:
-        con.close()
-
-
-def collect_cursor(
-    chats_root: Path,
-    acp_root: Path,
-    start_day: dt.date,
-    end_day: dt.date,
-    min_user_turns: int,
-    deep_scan: bool,
-) -> list[dict[str, Any]]:
-    sessions: list[dict[str, Any]] = []
-
-    if chats_root.exists():
-        for db_path in sorted(chats_root.glob("*/*/store.db")):
-            session = collect_cursor_db(
-                db_path,
-                "cursor-chat-sqlite",
-                start_day,
-                end_day,
-                min_user_turns,
-                deep_scan,
-            )
-            if session:
-                sessions.append(session)
-
-    if acp_root.exists():
-        for session_dir in sorted(acp_root.glob("*")):
-            if not session_dir.is_dir():
-                continue
-            db_path = session_dir / "store.db"
-            if not db_path.exists():
-                continue
-            session = collect_cursor_db(
-                db_path,
-                "cursor-acp-sqlite",
-                start_day,
-                end_day,
-                min_user_turns,
-                deep_scan,
-                session_dir / "meta.json",
-            )
-            if session:
-                sessions.append(session)
 
     return sessions
 
@@ -749,58 +541,6 @@ def transcript_for_output(messages: list[dict[str, Any]], max_chars: int) -> tup
         previous_index = idx
 
     return output, True
-
-
-def transcript_hash(session: dict[str, Any]) -> str:
-    h = hashlib.sha256()
-    for msg in session.get("_messages", []):
-        h.update(msg.get("role", "").encode())
-        h.update(b"\0")
-        h.update(msg.get("text", "").encode(errors="replace"))
-        h.update(b"\0")
-    return h.hexdigest()
-
-
-def dedupe_cursor_sessions(sessions: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    result: list[dict[str, Any]] = []
-    seen: dict[tuple[str, str], dict[str, Any]] = {}
-
-    for session in sessions:
-        if session.get("agent") != "cursor" or not session.get("_messages"):
-            result.append(session)
-            continue
-
-        key = ("cursor", transcript_hash(session))
-        existing = seen.get(key)
-        if existing is None:
-            seen[key] = session
-            result.append(session)
-            continue
-
-        existing_sources = set(existing.get("source", "").split("+"))
-        existing_sources.add(session.get("source", ""))
-        existing["source"] = "+".join(sorted(src for src in existing_sources if src))
-
-        for path in session.get("source_paths", []):
-            if path not in existing["source_paths"]:
-                existing["source_paths"].append(path)
-
-        existing["directory"] = existing.get("directory") or session.get("directory")
-        existing["title"] = existing.get("title") or session.get("title")
-        existing["_activity_times"].extend(session.get("_activity_times", []))
-        existing["_created_candidates"].extend(session.get("_created_candidates", []))
-        active_dates = set(existing.get("active_dates", [])) | set(session.get("active_dates", []))
-        existing["active_dates"] = sorted(active_dates)
-        period_times = [
-            value
-            for value in existing.get("_activity_times", [])
-            if value.astimezone(LOCAL_TZ).date().isoformat() in active_dates
-        ]
-        if period_times:
-            existing["first_activity_at"] = min(period_times)
-            existing["last_activity_at"] = max(period_times)
-
-    return result
 
 
 def public_session(session: dict[str, Any], max_session_chars: int, no_transcript: bool) -> dict[str, Any]:
@@ -885,8 +625,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--pi-root", default="~/.pi/agent/sessions", help="Pi sessions root.")
     parser.add_argument("--claude-projects-root", default="~/.claude/projects", help="Claude project sessions root.")
     parser.add_argument("--claude-sessions-root", default="~/.claude/sessions", help="Claude session metadata root.")
-    parser.add_argument("--cursor-chats-root", default="~/.cursor/chats", help="Cursor chat DB root.")
-    parser.add_argument("--cursor-acp-root", default="~/.cursor/acp-sessions", help="Cursor ACP session root.")
     return parser
 
 
@@ -899,8 +637,6 @@ def main(argv: list[str] | None = None) -> int:
         "pi": str(Path(args.pi_root).expanduser()),
         "claude_projects": str(Path(args.claude_projects_root).expanduser()),
         "claude_sessions": str(Path(args.claude_sessions_root).expanduser()),
-        "cursor_chats": str(Path(args.cursor_chats_root).expanduser()),
-        "cursor_acp": str(Path(args.cursor_acp_root).expanduser()),
     }
 
     sessions: list[dict[str, Any]] = []
@@ -923,17 +659,6 @@ def main(argv: list[str] | None = None) -> int:
             args.deep_scan,
         )
     )
-    sessions.extend(
-        collect_cursor(
-            Path(args.cursor_chats_root).expanduser(),
-            Path(args.cursor_acp_root).expanduser(),
-            start_day,
-            end_day,
-            args.min_user_turns,
-            args.deep_scan,
-        )
-    )
-    sessions = dedupe_cursor_sessions(sessions)
 
     sessions.sort(
         key=lambda item: (

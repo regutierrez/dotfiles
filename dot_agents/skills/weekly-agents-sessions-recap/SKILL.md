@@ -1,8 +1,8 @@
 ---
 name: weekly-agents-sessions-recap
-description: Builds a raw weekly Obsidian recap from local Pi, Claude, and Cursor sessions.
+description: Builds a raw weekly Obsidian recap from local Pi and Claude sessions.
 argument-hint: "[YYYY-Www | YYYY-MM-DD to YYYY-MM-DD]"
-compatibility: Requires Python 3 with sqlite3, local access to supported session stores, and read/write access to the Obsidian vault. Works with any harness that can run shell commands and edit files.
+compatibility: Requires Python 3, local access to supported session stores, and read/write access to the Obsidian vault. Works with any harness that can run shell commands and edit files.
 disable-model-invocation: true
 ---
 
@@ -14,7 +14,7 @@ Create one raw weekly source that records important agent work, retains full ses
 
 This skill:
 
-- collects local Pi, Claude, and Cursor sessions once over a date range;
+- collects local Pi and Claude sessions once over a date range;
 - excludes sessions with fewer than two substantive user prompts;
 - summarizes the week by workstream and outcome;
 - checks whether important outcomes already appear in daily or durable notes;
@@ -29,7 +29,7 @@ Keep scheduling outside this skill. Any harness may invoke it manually or on a s
 
 - Do not depend on Amp-only tools, thread metadata, or scheduling APIs.
 - Resolve `scripts/collect_sessions.py` relative to this `SKILL.md`, not the caller's working directory.
-- Use shell commands and normal file reads/edits that Pi, Claude, Cursor, Amp, and similar harnesses can perform.
+- Use shell commands and normal file reads/edits that Pi, Claude, Amp, and similar harnesses can perform.
 - Subagents are optional for large weeks; never require a harness to support them.
 - For Amp scheduling, use an Amp Runner on this machine, not an orb. An orb cannot see these local session stores or the vault.
 
@@ -202,7 +202,6 @@ Use this body:
 
 ## Collection limitations
 
-- Cursor sessions are dated by creation time because their store has no trustworthy per-message or continuation timestamps.
 - Sensitive details were omitted.
 ```
 
@@ -246,7 +245,7 @@ The collector emits:
   "sessions": [
     {
       "id": "...",
-      "agent": "pi|claude|cursor",
+      "agent": "pi|claude",
       "directory": "/path/or/null",
       "created_at": "...",
       "first_activity_at": "...",
@@ -265,8 +264,6 @@ The collector emits:
   ]
 }
 ```
-
-Cursor's `active_dates` contains only its creation date. This limitation is accepted; do not infer continuation dates from database file modification times.
 
 ## Empty result
 
