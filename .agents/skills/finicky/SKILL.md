@@ -1,6 +1,7 @@
 ---
 name: finicky
 description: Editing the Finicky v4 URL-router config (JS). Use when the task touches finicky, default browser routing, per-URL browser selection, Arc Space/profile routing, Firefox/Zen containers or profiles, or the `dot_config/finicky/finicky.js` file in this chezmoi repo.
+disable-model-invocation: true
 ---
 
 # Finicky (v4)

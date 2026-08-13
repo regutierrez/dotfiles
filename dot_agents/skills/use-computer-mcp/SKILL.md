@@ -1,6 +1,7 @@
 ---
 name: use-computer-mcp
 description: Computer use through Open Computer Use MCP on Arc. Use when a task needs a desktop app or authenticated browser UI, choosing an Arc Space/profile (akkio vs horizon), or recovering a failed Computer interaction.
+disable-model-invocation: true
 ---
 
 # Use Computer MCP
