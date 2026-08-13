@@ -1,0 +1,19 @@
+research/cursor-steering-pi-extensions.md
+  s_41e59db357d81b::t_886f300d4459fb 1-157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f03d6c9663c5ac3a1da6166eabd2eb83ad7aedf8",
+  "prompts": {},
+  "sessions": {
+    "s_41e59db357d81b": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffd1d-a108-7f00-a122-3bbaacf91b2e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
