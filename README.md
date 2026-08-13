@@ -111,6 +111,14 @@ Shell tokens belong in untracked files under `~/.config/secrets/`; `dot_zshrc.tm
 
 Set `github_default_account` in chezmoi's machine-local data to the GitHub account used outside a recognized repository. Git operations use HTTPS, and repository owners select Git authors and authenticated `gh` accounts without storing tokens in this repository.
 
+Repository ownership is ambiguous when you fork another owner's repository. The managed `gh` wrapper requires an explicit destination account for that operation:
+
+```bash
+GH_ACCOUNT=regutierrez gh repo fork owner/repository
+```
+
+`gh auth switch` does not override repository-based account routing in the managed wrapper.
+
 ## Platform setup
 
 ### Fedora KDE personal workstation

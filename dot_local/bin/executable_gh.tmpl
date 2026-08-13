@@ -22,6 +22,13 @@ if [ "${1-}" = "auth" ]; then
 fi
 
 account=${GH_ACCOUNT-}
+
+if [ "${1-}" = "repo" ] && [ "${2-}" = "fork" ] && [ -z "$account" ]; then
+  printf "gh: 'repo fork' requires GH_ACCOUNT to select the fork owner\n" >&2
+  printf "example: GH_ACCOUNT=regutierrez gh repo fork owner/repository\n" >&2
+  exit 2
+fi
+
 repo_hint=${GH_REPO-}
 expect_repo=false
 
