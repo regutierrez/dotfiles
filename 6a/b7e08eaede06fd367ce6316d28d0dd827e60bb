@@ -1,0 +1,72 @@
+dot_local/bin/executable_gh.tmpl
+  s_88a21a73d52c9b::t_7e92a74cf8d670 3-8,11-19,66,69-71
+  s_e7233d48ddc3a1::t_aa19c2a22c4b51 21,75
+  s_e317141e8b6f3c::t_0ba35ee75c2bcb 20
+private_dot_ssh/private_config
+  s_88a21a73d52c9b::t_7e92a74cf8d670 3-8
+dot_gitconfig-horizon
+  s_88a21a73d52c9b::t_7e92a74cf8d670 1-6
+dot_gitconfig.tmpl
+  s_22c4f95c370f06::t_1b159c79c8fb8d 23
+  s_88a21a73d52c9b::t_7e92a74cf8d670 1-6,8-10,15-16,26-27,29,32-33,35-41,43,45-52
+README.md
+  s_88a21a73d52c9b::t_7e92a74cf8d670 112
+.chezmoiignore
+  s_88a21a73d52c9b::t_7e92a74cf8d670 38
+dot_gitconfig-personal
+  s_22c4f95c370f06::t_1b159c79c8fb8d 4-6
+dot_gitconfig-akkio
+  s_88a21a73d52c9b::t_7e92a74cf8d670 1-6
+dot_zshrc.tmpl
+  s_5e3710fee42ed6::t_ab187b075fa962 216
+.chezmoi.toml.tmpl
+  s_88a21a73d52c9b::t_7e92a74cf8d670 3-7,11-13,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "6ab7e08eaede06fd367ce6316d28d0dd827e60bb",
+  "prompts": {},
+  "sessions": {
+    "s_22c4f95c370f06": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0346bwH2rGTlJLW3RN7IE2",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_5e3710fee42ed6": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0346btg1d2PpiVM1fK5Sai",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_88a21a73d52c9b": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0346cBHR6Perq4EPI9HDni",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_e317141e8b6f3c": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0346cGOzqBrj1T9kOP9M5p",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_e7233d48ddc3a1": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0346cH8onmleBPQR9qLljl",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
