@@ -1,0 +1,23 @@
+.agents/skills/finicky/SKILL.md
+  s_67623d72fd9813::t_05ab77cf556384 4
+dot_agents/skills/research/SKILL.md
+  s_67623d72fd9813::t_9518c991171b78 4
+dot_agents/skills/use-computer-mcp/SKILL.md
+  s_67623d72fd9813::t_ea6ed1c1883255 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "eaaac786958a4751eef9c08447a63cff93abad76",
+  "prompts": {},
+  "sessions": {
+    "s_67623d72fd9813": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffd11-acbc-77c8-ad9c-83e3851a02ab",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
