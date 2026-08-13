@@ -1,8 +1,9 @@
 ---
-name: recapping-weekly-agent-sessions
-description: Builds a raw weekly Obsidian recap from local Pi, Claude, and Cursor sessions. Use for a weekly agent-session review, Sunday work recap, missed-capture check, or session inventory.
+name: weekly-agents-sessions-recap
+description: Builds a raw weekly Obsidian recap from local Pi, Claude, and Cursor sessions.
 argument-hint: "[YYYY-Www | YYYY-MM-DD to YYYY-MM-DD]"
 compatibility: Requires Python 3 with sqlite3, local access to supported session stores, and read/write access to the Obsidian vault. Works with any harness that can run shell commands and edit files.
+disable-model-invocation: true
 ---
 
 # Weekly Agent Session Recap
@@ -35,7 +36,7 @@ Keep scheduling outside this skill. Any harness may invoke it manually or on a s
 Suggested schedule request:
 
 ```text
-Use the recapping-weekly-agent-sessions skill to prepare the weekly agent-session recap for the week ending today. Follow the skill's default Sunday period, write the raw source, and add one link to today's capture. Do not promote durable notes.
+Use the weekly-agents-sessions-recap skill to prepare the weekly agent-session recap for the week ending today. Follow the skill's default Sunday period, write the raw source, and add one link to today's capture. Do not promote durable notes.
 ```
 
 Schedule it late enough on Sunday to include that day's work.

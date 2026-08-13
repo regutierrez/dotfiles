@@ -44,7 +44,7 @@ work = [
   "locating-request-origin",
   "query-postgres-hz",
   "query-snowflake-hz",
-  "recapping-weekly-agent-sessions",
+  "weekly-agents-sessions-recap",
   "rca",
   "use-computer-mcp",
 ]

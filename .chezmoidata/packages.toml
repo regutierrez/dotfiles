@@ -61,7 +61,6 @@ work_casks = [
 extensions = [
   "npm:@plannotator/pi-extension",
   "git:github.com/dmmulroy/pi-mcp",
-  "npm:pi-multi-pass",
 ]
 
 # CLIs required by managed Pi MCP servers (installed into ~/.npm-global).

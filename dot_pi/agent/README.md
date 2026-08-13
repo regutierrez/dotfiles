@@ -22,6 +22,7 @@ cd ~/.pi/agent && npm install
 | `skills/update-pi/` | Pi update helper skill |
 | `intercepted-commands/` | PATH shims used by `uv.ts` |
 | `extensions/btw/` | `/btw` side threads (`index.ts` + tests) |
+| `extensions/pi-multi-pass/` | Local multipass fork for Pi 0.84 (`/subs`, `/pool`) |
 | `extensions/web-tools/` | `webfetch` + Kagi `websearch` (own package) |
 | `extensions/pi-cloak/` | Mask secrets in `read` tool results (`/cloak-status`) |
 | `extensions/cpimg/` | Clipboard image helper |
@@ -42,6 +43,7 @@ cd ~/.pi/agent && npm install
 - `package.json` (when adding shared deps)
 
 **Leave alone unless intentionally changing (cold / vendored):**
+- `extensions/pi-multi-pass/` (local Pi 0.84 compat fork of `pi-multi-pass`; upstream npm package is broken on current Pi)
 - `extensions/web-tools/` (vendored; has its own `package.json` + tests)
 - `extensions/pi-cloak/` (vendored from [dmmulroy/.dotfiles](https://github.com/dmmulroy/.dotfiles); edit `cloak.json` for patterns)
 - Large single-file extensions: `review.ts`, `loop.ts`, `context.ts`, `git-ai.ts`, `atuin.ts`, `uv.ts`, `cpimg/`
