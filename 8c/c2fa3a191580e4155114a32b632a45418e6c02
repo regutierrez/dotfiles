@@ -1,0 +1,21 @@
+dot_local/bin/executable_gh.tmpl
+  s_cd1aa262512eb1::t_05393840f34847 25-31
+README.md
+  s_cd1aa262512eb1::t_b88b7cd85c3f2d 114-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8cc2fa3a191580e4155114a32b632a45418e6c02",
+  "prompts": {},
+  "sessions": {
+    "s_cd1aa262512eb1": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffd06-990e-77ed-adc6-ce18431766bc",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
