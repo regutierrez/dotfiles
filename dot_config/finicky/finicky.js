@@ -7,6 +7,7 @@
 // ATC setup (Arc → Settings → Links → Air Traffic Control):
 //   URL contains "finicky_dest_space=akkio"   → Space bound to the akkio profile
 //   URL contains "finicky_dest_space=horizon" → Space bound to the horizon profile
+// Untagged URLs stay in the current Arc Space.
 //
 // AWS SSO: portal hosts are stable (d-9067661171 → horizon, akkio.awsapps.com →
 // akkio). OIDC authorize shares oidc.<region>.amazonaws.com, so route that by
@@ -27,11 +28,6 @@ const AKKIO_SSO_CLIENT_IDS = new Set([
   "6VvKKLJRqVu7NdiTAT8rh3VzLWVhc3QtMQ", // akkio.awsapps.com
   "zV32NJ2g6tYS49eMUyTEonVzLWVhc3QtMQ", // akkio.awsapps.com (newer registration)
 ]);
-
-const isLocal = (url) =>
-  url.hostname === "localhost" ||
-  url.hostname === "127.0.0.1" ||
-  url.hostname === "0.0.0.0";
 
 // Goja has no atob; hand-rolled base64url decoder for JWT payloads.
 const b64urlDecode = (s) => {
@@ -126,10 +122,6 @@ export default {
         return t && isHorizonUrl(t);
       },
       url: tagSpace("horizon"),
-    },
-    {
-      match: (url) => !isLocal(url),
-      url: tagSpace("akkio"),
     },
   ],
 };
