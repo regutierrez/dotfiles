@@ -1,0 +1,19 @@
+dot_config/lazygit/config.yml
+  s_aa9f429898fc8f::t_de3f3733e53382 8,12,16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3186b4504586b33ed0c17b6e0407510c874c33f0",
+  "prompts": {},
+  "sessions": {
+    "s_aa9f429898fc8f": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffcbe-9d42-7ed4-91b6-f47db670050b",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
