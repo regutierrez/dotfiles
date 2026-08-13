@@ -1,0 +1,26 @@
+.chezmoidata.toml
+  h_a1d7d183b9ec37 47
+.chezmoiremove
+  h_a1d7d183b9ec37 14
+dot_agents/skills/weekly-agents-sessions-recap/SKILL.md
+  h_a1d7d183b9ec37 2-3,6,39
+dot_pi/agent/README.md
+  h_a1d7d183b9ec37 25,46
+dot_pi/agent/extensions/pi-multi-pass/lib/oauth-compat.ts
+  h_a1d7d183b9ec37 1-759
+dot_pi/agent/extensions/pi-multi-pass/multi-sub.ts
+  h_a1d7d183b9ec37 1-5827
+dot_pi/agent/extensions/pi-multi-pass/package.json
+  h_a1d7d183b9ec37 1-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9e2210f1101e0ac56fdbc826eb02c979a0944ccd",
+  "prompts": {},
+  "humans": {
+    "h_a1d7d183b9ec37": {
+      "author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
