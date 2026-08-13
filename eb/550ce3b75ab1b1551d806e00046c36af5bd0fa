@@ -1,0 +1,24 @@
+dot_agents/skills/weekly-agents-sessions-recap/scripts/collect_sessions.py
+  s_8ee11cb8ca19b9::t_6aa1d8a7266784 268,371,459
+  s_8ee11cb8ca19b9::t_3c44d3e7b745bc 2
+  s_8ee11cb8ca19b9::t_bf45c3420530f1 208,270
+dot_agents/skills/weekly-agents-sessions-recap/SKILL.md
+  s_8ee11cb8ca19b9::t_c5dae7e5440d5e 3,17,32,248
+  s_8ee11cb8ca19b9::t_1a426f59573c03 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "eb550ce3b75ab1b1551d806e00046c36af5bd0fa",
+  "prompts": {},
+  "sessions": {
+    "s_8ee11cb8ca19b9": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffb62-7ef4-7b72-bad1-2950d9be39c1",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
