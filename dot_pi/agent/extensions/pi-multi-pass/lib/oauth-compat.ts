@@ -1,43 +1,18 @@
 // ==========================================================================
 // OAuth compatibility shim for pi-multi-pass
 //
-// Provides standalone OAuth functions (loginAnthropic, refreshOpenAICodexToken,
+// Provides standalone OAuth login functions (loginAnthropic, loginOpenAICodex,
 // etc.) that pi-multi-pass expects, without depending on
 // @earendil-works/pi-ai/oauth runtime exports.
 //
-// Token refresh uses simple fetch() calls. Login flows implement
-// PKCE + local callback server or device-code flows as appropriate.
+// Login flows implement PKCE + local callback server or device-code flows
+// as appropriate.
 // ==========================================================================
 
 import type {
-	OAuthAuthInfo,
 	OAuthCredentials,
-	OAuthDeviceCodeInfo,
 	OAuthLoginCallbacks,
-	OAuthPrompt,
-	OAuthSelectOption,
-	OAuthSelectPrompt,
 } from "@earendil-works/pi-ai/oauth";
-
-/** Legacy extension OAuth provider shape used by multipass templates. */
-export interface OAuthProviderInterface {
-	name: string;
-	usesCallbackServer?: boolean;
-	login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials>;
-	refreshToken(credentials: OAuthCredentials, signal?: AbortSignal): Promise<OAuthCredentials>;
-	getApiKey(credentials: OAuthCredentials): string;
-	modifyModels?(models: unknown[], credentials: OAuthCredentials): unknown[];
-}
-
-export type {
-	OAuthAuthInfo,
-	OAuthCredentials,
-	OAuthDeviceCodeInfo,
-	OAuthLoginCallbacks,
-	OAuthPrompt,
-	OAuthSelectOption,
-	OAuthSelectPrompt,
-};
 
 // ==========================================================================
 // PKCE utilities (Web Crypto API)
@@ -67,10 +42,6 @@ function createState(): string {
 		.join("");
 }
 
-// ==========================================================================
-// Token refresh implementations (simple fetch calls)
-// ==========================================================================
-
 // --- Anthropic ---
 
 const ANTHROPIC_CLIENT_ID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e";
@@ -79,39 +50,6 @@ const ANTHROPIC_AUTHORIZE_URL = "https://claude.ai/oauth/authorize";
 const ANTHROPIC_SCOPES = "org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload";
 const ANTHROPIC_CALLBACK_PORT = 53692;
 const ANTHROPIC_REDIRECT_URI = `http://localhost:${ANTHROPIC_CALLBACK_PORT}/callback`;
-
-export async function refreshAnthropicToken(refreshToken: string): Promise<OAuthCredentials> {
-	const response = await fetch(ANTHROPIC_TOKEN_URL, {
-		method: "POST",
-		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({
-			grant_type: "refresh_token",
-			refresh_token: refreshToken,
-			client_id: ANTHROPIC_CLIENT_ID,
-		}),
-	});
-	if (!response.ok) {
-		const text = await response.text().catch(() => "");
-		throw new Error(`Anthropic token refresh failed (${response.status}): ${text || response.statusText}`);
-	}
-	const data = await response.json() as { access_token?: string; refresh_token?: string; expires_in?: number };
-	if (!data.access_token || !data.refresh_token) {
-		throw new Error("Anthropic token refresh returned invalid response");
-	}
-	return {
-		type: "oauth",
-		access: data.access_token,
-		refresh: data.refresh_token,
-		expires: Date.now() + (data.expires_in || 3600) * 1000 - 300000,
-	};
-}
-
-export const anthropicOAuthProvider: OAuthProviderInterface = {
-	name: "Anthropic (Claude Pro/Max)",
-	async login(callbacks) { return loginAnthropic(callbacks); },
-	async refreshToken(credentials) { return refreshAnthropicToken(credentials.refresh); },
-	getApiKey(credentials) { return credentials.access; },
-};
 
 // --- OpenAI Codex ---
 
@@ -123,113 +61,10 @@ const CODEX_DEVICE_USER_CODE_URL = `${CODEX_AUTH_BASE_URL}/api/accounts/deviceau
 const CODEX_DEVICE_TOKEN_URL = `${CODEX_AUTH_BASE_URL}/api/accounts/deviceauth/token`;
 const CODEX_DEVICE_VERIFICATION_URI = `${CODEX_AUTH_BASE_URL}/codex/device`;
 
-export async function refreshOpenAICodexToken(refreshToken: string): Promise<OAuthCredentials> {
-	const response = await fetch(CODEX_TOKEN_URL, {
-		method: "POST",
-		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({
-			grant_type: "refresh_token",
-			refresh_token: refreshToken,
-			client_id: CODEX_CLIENT_ID,
-		}),
-	});
-	if (!response.ok) {
-		const text = await response.text().catch(() => "");
-		throw new Error(`OpenAI Codex token refresh failed (${response.status}): ${text || response.statusText}`);
-	}
-	const data = await response.json() as { access_token?: string; refresh_token?: string; expires_in?: number };
-	if (!data.access_token || !data.refresh_token) {
-		throw new Error("OpenAI Codex token refresh returned invalid response");
-	}
-	return {
-		type: "oauth",
-		access: data.access_token,
-		refresh: data.refresh_token,
-		expires: Date.now() + (data.expires_in || 3600) * 1000 - 300000,
-	};
-}
-
-export const openaiCodexOAuthProvider: OAuthProviderInterface = {
-	name: "ChatGPT Plus/Pro (Codex)",
-	usesCallbackServer: true,
-	async login(callbacks) { return loginOpenAICodex(callbacks); },
-	async refreshToken(credentials) { return refreshOpenAICodexToken(credentials.refresh); },
-	getApiKey(credentials) { return credentials.access; },
-};
-
 // --- GitHub Copilot ---
 
 const COPILOT_CLIENT_ID = "Iv1.b507a08c87ecef98";
 const COPILOT_USER_AGENT = "GitHubCopilotChat/0.35.0";
-const COPILOT_API_VERSION = "2026-06-01";
-
-function normalizeDomain(input: string): string | null {
-	const trimmed = (input || "").trim();
-	if (!trimmed) return null;
-	try {
-		const url = trimmed.includes("://") ? new URL(trimmed) : new URL(`https://${trimmed}`);
-		return url.hostname;
-	} catch { return null; }
-}
-
-function getBaseUrlFromToken(token: string): string | null {
-	const match = token.match(/proxy-ep=([^;]+)/);
-	if (!match) return null;
-	return `https://${match[1].replace(/^proxy\./, "api.")}`;
-}
-
-function getGitHubCopilotBaseUrl(token: string, enterpriseDomain?: string): string {
-	if (token) {
-		const fromToken = getBaseUrlFromToken(token);
-		if (fromToken) return fromToken;
-	}
-	if (enterpriseDomain) return `https://copilot-api.${enterpriseDomain}`;
-	return "https://api.individual.githubcopilot.com";
-}
-
-export { normalizeDomain, getGitHubCopilotBaseUrl };
-
-export async function refreshGitHubCopilotToken(refreshToken: string, enterpriseDomain?: string): Promise<OAuthCredentials> {
-	const domain = enterpriseDomain || "github.com";
-	const response = await fetch(`https://${domain}/login/oauth/access_token`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			"Accept": "application/json",
-			"User-Agent": COPILOT_USER_AGENT,
-			"Editor-Version": "vscode/1.107.0",
-			"Editor-Plugin-Version": "copilot-chat/0.35.0",
-			"Copilot-Integration-Id": "vscode-chat",
-			"X-GitHub-Api-Version": COPILOT_API_VERSION,
-		},
-		body: JSON.stringify({ client_id: COPILOT_CLIENT_ID, refresh_token: refreshToken, grant_type: "refresh_token" }),
-	});
-	if (!response.ok) {
-		const text = await response.text().catch(() => "");
-		throw new Error(`GitHub Copilot token refresh failed (${response.status}): ${text || response.statusText}`);
-	}
-	const data = await response.json() as { access_token?: string; refresh_token?: string; expires_in?: number; token_type?: string };
-	if (!data.access_token) {
-		throw new Error("GitHub Copilot token refresh returned invalid response");
-	}
-	return {
-		type: "oauth",
-		access: data.access_token,
-		refresh: data.refresh_token || refreshToken,
-		expires: Date.now() + (data.expires_in || 3600) * 1000 - 300000,
-		...(enterpriseDomain ? { enterpriseUrl: enterpriseDomain } : {}),
-	} as OAuthCredentials & { enterpriseUrl?: string };
-}
-
-export const githubCopilotOAuthProvider: OAuthProviderInterface = {
-	name: "GitHub Copilot",
-	async login(callbacks) { return loginGitHubCopilot(callbacks); },
-	async refreshToken(credentials) {
-		const creds = credentials as OAuthCredentials & { enterpriseUrl?: string };
-		return refreshGitHubCopilotToken(creds.refresh, creds.enterpriseUrl ?? undefined);
-	},
-	getApiKey(credentials) { return credentials.access; },
-};
 
 // ==========================================================================
 // Login flow implementations
@@ -728,13 +563,6 @@ function missingProvider(name: string): never {
 	);
 }
 
-export const geminiCliOAuthProvider: OAuthProviderInterface = {
-	name: "Google Cloud Code Assist (removed)",
-	login: () => missingProvider("google-gemini-cli"),
-	refreshToken: () => missingProvider("google-gemini-cli"),
-	getApiKey: () => missingProvider("google-gemini-cli"),
-};
-
 export async function loginGeminiCli(): Promise<never> {
 	return missingProvider("google-gemini-cli");
 }
@@ -742,13 +570,6 @@ export async function loginGeminiCli(): Promise<never> {
 export async function refreshGoogleCloudToken(): Promise<never> {
 	return missingProvider("google-gemini-cli");
 }
-
-export const antigravityOAuthProvider: OAuthProviderInterface = {
-	name: "Antigravity (removed)",
-	login: () => missingProvider("google-antigravity"),
-	refreshToken: () => missingProvider("google-antigravity"),
-	getApiKey: () => missingProvider("google-antigravity"),
-};
 
 export async function loginAntigravity(): Promise<never> {
 	return missingProvider("google-antigravity");

@@ -1,19 +1,19 @@
 /**
  * Multi-Subscription extension for pi.
  *
- * Register additional OAuth subscription accounts for any supported provider.
- * Each extra account gets its own provider name, /login entry, and cloned models.
+ * Extra OAuth logins stay on private auth keys. One slot per built-in
+ * provider is active. The built-in name, such as openai-codex, holds a
+ * live copy of that slot so children inherit the same login.
  *
  * Features:
- *   - /subs: manage subscriptions (add, remove, login, logout, status)
+ *   - /subs: manage subscriptions (add, remove, login, logout, switch, status)
  *   - /pool: define provider pools with auto-rotation on rate limit errors
  *   - Project-level pool config: .pi/multi-pass.json overrides global pools
  *   - MULTI_SUB env var for scripting
  *
  * Pool auto-rotation: group subscriptions into pools. When the active sub
  * hits a rate limit or error, automatically switch to the next available
- * sub in the pool and retry. Keeps the same model ID, just rotates the
- * provider/account.
+ * sub in the pool and retry. Chains can also select another provider or model.
  *
  * Config files:
  *   Global:  ~/.pi/agent/multi-pass.json  (subscriptions + default pools)
@@ -48,21 +48,11 @@ import {
 	readStoredCredential,
 } from "@earendil-works/pi-coding-agent";
 import {
-	anthropicOAuthProvider,
 	loginAnthropic,
-	refreshAnthropicToken,
-	openaiCodexOAuthProvider,
 	loginOpenAICodex,
-	refreshOpenAICodexToken,
-	githubCopilotOAuthProvider,
 	loginGitHubCopilot,
-	refreshGitHubCopilotToken,
-	getGitHubCopilotBaseUrl,
-	normalizeDomain,
-	geminiCliOAuthProvider,
 	loginGeminiCli,
 	refreshGoogleCloudToken,
-	antigravityOAuthProvider,
 	loginAntigravity,
 	refreshAntigravityToken,
 } from "./lib/oauth-compat.js";
@@ -70,6 +60,28 @@ import type {
 	OAuthCredentials,
 	OAuthLoginCallbacks,
 } from "@earendil-works/pi-ai/oauth";
+import { activatePublicSubscription } from "./lib/activate-public-subscription.js";
+import {
+	ORIGINAL_SUBSCRIPTION_SLOT_INDEX,
+	parseActiveSubscriptionSlots,
+	subscriptionSlotStorageKey,
+	type ActiveSubscriptionSlots,
+} from "./lib/active-subscription-slot.js";
+import {
+	applyLogoutSubscriptionSlot,
+	applySubscriptionSlotLogin,
+} from "./lib/apply-subscription-slot-plan.js";
+import { bootstrapActiveSubscriptionSlots } from "./lib/bootstrap-active-subscription-slots.js";
+import { createCommandOAuthCallbacks } from "./lib/command-oauth-callbacks.js";
+import {
+	findSubscriptionSlotByName,
+	lookupSubscriptionAuth,
+	publicNameForActiveSlot,
+	publicSubscriptionHasAuth,
+} from "./lib/subscription-slot-auth-lookup.js";
+import {
+	readSubscriptionSlotAuthSnapshot,
+} from "./lib/subscription-slot-auth-store.js";
 import type { Api, Model } from "@earendil-works/pi-ai";
 import { getModels } from "@earendil-works/pi-ai/compat";
 import {
@@ -82,7 +94,7 @@ import {
 } from "@earendil-works/pi-tui";
 
 // ==========================================================================
-// AuthStorage backward compatibility helper for pi v0.80.10+
+// Slot-aware auth storage over auth.json and the model registry
 // ==========================================================================
 
 function getAuthStorage(ctx: {
@@ -96,14 +108,30 @@ function getAuthStorage(ctx: {
 } {
 	return {
 		hasAuth(provider: string): boolean {
-			return ctx.modelRegistry.getProviderAuthStatus(provider).configured;
+			return publicSubscriptionHasAuth(subscriptionAuthQuery(provider))
+				|| ctx.modelRegistry.getProviderAuthStatus(provider).configured;
 		},
 		get(provider: string): Record<string, unknown> | undefined {
-			return readStoredCredential(provider) as Record<string, unknown> | undefined;
+			const lookup = lookupSubscriptionAuth(subscriptionAuthQuery(provider));
+			return (lookup.credential ?? readStoredCredential(provider)) as
+				| Record<string, unknown>
+				| undefined;
 		},
 		logout(provider: string): void {
+			const query = subscriptionAuthQuery(provider);
+			const lookup = lookupSubscriptionAuth(query);
+			if (lookup.kind === "slot" && lookup.entry) {
+				applyLogoutSubscriptionSlot({
+					files: subscriptionSlotFiles(),
+					subscriptions: query.subscriptions,
+					activeSlots: query.activeSlots,
+					provider: lookup.entry.provider,
+					index: lookup.entry.index,
+				});
+				return;
+			}
 			try {
-				const authPath = join(getAgentDir(), "auth.json");
+				const authPath = authFilePath();
 				const raw = readFileSync(authPath, "utf-8");
 				const data = JSON.parse(raw);
 				if (data[provider]) {
@@ -117,166 +145,160 @@ function getAuthStorage(ctx: {
 	};
 }
 
+function authFilePath(): string {
+	return join(getAgentDir(), "auth.json");
+}
+
+function subscriptionAuthQuery(providerName: string) {
+	const config = loadGlobalConfig();
+	return {
+		providerName,
+		subscriptions: config.subscriptions,
+		activeSlots: config.activeSlots,
+		auth: readSubscriptionSlotAuthSnapshot(authFilePath()),
+		builtinProviders: SUPPORTED_PROVIDERS,
+	};
+}
+
+function settingsFilePath(): string {
+	return join(getAgentDir(), "settings.json");
+}
+
+function subscriptionSlotFiles(): { authPath: string; configPath: string } {
+	return {
+		authPath: authFilePath(),
+		configPath: globalConfigPath(),
+	};
+}
+
+function currentPublicProviderName(
+	ctx: ExtensionContext | ExtensionCommandContext,
+): string | undefined {
+	const provider = ctx.model?.provider;
+	if (!provider) return undefined;
+	const config = loadGlobalConfig();
+	if (SUPPORTED_PROVIDERS.includes(provider)) {
+		return publicNameForActiveSlot({
+			provider,
+			subscriptions: config.subscriptions,
+			activeSlots: config.activeSlots,
+		});
+	}
+	return provider;
+}
+
+function switchActiveSubscription(providerName: string): ReturnType<typeof activatePublicSubscription> {
+	const config = loadGlobalConfig();
+	return activatePublicSubscription({
+		files: subscriptionSlotFiles(),
+		subscriptions: normalizeEntries(mergeConfigs(config, parseEnvConfig())),
+		activeSlots: config.activeSlots,
+		providerName,
+		builtinProviders: SUPPORTED_PROVIDERS,
+	});
+}
+
+async function loginSubscriptionSlot(
+	ctx: ExtensionCommandContext,
+	entry: SubEntry,
+): Promise<boolean> {
+	const template = PROVIDER_TEMPLATES[entry.provider];
+	if (!template) {
+		ctx.ui.notify(`Unknown provider: ${entry.provider}`, "error");
+		return false;
+	}
+	try {
+		const credentials = await template.login(createCommandOAuthCallbacks(ctx));
+		const config = loadGlobalConfig();
+		const result = applySubscriptionSlotLogin({
+			files: subscriptionSlotFiles(),
+			subscriptions: normalizeEntries(mergeConfigs(config, parseEnvConfig())),
+			activeSlots: config.activeSlots,
+			entry,
+			credential: { type: "oauth", ...credentials },
+		});
+		if (result._tag === "err") {
+			ctx.ui.notify(`Logged in to ${subDisplayName(entry)}, but could not store the slot.`, "error");
+			return false;
+		}
+		ctx.modelRegistry.refresh();
+		ctx.ui.notify(`Logged in to ${subDisplayName(entry)}.`, "info");
+		return true;
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		ctx.ui.notify(`Login failed for ${subDisplayName(entry)}: ${message}`, "error");
+		return false;
+	}
+}
+
 // ==========================================================================
 // Provider templates
 // ==========================================================================
 
-type CopilotCredentials = OAuthCredentials & { enterpriseUrl?: string };
 type GeminiCredentials = OAuthCredentials & { projectId?: string };
-
-type RegisteredProviderConfig = Parameters<ExtensionAPI["registerProvider"]>[1];
-type LegacyOAuthProvider = NonNullable<RegisteredProviderConfig["oauth"]>;
 
 interface ProviderTemplate {
 	displayName: string;
-	builtinOAuth: LegacyOAuthProvider;
-	usesCallbackServer?: boolean;
-	buildOAuth(index: number, label?: string): LegacyOAuthProvider;
-	buildModifyModels?(providerName: string): LegacyOAuthProvider["modifyModels"];
+	login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials>;
 }
 
 const PROVIDER_TEMPLATES: Record<string, ProviderTemplate> = {
 	anthropic: {
 		displayName: "Anthropic (Claude Pro/Max)",
-		builtinOAuth: anthropicOAuthProvider,
-		buildOAuth(index: number, label?: string) {
-			return {
-				name: oauthDisplayName({ provider: "anthropic", index, label }),
-				async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
-					return loginAnthropic({
-						onAuth: callbacks.onAuth,
-						onPrompt: callbacks.onPrompt,
-						onProgress: callbacks.onProgress,
-						onManualCodeInput: callbacks.onManualCodeInput,
-					});
-				},
-				async refreshToken(credentials: OAuthCredentials): Promise<OAuthCredentials> {
-					return refreshAnthropicToken(credentials.refresh);
-				},
-				getApiKey(credentials: OAuthCredentials): string {
-					return credentials.access;
-				},
-			};
+		async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
+			return loginAnthropic({
+				onAuth: callbacks.onAuth,
+				onPrompt: callbacks.onPrompt,
+				onProgress: callbacks.onProgress,
+				onManualCodeInput: callbacks.onManualCodeInput,
+			});
 		},
 	},
 
 	"openai-codex": {
 		displayName: "ChatGPT Plus/Pro (Codex)",
-		builtinOAuth: openaiCodexOAuthProvider,
-		usesCallbackServer: true,
-		buildOAuth(index: number, label?: string) {
-			return {
-				name: oauthDisplayName({ provider: "openai-codex", index, label }),
-				usesCallbackServer: true,
-				async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
-					return loginOpenAICodex({
-						onAuth: callbacks.onAuth,
-						onPrompt: callbacks.onPrompt,
-						onProgress: callbacks.onProgress,
-						onManualCodeInput: callbacks.onManualCodeInput,
-					});
-				},
-				async refreshToken(credentials: OAuthCredentials): Promise<OAuthCredentials> {
-					return refreshOpenAICodexToken(credentials.refresh);
-				},
-				getApiKey(credentials: OAuthCredentials): string {
-					return credentials.access;
-				},
-			};
+		async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
+			return loginOpenAICodex({
+				onAuth: callbacks.onAuth,
+				onPrompt: callbacks.onPrompt,
+				onProgress: callbacks.onProgress,
+				onManualCodeInput: callbacks.onManualCodeInput,
+			});
 		},
 	},
 
 	"github-copilot": {
 		displayName: "GitHub Copilot",
-		builtinOAuth: githubCopilotOAuthProvider,
-		buildOAuth(index: number, label?: string) {
-			return {
-				name: oauthDisplayName({ provider: "github-copilot", index, label }),
-				async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
-					return loginGitHubCopilot({
-						onAuth: (url: string, instructions?: string) =>
-							callbacks.onAuth({ url, instructions }),
-						onPrompt: callbacks.onPrompt,
-						onProgress: callbacks.onProgress,
-						signal: callbacks.signal,
-					});
-				},
-				async refreshToken(credentials: OAuthCredentials): Promise<OAuthCredentials> {
-					const creds = credentials as CopilotCredentials;
-					return refreshGitHubCopilotToken(creds.refresh, creds.enterpriseUrl);
-				},
-				getApiKey(credentials: OAuthCredentials): string {
-					return credentials.access;
-				},
-			};
-		},
-		buildModifyModels(providerName: string) {
-			return (models: Model<Api>[], credentials: OAuthCredentials): Model<Api>[] => {
-				const creds = credentials as CopilotCredentials;
-				const domain = creds.enterpriseUrl
-					? (normalizeDomain(creds.enterpriseUrl) ?? undefined)
-					: undefined;
-				const baseUrl = getGitHubCopilotBaseUrl(creds.access, domain);
-				return models.map((m) =>
-					m.provider === providerName ? { ...m, baseUrl } : m,
-				);
-			};
+		async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
+			return loginGitHubCopilot({
+				onAuth: (url: string, instructions?: string) =>
+					callbacks.onAuth({ url, instructions }),
+				onPrompt: callbacks.onPrompt,
+				onProgress: callbacks.onProgress,
+				signal: callbacks.signal,
+			});
 		},
 	},
 
 	"google-gemini-cli": {
 		displayName: "Google Cloud Code Assist",
-		builtinOAuth: geminiCliOAuthProvider,
-		usesCallbackServer: true,
-		buildOAuth(index: number, label?: string) {
-			return {
-				name: oauthDisplayName({ provider: "google-gemini-cli", index, label }),
-				usesCallbackServer: true,
-				async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
-					return loginGeminiCli(
-						callbacks.onAuth,
-						callbacks.onProgress,
-						callbacks.onManualCodeInput,
-					);
-				},
-				async refreshToken(credentials: OAuthCredentials): Promise<OAuthCredentials> {
-					const creds = credentials as GeminiCredentials;
-					if (!creds.projectId) throw new Error("Missing projectId");
-					return refreshGoogleCloudToken(creds.refresh, creds.projectId);
-				},
-				getApiKey(credentials: OAuthCredentials): string {
-					const creds = credentials as GeminiCredentials;
-					return JSON.stringify({ token: creds.access, projectId: creds.projectId });
-				},
-			};
+		async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
+			return loginGeminiCli(
+				callbacks.onAuth,
+				callbacks.onProgress,
+				callbacks.onManualCodeInput,
+			);
 		},
 	},
 
 	"google-antigravity": {
 		displayName: "Antigravity",
-		builtinOAuth: antigravityOAuthProvider,
-		usesCallbackServer: true,
-		buildOAuth(index: number, label?: string) {
-			return {
-				name: oauthDisplayName({ provider: "google-antigravity", index, label }),
-				usesCallbackServer: true,
-				async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
-					return loginAntigravity(
-						callbacks.onAuth,
-						callbacks.onProgress,
-						callbacks.onManualCodeInput,
-					);
-				},
-				async refreshToken(credentials: OAuthCredentials): Promise<OAuthCredentials> {
-					const creds = credentials as GeminiCredentials;
-					if (!creds.projectId) throw new Error("Missing projectId");
-					return refreshAntigravityToken(creds.refresh, creds.projectId);
-				},
-				getApiKey(credentials: OAuthCredentials): string {
-					const creds = credentials as GeminiCredentials;
-					return JSON.stringify({ token: creds.access, projectId: creds.projectId });
-				},
-			};
+		async login(callbacks: OAuthLoginCallbacks): Promise<OAuthCredentials> {
+			return loginAntigravity(
+				callbacks.onAuth,
+				callbacks.onProgress,
+				callbacks.onManualCodeInput,
+			);
 		},
 	},
 };
@@ -1586,6 +1608,8 @@ interface MultiPassConfig {
 	pools: PoolConfig[];
 	chains: ChainConfig[];
 	presets: PresetConfig[];
+	/** Built-in provider name to the extra slot index that currently backs it. */
+	activeSlots: ActiveSubscriptionSlots;
 }
 
 /** Project-level config (.pi/multi-pass.json) */
@@ -1621,7 +1645,7 @@ function projectConfigPath(cwd: string): string {
 }
 
 function emptyMultiPassConfig(): MultiPassConfig {
-	return { subscriptions: [], pools: [], chains: [], presets: [] };
+	return { subscriptions: [], pools: [], chains: [], presets: [], activeSlots: {} };
 }
 
 function normalizeMultiPassConfig(raw: unknown): MultiPassConfig {
@@ -1631,6 +1655,9 @@ function normalizeMultiPassConfig(raw: unknown): MultiPassConfig {
 		pools: Array.isArray(parsed.pools) ? parsed.pools : [],
 		chains: Array.isArray(parsed.chains) ? parsed.chains : [],
 		presets: Array.isArray(parsed.presets) ? parsed.presets : [],
+		activeSlots: parseActiveSubscriptionSlots(
+			(parsed as { activeSlots?: unknown }).activeSlots,
+		),
 	};
 }
 
@@ -1666,8 +1693,50 @@ function loadProjectConfig(cwd: string): ProjectConfig | undefined {
 
 function normalizeAllowedProviderNames(allowedSubs: string[] | undefined): string[] | undefined {
 	if (!allowedSubs || allowedSubs.length === 0) return undefined;
-	const normalized = [...new Set(allowedSubs.map((value) => value.trim()).filter(Boolean))];
-	return normalized.length > 0 ? normalized : undefined;
+	const subscriptions = loadGlobalConfig().subscriptions;
+	const normalized = new Set<string>();
+	for (const value of allowedSubs.map((item) => item.trim()).filter(Boolean)) {
+		normalized.add(value);
+		const entry = findSubscriptionSlotByName(subscriptions, value);
+		if (entry) {
+			normalized.add(subProviderName(entry, subscriptions));
+			normalized.add(`${entry.provider}-${entry.index}`);
+		}
+	}
+	return normalized.size > 0 ? [...normalized] : undefined;
+}
+
+function resolvePublicPoolMember(providerName: string): string {
+	const config = loadGlobalConfig();
+	if (!SUPPORTED_PROVIDERS.includes(providerName)) return providerName;
+	return publicNameForActiveSlot({
+		provider: providerName,
+		subscriptions: config.subscriptions,
+		activeSlots: config.activeSlots,
+	});
+}
+
+function poolMemberEquals(left: string, right: string): boolean {
+	return left === right
+		|| resolvePublicPoolMember(left) === right
+		|| resolvePublicPoolMember(right) === left;
+}
+
+function isAllowedCurrentProvider(
+	providerName: string,
+	allowedProviderNames: string[] | undefined,
+): boolean {
+	if (!allowedProviderNames || allowedProviderNames.length === 0) return true;
+	if (allowedProviderNames.includes(providerName)) return true;
+	return allowedProviderNames.includes(resolvePublicPoolMember(providerName));
+}
+
+function hasParkedOriginalLogin(providerName: string): boolean {
+	const originalKey = subscriptionSlotStorageKey({
+		provider: providerName,
+		index: ORIGINAL_SUBSCRIPTION_SLOT_INDEX,
+	});
+	return readSubscriptionSlotAuthSnapshot(authFilePath())[originalKey] != null;
 }
 
 function filterPoolsByAllowedProviders(
@@ -1715,7 +1784,11 @@ function loadEffectiveConfig(cwd: string): EffectiveConfig {
 	let subs = mergedSubscriptions;
 	if (allowedProviderNames) {
 		const allowed = new Set(allowedProviderNames);
-		subs = mergedSubscriptions.filter((s) => allowed.has(subProviderName(s)));
+		subs = mergedSubscriptions.filter((s) =>
+			allowed.has(subProviderName(s))
+			|| allowed.has(`${s.provider}-${s.index}`)
+			|| allowed.has(s.provider),
+		);
 	}
 
 	let pools = project.pools !== undefined ? project.pools : global.pools;
@@ -1739,7 +1812,11 @@ function saveGlobalConfig(config: MultiPassConfig): void {
 	const path = globalConfigPath();
 	const dir = dirname(path);
 	if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-	writeFileSync(path, JSON.stringify(config, null, 2), "utf-8");
+	writeFileSync(
+		path,
+		JSON.stringify({ ...config, activeSlots: loadGlobalConfig().activeSlots }, null, 2),
+		"utf-8",
+	);
 }
 
 function saveProjectConfig(cwd: string, config: ProjectConfig): void {
@@ -1800,18 +1877,15 @@ function findSelectableModelForProvider(
 	if (!getAuthStorage(ctx).hasAuth(providerName)) {
 		return undefined;
 	}
+	const modelProvider = getBaseProvider(providerName) || providerName;
 	if (preferredModelId) {
-		const preferred = ctx.modelRegistry.find(providerName, preferredModelId);
+		const preferred = ctx.modelRegistry.find(modelProvider, preferredModelId);
 		if (preferred) {
 			return preferred as Model<Api>;
 		}
 	}
-	const baseProvider = getBaseProvider(providerName);
-	if (!baseProvider) {
-		return undefined;
-	}
-	for (const baseModel of getModels(baseProvider as any) as Model<Api>[]) {
-		const candidate = ctx.modelRegistry.find(providerName, baseModel.id);
+	for (const baseModel of getModels(modelProvider as any) as Model<Api>[]) {
+		const candidate = ctx.modelRegistry.find(modelProvider, baseModel.id);
 		if (candidate) {
 			return candidate as Model<Api>;
 		}
@@ -1927,10 +2001,6 @@ function subDisplayName(entry: SubEntry): string {
 	return label || subscriptionSlotName(entry);
 }
 
-function oauthDisplayName(entry: { provider: string; index: number; label?: string }): string {
-	return subDisplayName(entry);
-}
-
 /** Get the base provider type from a provider name, e.g. "openai-codex-2" -> "openai-codex" */
 function getBaseProvider(providerName: string): string | undefined {
 	if (PROVIDER_TEMPLATES[providerName]) return providerName;
@@ -1941,99 +2011,13 @@ function getBaseProvider(providerName: string): string | undefined {
 	return all.find((entry) => subProviderName(entry, all) === providerName)?.provider;
 }
 
-function readJsonFile(path: string): Record<string, unknown> | undefined {
-	try {
-		const raw = JSON.parse(readFileSync(path, "utf-8"));
-		return raw && typeof raw === "object" && !Array.isArray(raw)
-			? raw as Record<string, unknown>
-			: undefined;
-	} catch {
-		return undefined;
-	}
-}
-
-function writeJsonFile(path: string, data: unknown): void {
-	writeFileSync(path, JSON.stringify(data, null, 2) + "\n", "utf-8");
-}
-
-function renameJsonKey(path: string, fromKey: string, toKey: string): void {
-	if (fromKey === toKey) return;
-	const data = readJsonFile(path);
-	if (!data || !(fromKey in data) || toKey in data) return;
-	data[toKey] = data[fromKey];
-	delete data[fromKey];
-	writeJsonFile(path, data);
-}
-
-function renameEnabledModelProviders(fromProvider: string, toProvider: string): void {
-	if (fromProvider === toProvider) return;
-	const settingsPath = join(getAgentDir(), "settings.json");
-	const data = readJsonFile(settingsPath);
-	if (!data || !Array.isArray(data.enabledModels)) return;
-	const prefix = `${fromProvider}/`;
-	data.enabledModels = data.enabledModels.map((value) => {
-		if (typeof value !== "string" || !value.startsWith(prefix)) return value;
-		return `${toProvider}/${value.slice(prefix.length)}`;
-	});
-	writeJsonFile(settingsPath, data);
-}
-
-function migrateSubscriptionProviderId(fromProvider: string, toProvider: string): void {
-	if (!fromProvider || !toProvider || fromProvider === toProvider) return;
-	renameJsonKey(join(getAgentDir(), "auth.json"), fromProvider, toProvider);
-	renameJsonKey(join(getAgentDir(), "models-store.json"), fromProvider, toProvider);
-	renameEnabledModelProviders(fromProvider, toProvider);
-}
-
 // ==========================================================================
-// Model cloning
+// Legacy clone providers registered by older multipass builds
 // ==========================================================================
 
-function cloneModels(originalProvider: string, index: number, label?: string) {
-	const models = getModels(originalProvider as any) as Model<Api>[];
-	const suffix = label?.trim() || `#${index}`;
-	return models.map((m) => ({
-		id: m.id,
-		name: `${m.name} (${suffix})`,
-		api: m.api,
-		reasoning: m.reasoning,
-		thinkingLevelMap: m.thinkingLevelMap ? { ...m.thinkingLevelMap } : undefined,
-		input: m.input as ("text" | "image")[],
-		cost: { ...m.cost },
-		contextWindow: m.contextWindow,
-		maxTokens: m.maxTokens,
-		headers: m.headers ? { ...m.headers } : undefined,
-		compat: m.compat,
-	}));
-}
-
-// ==========================================================================
-// Register a single subscription as a provider
-// ==========================================================================
-
-function registerSub(pi: ExtensionAPI, entry: SubEntry): void {
-	const template = PROVIDER_TEMPLATES[entry.provider];
-	if (!template) return;
-
-	const name = subProviderName(entry);
-	const slotId = subscriptionSlotId(entry);
-	if (name !== slotId) {
-		pi.unregisterProvider(slotId);
-		migrateSubscriptionProviderId(slotId, name);
-	}
-	const oauth = template.buildOAuth(entry.index, entry.label);
-	const modifyModels = template.buildModifyModels?.(name);
-	const builtinModels = getModels(entry.provider as any) as Model<Api>[];
-	const baseUrl = builtinModels[0]?.baseUrl || "";
-	const models = cloneModels(entry.provider, entry.index, entry.label);
-
-	pi.registerProvider(name, {
-		name: subDisplayName(entry),
-		baseUrl,
-		api: builtinModels[0]?.api,
-		oauth: modifyModels ? { ...oauth, modifyModels } : oauth,
-		models,
-	});
+function unregisterCloneProvider(pi: ExtensionAPI, entry: SubEntry): void {
+	pi.unregisterProvider(subProviderName(entry));
+	pi.unregisterProvider(subscriptionSlotId(entry));
 }
 
 // ==========================================================================
@@ -2320,7 +2304,8 @@ class PoolManager {
 
 	/** Find pool for a given provider name */
 	getPoolForProvider(providerName: string): PoolConfig | undefined {
-		const poolName = this.providerToPool.get(providerName);
+		const poolName = this.providerToPool.get(providerName)
+			?? this.providerToPool.get(resolvePublicPoolMember(providerName));
 		return poolName ? this.pools.get(poolName) : undefined;
 	}
 
@@ -2386,14 +2371,15 @@ class PoolManager {
 		const skips: FailoverSkip[] = [];
 		const candidates: FailoverCandidate[] = [];
 		const poolSize = pool.members.length;
-		const currentIndex = pool.members.indexOf(currentModel.provider);
+		const currentMember = resolvePublicPoolMember(currentModel.provider);
+		const currentIndex = pool.members.findIndex((member) => poolMemberEquals(member, currentMember));
 		const startIndex = currentIndex >= 0 ? currentIndex : 0;
 
 		for (let step = 1; step <= poolSize; step++) {
 			const candidateIndex = poolSize <= 0 ? -1 : (startIndex + step) % poolSize;
 			if (candidateIndex < 0) break;
 			const candidate = pool.members[candidateIndex];
-			if (candidate === currentModel.provider) continue;
+			if (poolMemberEquals(candidate, currentMember)) continue;
 			if (attemptedProviders.has(candidate)) {
 				skips.push({
 					type: "pool-member",
@@ -2516,10 +2502,12 @@ class PoolManager {
 
 	/** Mark a member as exhausted (hit rate limit) */
 	markExhausted(providerName: string): void {
-		const poolName = this.providerToPool.get(providerName);
+		const member = resolvePublicPoolMember(providerName);
+		const poolName = this.providerToPool.get(providerName)
+			?? this.providerToPool.get(member);
 		if (!poolName) return;
 		const state = this.getOrCreatePoolState(poolName);
-		state.exhausted.set(providerName, Date.now());
+		state.exhausted.set(member, Date.now());
 	}
 
 	/** Get the next available member in a pool, skipping the current one */
@@ -2813,10 +2801,15 @@ class PoolManager {
 			return false;
 		}
 
-		const nextModel = ctx.modelRegistry.find(nextCandidate.provider, nextCandidate.modelId);
-		if (!nextModel) {
+		const targetProvider = getBaseProvider(nextCandidate.provider) ?? nextCandidate.provider;
+		const changesModel = targetProvider !== currentModel.provider
+			|| nextCandidate.modelId !== currentModel.id;
+		const nextModel = changesModel
+			? ctx.modelRegistry.find(targetProvider, nextCandidate.modelId)
+			: undefined;
+		if (changesModel && !nextModel) {
 			ctx.ui.notify(
-				`[pool:${nextCandidate.poolName}] ${nextCandidate.provider} -> ${nextCandidate.modelId} skipped (model missing at runtime); cascade exhausted; no later eligible target`,
+				`[pool:${nextCandidate.poolName}] ${targetProvider} -> ${nextCandidate.modelId} skipped (model missing at runtime); cascade exhausted; no later eligible target`,
 				"warning",
 			);
 			ctx.ui.notify(formatFailoverExhausted(pool.name, currentModel.provider), "warning");
@@ -2824,10 +2817,21 @@ class PoolManager {
 			return false;
 		}
 
-		const success = await this.pi.setModel(nextModel);
-		if (!success) {
+		const switched = switchActiveSubscription(nextCandidate.provider);
+		if (switched._tag === "err") {
 			ctx.ui.notify(
-				`[pool:${nextCandidate.poolName}] ${nextCandidate.provider} skipped (authentication unavailable during switch); cascade exhausted; no later eligible target`,
+				`[pool:${nextCandidate.poolName}] ${nextCandidate.provider} skipped (${switched.message}); cascade exhausted; no later eligible target`,
+				"warning",
+			);
+			ctx.ui.notify(formatFailoverExhausted(pool.name, currentModel.provider), "warning");
+			ctx.ui.setStatus("multi-pass", formatFailoverStatus(null, pool.name));
+			return false;
+		}
+		ctx.modelRegistry.refresh();
+
+		if (nextModel && !await this.pi.setModel(nextModel)) {
+			ctx.ui.notify(
+				`[pool:${nextCandidate.poolName}] ${targetProvider} -> ${nextCandidate.modelId} skipped (model switch failed); cascade exhausted; no later eligible target`,
 				"warning",
 			);
 			ctx.ui.notify(formatFailoverExhausted(pool.name, currentModel.provider), "warning");
@@ -2883,8 +2887,9 @@ function formatSubscriptionMeta(
 	const name = subProviderName(entry);
 	const hasAuth = authStorage.hasAuth(name);
 	const status = hasAuth ? "[logged in]" : "[not logged in]";
+	const active = config.activeSlots[entry.provider] === entry.index ? " [active]" : "";
 	const source = getSubscriptionSource(config, entry);
-	return `${status} (${source})`;
+	return `${status}${active} (${source})`;
 }
 
 function formatSubscriptionListLine(
@@ -2896,10 +2901,7 @@ function formatSubscriptionListLine(
 }
 
 function normalizeSwitchAllowedProviderNames(cwd: string): string[] | undefined {
-	const project = loadProjectConfig(cwd);
-	if (!project?.allowedSubs || project.allowedSubs.length === 0) return undefined;
-	const normalized = [...new Set(project.allowedSubs.map((value) => value.trim()).filter(Boolean))];
-	return normalized.length > 0 ? normalized : undefined;
+	return normalizeAllowedProviderNames(loadProjectConfig(cwd)?.allowedSubs);
 }
 
 function getSwitchableProviderOptions(
@@ -2909,11 +2911,15 @@ function getSwitchableProviderOptions(
 	const envEntries = parseEnvConfig();
 	const allSubs = normalizeEntries(mergeConfigs(config, envEntries));
 	const allowedProviderNames = normalizeSwitchAllowedProviderNames(ctx.cwd);
-	const allowed = allowedProviderNames ? new Set(allowedProviderNames) : undefined;
 	const options: Array<{ providerName: string; label: string; description: string }> = [];
 	const seen = new Set<string>();
 	const push = (providerName: string, label: string, description: string) => {
-		if (allowed && !allowed.has(providerName)) return;
+		if (SUPPORTED_PROVIDERS.includes(providerName)) {
+			if (allowedProviderNames && !allowedProviderNames.includes(providerName)) return;
+			if (!hasParkedOriginalLogin(providerName)) return;
+		} else if (!isAllowedCurrentProvider(providerName, allowedProviderNames)) {
+			return;
+		}
 		if (!getAuthStorage(ctx).hasAuth(providerName)) return;
 		if (seen.has(providerName)) return;
 		seen.add(providerName);
@@ -2933,35 +2939,7 @@ function getSwitchableProviderOptions(
 	return options;
 }
 
-function resolveSwitchTargetModel(
-	ctx: ExtensionContext | ExtensionCommandContext,
-	providerName: string,
-	preferredModelId?: string,
-): Model<Api> | undefined {
-	if (!getAuthStorage(ctx).hasAuth(providerName)) {
-		return undefined;
-	}
-	if (preferredModelId) {
-		const preferred = ctx.modelRegistry.find(providerName, preferredModelId);
-		if (preferred) {
-			return preferred as Model<Api>;
-		}
-	}
-	const baseProvider = getBaseProvider(providerName);
-	if (!baseProvider) {
-		return undefined;
-	}
-	for (const baseModel of getModels(baseProvider as any) as Model<Api>[]) {
-		const candidate = ctx.modelRegistry.find(providerName, baseModel.id);
-		if (candidate) {
-			return candidate as Model<Api>;
-		}
-	}
-	return undefined;
-}
-
 async function handleSubsSwitch(
-	pi: ExtensionAPI,
 	ctx: ExtensionCommandContext,
 	requestedProviderName?: string,
 ): Promise<void> {
@@ -2985,7 +2963,7 @@ async function handleSubsSwitch(
 				label: option.label,
 				description: option.description,
 			})),
-			initialValue: ctx.model?.provider,
+			initialValue: currentPublicProviderName(ctx),
 			confirmHint: "switch",
 			cancelHint: "back",
 		});
@@ -2998,32 +2976,25 @@ async function handleSubsSwitch(
 		return;
 	}
 
-	const nextModel = resolveSwitchTargetModel(ctx, selected.providerName, ctx.model?.id);
-	if (!nextModel) {
-		ctx.ui.notify(`No selectable models found for ${selected.label}.`, "error");
+	const result = switchActiveSubscription(selected.providerName);
+	if (result._tag === "err") {
+		ctx.ui.notify(result.message, "error");
 		return;
 	}
-	if (ctx.model?.provider === nextModel.provider && ctx.model?.id === nextModel.id) {
-		ctx.ui.notify(`Already using ${selected.label} (${nextModel.id}).`, "info");
+	ctx.modelRegistry.refresh();
+	if (result.kind === "unchanged") {
+		ctx.ui.notify(`Already using ${selected.label}.`, "info");
 		return;
 	}
-
-	const success = await pi.setModel(nextModel);
-	if (!success) {
-		ctx.ui.notify(`Failed to switch to ${selected.label}.`, "error");
-		return;
-	}
-	ctx.ui.notify(`Switched to ${selected.label} (${nextModel.id}).`, "info");
+	ctx.ui.notify(`Switched to ${selected.label}.`, "info");
 }
 
 async function renameSubscriptionLabel(
-	pi: ExtensionAPI,
 	ctx: ExtensionCommandContext,
 	config: MultiPassConfig,
 	entry: SubEntry,
 ): Promise<void> {
 	const previousName = subDisplayName(entry);
-	const previousProviderId = subProviderName(entry, config.subscriptions);
 	const nextLabel = await ctx.ui.input(
 		"Friendly label (optional)",
 		entry.label || "e.g. work, personal, team, outlook",
@@ -3031,14 +3002,7 @@ async function renameSubscriptionLabel(
 	if (nextLabel === undefined) return;
 
 	entry.label = nextLabel.trim() || undefined;
-	const nextProviderId = subProviderName(entry, config.subscriptions);
 	saveGlobalConfig(config);
-	if (previousProviderId !== nextProviderId) {
-		pi.unregisterProvider(previousProviderId);
-		migrateSubscriptionProviderId(previousProviderId, nextProviderId);
-	}
-	registerSub(pi, entry);
-	ctx.modelRegistry.refresh();
 
 	const nextName = subDisplayName(entry);
 	if (nextName === previousName) {
@@ -3133,13 +3097,10 @@ async function showSubscriptionActions(
 	if (!action) return;
 
 	if (action === "rename") {
-		return renameSubscriptionLabel(pi, ctx, config, entry);
+		return renameSubscriptionLabel(ctx, config, entry);
 	}
 	if (action === "login") {
-		ctx.ui.notify(
-			`Use /login and select "${oauthDisplayName(entry)}" to authenticate.`,
-			"info",
-		);
+		await loginSubscriptionSlot(ctx, entry);
 		return;
 	}
 	if (action === "logout") {
@@ -3191,7 +3152,7 @@ async function handleSubsList(
 	}
 }
 
-async function handleSubsAdd(pi: ExtensionAPI, ctx: ExtensionCommandContext): Promise<void> {
+async function handleSubsAdd(ctx: ExtensionCommandContext): Promise<void> {
 	const providerItems: SelectItem[] = SUPPORTED_PROVIDERS.map((provider) => ({
 		value: provider,
 		label: provider,
@@ -3231,19 +3192,13 @@ async function handleSubsAdd(pi: ExtensionAPI, ctx: ExtensionCommandContext): Pr
 	config.subscriptions.push(entry);
 	saveGlobalConfig(config);
 
-	registerSub(pi, entry);
-	ctx.modelRegistry.refresh();
-
 	const loginNow = await ctx.ui.confirm(
 		subDisplayName(entry),
 		`Created ${subDisplayName(entry)}.\n\nLogin now?`,
 	);
 
 	if (loginNow) {
-		ctx.ui.notify(
-			`Use /login and select "${oauthDisplayName(entry)}" to authenticate.`,
-			"info",
-		);
+		await loginSubscriptionSlot(ctx, entry);
 	} else {
 		ctx.ui.notify(`Added ${subDisplayName(entry)}. Use /subs login to authenticate.`, "info");
 	}
@@ -3320,10 +3275,7 @@ async function handleSubsLogin(ctx: ExtensionCommandContext): Promise<void> {
 	const entry = notLoggedIn.find((candidate) => subProviderName(candidate) === selectedProviderName);
 	if (!entry) return;
 
-	ctx.ui.notify(
-		`Use /login and select "${oauthDisplayName(entry)}" to authenticate.`,
-		"info",
-	);
+	await loginSubscriptionSlot(ctx, entry);
 }
 
 async function handleSubsLogout(ctx: ExtensionCommandContext): Promise<void> {
@@ -3382,7 +3334,8 @@ async function handleSubsStatus(ctx: ExtensionCommandContext): Promise<void> {
 		if (!hasAuth) {
 			status = "not logged in";
 		} else if (cred?.type === "oauth") {
-			const expiresIn = cred.expires - Date.now();
+			const expiresAt = typeof cred.expires === "number" ? cred.expires : 0;
+			const expiresIn = expiresAt - Date.now();
 			if (expiresIn > 0) {
 				const mins = Math.round(expiresIn / 60000);
 				status = `logged in (expires ${mins}m)`;
@@ -3399,6 +3352,7 @@ async function handleSubsStatus(ctx: ExtensionCommandContext): Promise<void> {
 		)
 			? "saved"
 			: "env";
+		const active = config.activeSlots[entry.provider] === entry.index ? " | active" : "";
 
 		// Check if in any pool
 		const inPools = config.pools
@@ -3407,7 +3361,7 @@ async function handleSubsStatus(ctx: ExtensionCommandContext): Promise<void> {
 		const poolInfo = inPools.length > 0 ? ` | pools: ${inPools.join(", ")}` : "";
 
 		lines.push(
-			`${subDisplayName(entry)} | ${status} | ${modelCount} models | ${source}${poolInfo}`,
+			`${subDisplayName(entry)} | ${status}${active} | ${modelCount} models | ${source}${poolInfo}`,
 		);
 	}
 
@@ -5204,7 +5158,7 @@ async function handleSubsMenu(
 				await handleSubsList(pi, ctx, config, poolManager);
 				break;
 			case "add":
-				await handleSubsAdd(pi, ctx);
+				await handleSubsAdd(ctx);
 				break;
 			case "remove":
 				await handleSubsRemove(pi, ctx, poolManager);
@@ -5216,7 +5170,7 @@ async function handleSubsMenu(
 				await handleSubsLogout(ctx);
 				break;
 			case "switch":
-				await handleSubsSwitch(pi, ctx);
+				await handleSubsSwitch(ctx);
 				break;
 			case "status":
 				await handleSubsStatus(ctx);
@@ -5393,9 +5347,12 @@ async function handlePresetActivate(
 	for (const entry of preset.entries) {
 		if (!entry.enabled) continue;
 		if (!getAuthStorage(ctx).hasAuth(entry.provider)) continue;
-		const model = ctx.modelRegistry.find(entry.provider, entry.model);
+		const modelProvider = getBaseProvider(entry.provider) || entry.provider;
+		const model = ctx.modelRegistry.find(modelProvider, entry.model);
 		if (!model) continue;
 
+		const activated = switchActiveSubscription(entry.provider);
+		if (activated._tag === "err") continue;
 		const success = await pi.setModel(model);
 		if (!success) continue;
 
@@ -5517,10 +5474,19 @@ export default function multiSub(pi: ExtensionAPI) {
 	const config = loadGlobalConfig();
 	const envEntries = parseEnvConfig();
 	const all = normalizeEntries(mergeConfigs(config, envEntries));
+	const bootstrapped = bootstrapActiveSubscriptionSlots({
+		authPath: authFilePath(),
+		configPath: globalConfigPath(),
+		settingsPath: settingsFilePath(),
+		providers: SUPPORTED_PROVIDERS,
+		subscriptions: all,
+		activeSlots: config.activeSlots,
+	});
+	config.activeSlots = bootstrapped.activeSlots;
 
-	// Register all subscriptions (always global)
+	// Extra logins stay private. Do not expose clone providers in /model.
 	for (const entry of all) {
-		registerSub(pi, entry);
+		unregisterCloneProvider(pi, entry);
 	}
 
 	// Initialize pool manager with global pools (updated on session_start with project config)
@@ -5538,7 +5504,7 @@ export default function multiSub(pi: ExtensionAPI) {
 		if (!allowedSummary) {
 			return true;
 		}
-		if (ctx.model && effective.allowedProviderNames?.includes(ctx.model.provider)) {
+		if (ctx.model && isAllowedCurrentProvider(ctx.model.provider, effective.allowedProviderNames)) {
 			return true;
 		}
 
@@ -5548,6 +5514,8 @@ export default function multiSub(pi: ExtensionAPI) {
 
 			projectRestrictionSwitchInFlight = true;
 			try {
+				const activated = switchActiveSubscription(providerName);
+				if (activated._tag === "err") continue;
 				const success = await pi.setModel(model);
 				if (!success) continue;
 				const displayName = getProviderDisplayName(providerName, effective.subscriptions);
@@ -5685,7 +5653,7 @@ export default function multiSub(pi: ExtensionAPI) {
 					return handleSubsList(pi, ctx, config, poolManager);
 				case "add":
 				case "new":
-					return handleSubsAdd(pi, ctx);
+					return handleSubsAdd(ctx);
 				case "remove":
 				case "rm":
 				case "delete":
@@ -5695,7 +5663,7 @@ export default function multiSub(pi: ExtensionAPI) {
 				case "logout":
 					return handleSubsLogout(ctx);
 				case "switch":
-					return handleSubsSwitch(pi, ctx, rest || undefined);
+					return handleSubsSwitch(ctx, rest || undefined);
 				case "status":
 				case "info":
 					return handleSubsStatus(ctx);
