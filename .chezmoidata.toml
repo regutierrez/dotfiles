@@ -30,7 +30,7 @@ shared = [
   "tsv-viewer",
   "ubiquitous-language",
   "uv",
-  "visual-explainer",
+  "show-me",
   "wayfinder",
   "web-browser",
   "write-discoverable-code",

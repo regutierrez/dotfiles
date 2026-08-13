@@ -1,3 +1,4 @@
+.agents/skills/visual-explainer
 .agents/skills/to-prd
 .agents/skills/chrome-devtools-cli
 .agents/skills/tmux
@@ -46,3 +47,4 @@ bin/agent-status-claude-notify
 bin/agent-status-cursor-hook
 bin/agent-sessions-picker
 .pi/agent/_mcp.json
+.pi/agent/git/github.com/fitchmultz
