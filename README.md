@@ -109,7 +109,7 @@ Shell tokens belong in untracked files under `~/.config/secrets/`; `dot_zshrc.tm
 
 ## Remote GitHub account routing
 
-Set `github_account_routing = true` in chezmoi's machine-local data to enable mixed Akkio, Horizon, and personal GitHub development. New `chezmoi init` runs ask whether to enable it. The routing configuration selects SSH identities, Git authors, and authenticated `gh` accounts from a repository's GitHub owner without storing keys or tokens in this repository.
+Set `github_default_account` in chezmoi's machine-local data to the GitHub account used outside a recognized repository. Git operations use HTTPS, and repository owners select Git authors and authenticated `gh` accounts without storing tokens in this repository.
 
 ## Platform setup
 

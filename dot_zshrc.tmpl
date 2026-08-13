@@ -213,7 +213,7 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # at startup and again after every chpwd hook run.
 __prefer_npm_global_pi() {
   typeset -gU path PATH
-  path=("$HOME/.npm-global/bin" ${path:#$HOME/.npm-global/bin})
+  path=("$HOME/.npm-global/bin" "$HOME/.local/bin" ${path:#$HOME/.npm-global/bin})
   rehash
 }
 autoload -Uz add-zsh-hook

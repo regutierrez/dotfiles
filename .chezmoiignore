@@ -1,5 +1,4 @@
 {{- $profile := (index . "profile" | default "personal") -}}
-{{- $githubAccountRouting := (index . "github_account_routing" | default false) -}}
 {{- if and (ne $profile "personal") (ne $profile "work") -}}
 {{-   fail (printf "unsupported profile %q; expected personal or work" $profile) -}}
 {{- end -}}
@@ -36,17 +35,8 @@ akkio-helpers/
 .config/zed
 {{- end }}
 
-{{- if and (ne .chezmoi.os "darwin") (not $githubAccountRouting) }}
+{{- if ne .chezmoi.os "darwin" }}
 .ssh/config
-{{- end }}
-
-{{- if eq $profile "work" }}
-.ssh/config
-{{- end }}
-
-{{- if not $githubAccountRouting }}
-.gitconfig-personal
-.local/bin/gh
 {{- end }}
 
 {{- if or (ne .chezmoi.os "linux") (ne $osid "fedora") (ne $profile "personal") }}

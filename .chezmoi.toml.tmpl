@@ -1,8 +1,15 @@
 {{- /* Supported: personal and work. */ -}}
 {{- $profile := promptStringOnce . "profile" "profile" "personal" }}
-{{- $githubAccountRouting := promptBoolOnce . "github_account_routing" "enable GitHub account routing for remote development" false }}
+{{- $defaultGithubAccount := "regutierrez" -}}
+{{- if eq $profile "work" -}}
+{{-   $defaultGithubAccount = "pael-akkio" -}}
+{{- end -}}
+{{- $githubDefaultAccount := promptStringOnce . "github_default_account" "default GitHub account" $defaultGithubAccount }}
 {{- if and (ne $profile "personal") (ne $profile "work") -}}
 {{-   fail (printf "unsupported profile %q; expected personal or work" $profile) -}}
+{{- end }}
+{{- if and (ne $githubDefaultAccount "regutierrez") (ne $githubDefaultAccount "pael-akkio") (ne $githubDefaultAccount "pael-hz") -}}
+{{-   fail (printf "unsupported default GitHub account %q" $githubDefaultAccount) -}}
 {{- end }}
 {{- $osid := index .chezmoi.osRelease "id" | default "" -}}
 {{- if and (eq $profile "work") (ne .chezmoi.os "darwin") -}}
@@ -21,4 +28,4 @@
 
 [data]
     profile = "{{ $profile }}"
-    github_account_routing = {{ $githubAccountRouting }}
+    github_default_account = "{{ $githubDefaultAccount }}"

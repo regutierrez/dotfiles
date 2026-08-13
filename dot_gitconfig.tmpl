@@ -1,52 +1,52 @@
-{{ if (index . "github_account_routing" | default false) -}}
-[user]
-	name = pael-akkio
-	email = pael@akkio.com
-
-[core]
-	pager = delta
-{{ else if eq .profile "work" -}}
-[user]
-	name = pael-akkio
-	email = pael@akkio.com
-
-[core]
-	pager = hunk pager
-{{ else -}}
+{{- $defaultGithubAccount := "regutierrez" -}}
+{{- if eq .profile "work" -}}
+{{-   $defaultGithubAccount = "pael-akkio" -}}
+{{- end -}}
+{{- $githubDefaultAccount := (index . "github_default_account" | default $defaultGithubAccount) -}}
+{{ if eq $githubDefaultAccount "regutierrez" -}}
 [user]
 	name = regutierrez
-	email = regutierrez@gmail.com
-
-[core]
-	pager = delta
+	email = rpegutierrez@gmail.com
+{{ else -}}
+[user]
+	name = pael-akkio
+	email = pael@akkio.com
 {{ end }}
+[core]
+	pager = {{ if eq .profile "work" }}hunk pager{{ else }}delta{{ end }}
 [delta]
 	syntax-theme = {{ if eq .chezmoi.os "darwin" }}Catppuccin Frappe{{ else }}gruvbox-dark{{ end }}
 [trace2]
 	eventTarget = af_unix:stream:{{ .chezmoi.homeDir }}/.git-ai/internal/daemon/trace2.sock
 	eventNesting = 0
-{{ if (index . "github_account_routing" | default false) -}}
 
-# Select the SSH identity from the GitHub repository owner.
-[url "git@github.com-personal:regutierrez/"]
+[url "https://github.com/regutierrez/"]
 	insteadOf = git@github.com:regutierrez/
 	insteadOf = ssh://git@github.com/regutierrez/
-	insteadOf = https://github.com/regutierrez/
+	insteadOf = git@github.com-personal:regutierrez/
+	insteadOf = ssh://git@github.com-personal/regutierrez/
 
-[url "git@github.com-hz:HorizonMedia/"]
+[url "https://github.com/HorizonMedia/"]
 	insteadOf = git@github.com:HorizonMedia/
 	insteadOf = ssh://git@github.com/HorizonMedia/
-	insteadOf = https://github.com/HorizonMedia/
+	insteadOf = git@github.com-hz:HorizonMedia/
+	insteadOf = ssh://git@github.com-hz/HorizonMedia/
 
-# Select the personal commit author from the repository remote.
-[includeIf "hasconfig:remote.*.url:git@github.com:regutierrez/**"]
+[url "https://github.com/akkio-inc/"]
+	insteadOf = git@github.com:akkio-inc/
+	insteadOf = ssh://git@github.com/akkio-inc/
+	insteadOf = git@github.com-pael:akkio-inc/
+	insteadOf = ssh://git@github.com-pael/akkio-inc/
+
+[includeIf "hasconfig:remote.*.url:**:regutierrez/**"]
 	path = ~/.gitconfig-personal
-[includeIf "hasconfig:remote.*.url:git@github.com-personal:regutierrez/**"]
+[includeIf "hasconfig:remote.*.url:**/regutierrez/**"]
 	path = ~/.gitconfig-personal
-[includeIf "hasconfig:remote.*.url:ssh://git@github.com/regutierrez/**"]
-	path = ~/.gitconfig-personal
-[includeIf "hasconfig:remote.*.url:ssh://git@github.com-personal/regutierrez/**"]
-	path = ~/.gitconfig-personal
-[includeIf "hasconfig:remote.*.url:https://github.com/regutierrez/**"]
-	path = ~/.gitconfig-personal
-{{ end -}}
+[includeIf "hasconfig:remote.*.url:**:HorizonMedia/**"]
+	path = ~/.gitconfig-horizon
+[includeIf "hasconfig:remote.*.url:**/HorizonMedia/**"]
+	path = ~/.gitconfig-horizon
+[includeIf "hasconfig:remote.*.url:**:akkio-inc/**"]
+	path = ~/.gitconfig-akkio
+[includeIf "hasconfig:remote.*.url:**/akkio-inc/**"]
+	path = ~/.gitconfig-akkio

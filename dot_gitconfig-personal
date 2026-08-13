@@ -1,3 +1,6 @@
 [user]
 	name = regutierrez
 	email = rpegutierrez@gmail.com
+[credential "https://github.com"]
+	helper =
+	helper = gh-user regutierrez

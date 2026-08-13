@@ -1,0 +1,6 @@
+[user]
+	name = pael-akkio
+	email = pael@akkio.com
+[credential "https://github.com"]
+	helper =
+	helper = gh-user pael-akkio

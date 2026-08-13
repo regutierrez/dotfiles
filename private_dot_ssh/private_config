@@ -1,0 +1,14 @@
+Include ~/.colima/ssh_config
+
+Host akkio-remote
+	HostName akkio-remote
+	User pael
+	ServerAliveInterval 30
+	ServerAliveCountMax 3
+	ExitOnForwardFailure yes
+
+Host *
+	IgnoreUnknown UseKeychain
+	AddKeysToAgent yes
+	UseKeychain yes
+	IdentityFile ~/.ssh/id_ed25519
