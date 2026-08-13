@@ -1,0 +1,70 @@
+dot_pi/agent/extensions/pi-multi-pass/lib/oauth-compat.ts
+  s_77f78c06e6b3cb::t_615c2642339eae 4,8-9
+dot_pi/agent/extensions/pi-multi-pass/multi-sub.ts
+  s_77b314bbd65ed5::t_ef4a8a026b42a7 2804-2814,2823,2830,2832,2834
+  s_77b314bbd65ed5::t_a137c16400f034 116-118,123-125,128-132,134,148-149,161-173
+  s_20e88e5d0be645::t_462474a151dd2a 5161,5173,5656,5666
+  s_77b314bbd65ed5::t_c0e8fa5ebd0aa0 5517-5518
+  s_77b314bbd65ed5::t_93fba5aa36a5c3 174-210,212-231,2817
+  s_20e88e5d0be645::t_57ab8eea3c6d49 65,67,77,1700,1735-1739,3100,3155
+  s_77b314bbd65ed5::t_a432242562a655 2505-2507,2510
+  s_77b314bbd65ed5::t_106340b9649b82 2818,2904,2921-2922,5507
+  s_77b314bbd65ed5::t_594d4e5d364e82 1787,1791,2820-2821,2966,2979-2981,2984-2986,2989
+  s_77b314bbd65ed5::t_c348e073591f42 1815-1816,1818-1819
+  s_77b314bbd65ed5::t_03e45c68db64be 2917-2920
+  s_77f78c06e6b3cb::t_1ac9a282e677da 97,211,242,248-254,260-266,272-279,285-290,296-301,1817,2015
+  s_77b314bbd65ed5::t_3367a156f12879 1611-1612,1648,1658-1660
+  s_77b314bbd65ed5::t_f68f9c046f41b8 1880,1882,1887-1888
+  s_77b314bbd65ed5::t_e694ee597e7140 4-6,9,64,66,68,70-72,76,78,80,82-83
+  s_77b314bbd65ed5::t_5adee69748ce5f 16
+  s_77b314bbd65ed5::t_96e3669041b85b 1712-1722,2374-2375,2382
+  s_77b314bbd65ed5::t_8faaa257d98998 3278
+  s_77b314bbd65ed5::t_45995fea01480f 3355,3364,5350-5351,5354-5355,5477-5485,5487,5489
+  s_77b314bbd65ed5::t_79bc218edb065e 63,79
+  s_20e88e5d0be645::t_56ae5c4b2944e0 111-112,115,121-122,126-127,150-151,153-160
+  s_77b314bbd65ed5::t_5f48d8a2619a7a 232,1723,1725-1734
+  s_77b314bbd65ed5::t_37f22f0efcbeb7 1701-1704,1788-1790,2890,2892
+  s_77b314bbd65ed5::t_e76c4ff8478a02 3103,3201
+  s_20e88e5d0be645::t_126566e1883e21 152
+  s_77b314bbd65ed5::t_ce95b5d2d2f25e 69,73-75,81,84
+  s_77b314bbd65ed5::t_881316376105fc 2307-2308
+  s_77b314bbd65ed5::t_456c4b4bf0b09a 3337-3338
+  s_77b314bbd65ed5::t_6364e96a232bef 2018-2020
+  s_77b314bbd65ed5::t_719b66cdbf4d7a 1696-1699,1705-1711
+  s_77b314bbd65ed5::t_564350b76fecd2 233
+  s_77b314bbd65ed5::t_27930f3dc5741a 1724
+  s_77b314bbd65ed5::t_dfbf0c77334bbb 2815-2816
+  s_77b314bbd65ed5::t_cbd90000a7004c 2819
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "04bcbf258d2cbbdc2083994afde6bf06a54e88c0",
+  "prompts": {},
+  "sessions": {
+    "s_20e88e5d0be645": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffd0d-0d21-7165-bcc0-2aad1e0883ee",
+        "model": "claude-fable-5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_77b314bbd65ed5": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffc91-c5e8-7084-abf3-56292e9ee5de",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_77f78c06e6b3cb": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffd15-73d6-7d3c-9f12-ed978bd5e028",
+        "model": "claude-fable-5"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
