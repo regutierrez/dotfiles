@@ -60,7 +60,7 @@ test("shell-quotes fork arguments without changing their contents", () => {
 test("inherits the main model and falls back when an override is unavailable", () => {
 	type SelectedModel = NonNullable<Parameters<typeof selectBtwModel>[0]>;
 	const mainRef = { provider: "openai-codex", id: "gpt-main" };
-	const alternateRef = { provider: "cursor", id: "grok-side" };
+	const alternateRef = { provider: "side-provider", id: "grok-side" };
 	const main = mainRef as unknown as SelectedModel;
 	const alternate = alternateRef as unknown as SelectedModel;
 	const registry = {
@@ -70,8 +70,8 @@ test("inherits the main model and falls back when an override is unavailable", (
 	};
 
 	assert.equal(selectBtwModel(main, undefined, registry)?.model, main);
-	assert.equal(selectBtwModel(main, "cursor/grok-side", registry)?.model, alternate);
-	const fallback = selectBtwModel(main, "cursor/missing", registry);
+	assert.equal(selectBtwModel(main, "side-provider/grok-side", registry)?.model, alternate);
+	const fallback = selectBtwModel(main, "side-provider/missing", registry);
 	assert.equal(fallback?.model, main);
 	assert.match(fallback?.warning ?? "", /unavailable/u);
 });
