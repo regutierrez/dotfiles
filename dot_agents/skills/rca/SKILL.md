@@ -78,7 +78,7 @@ Key platform files: `ml/src/dataset_parsing/datasource_info/` (metadata builder)
    - Scope: systems, tenants, routes, jobs, time range, user actions in. What's out.
    - Access map: for each source (logs, traces, dashboards, code, DB, queue, flag, deploy), mark `available`, `partial`, `missing`, `unknown`. Declare gaps now, not at writeup.
    - Timebox: 20 min per hypothesis check unless user says otherwise.
-   - Agent session: record the current agent type (`pi`, `claude`, `cursor`, `opencode`, etc.) and session ID before evidence collection starts. If the harness exposes a session UUID/path, use that exact value. If it does not, write `Unknown — <where checked>` in notes and resolve it before finalizing the MDX.
+   - Agent session: record the current agent type (`pi`, `claude`, `opencode`, etc.) and session ID before evidence collection starts. If the harness exposes a session UUID/path, use that exact value. If it does not, write `Unknown — <where checked>` in notes and resolve it before finalizing the MDX.
 2. **Check duplicates.** `rg -il '<error text|symptom|entity id>' src/content/investigations/`. Same root cause elsewhere → link or flag, don't re-author.
 3. **Grab Linear ticket info with `linear-cli`.** Use machine-readable output and narrow fields when possible:
    - `linear-cli issues get <TICKET-ID> --output json --compact` for title, body, metadata, labels, team/project, dates, URL, assignee, creator/reporter.
@@ -199,7 +199,7 @@ Then add `## Summary`. The table below is the required baseline, not a limit: in
 | Datadog — logs                  | scoped URL                                              |
 | Datadog — trace                 | URL                                                     |
 | Datadog — metrics/RUM/events    | scoped URL                                              |
-| Agent session type(s)           | `pi`, `claude`, `cursor`, `opencode`, etc.              |
+| Agent session type(s)           | `pi`, `claude`, `opencode`, etc.                        |
 | Agent session ID(s)             | exact session UUID/path for each agent session used     |
 
 After `## Summary`, include:

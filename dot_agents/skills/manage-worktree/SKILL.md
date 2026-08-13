@@ -17,7 +17,7 @@ Use Worktrunk for all worktree operations. Run from inside the repo, or pass `-C
 
 ## Agents and non-interactive shells
 
-`wt switch` changes directory only when the **zsh `wt()` shell function** is active (from `eval "$(command wt config shell init zsh)"` in `.zshrc`). Agent harnesses (Cursor, Pi, CI) usually run the **`wt` binary** in non-interactive subprocesses — shell integration is installed but **not active** there. Worktrunk then prints something like *"cannot change directory — shell integration installed but not active"* and **does not** change the process cwd.
+`wt switch` changes directory only when the **zsh `wt()` shell function** is active (from `eval "$(command wt config shell init zsh)"` in `.zshrc`). Agent harnesses (Pi, CI) usually run the **`wt` binary** in non-interactive subprocesses — shell integration is installed but **not active** there. Worktrunk then prints something like *"cannot change directory — shell integration installed but not active"* and **does not** change the process cwd.
 
 Do not treat `wt switch` as setting the agent's working directory. After every switch or create:
 
