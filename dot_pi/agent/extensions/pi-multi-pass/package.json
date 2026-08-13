@@ -2,6 +2,11 @@
   "name": "pi-multi-pass-local",
   "private": true,
   "type": "module",
+  "scripts": {
+    "check": "npm run typecheck && npm test",
+    "test": "node --experimental-strip-types --test lib/*.test.ts",
+    "typecheck": "tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --allowImportingTsExtensions --skipLibCheck --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes lib/active-subscription-slot.ts lib/subscription-slot-auth-store.ts lib/subscription-slot-auth-lookup.ts lib/bootstrap-active-subscription-slots.ts lib/apply-subscription-slot-plan.ts lib/activate-public-subscription.ts lib/command-oauth-callbacks.ts"
+  },
   "pi": {
     "extensions": ["./multi-sub.ts"]
   }
