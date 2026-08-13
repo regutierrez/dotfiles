@@ -1,0 +1,40 @@
+dot_agents/skills/domain-modeling/SKILL.md
+  s_aa9f429898fc8f::t_0b17dd98e58d66 3
+dot_agents/skills/herdr/SKILL.md
+  s_aa9f429898fc8f::t_2f01c918bd7c4a 3
+  s_aa9f429898fc8f::t_9fe121af9ed94b 4
+dot_agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh
+  s_aa9f429898fc8f::t_a1d93abcba4c90 14-16
+dot_agents/skills/manage-worktree/SKILL.md
+  s_8ee11cb8ca19b9::t_120695703e6524 20
+dot_agents/skills/rca/SKILL.md
+  s_8ee11cb8ca19b9::t_074f93dddb1359 81,202
+dot_agents/skills/manage-worktree/akkio-create-worktree.md
+  s_8ee11cb8ca19b9::t_9db2aaa50dc08d 5
+dot_agents/skills/diagnosing-bugs/SKILL.md
+  s_aa9f429898fc8f::t_675c9fe488f62b 13-18,56,60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d15b7c74b938a39258f7ed55e80124702517e907",
+  "prompts": {},
+  "sessions": {
+    "s_8ee11cb8ca19b9": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffb62-7ef4-7b72-bad1-2950d9be39c1",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_aa9f429898fc8f": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffcbe-9d42-7ed4-91b6-f47db670050b",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
