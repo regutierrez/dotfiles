@@ -1,0 +1,36 @@
+dot_agents/skills/show-me/NOTICE.md
+  s_aa9f429898fc8f::t_cf5419e0d55fcd 3,5,7
+.chezmoidata.toml
+  s_aa9f429898fc8f::t_fd73a377e59f61 33
+dot_agents/skills/show-me/licenses/humanlayer-show-me-MIT.txt
+  s_aa9f429898fc8f::t_58ae303dadc268 1-21
+dot_agents/skills/show-me/SKILL.md
+  s_aa9f429898fc8f::t_65d7787cbfe45f 2-3,7-140
+.chezmoiremove
+  s_8ee11cb8ca19b9::t_6c9495797dab50 50
+  s_aa9f429898fc8f::t_656d09e1391f7f 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "546d2624bc046a53b07c596ec5bea53e92252174",
+  "prompts": {},
+  "sessions": {
+    "s_8ee11cb8ca19b9": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffb62-7ef4-7b72-bad1-2950d9be39c1",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_aa9f429898fc8f": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffcbe-9d42-7ed4-91b6-f47db670050b",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
