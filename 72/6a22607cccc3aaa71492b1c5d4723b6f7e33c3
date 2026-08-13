@@ -1,0 +1,19 @@
+dot_pi/agent/extensions/btw/test/btw.test.ts
+  s_8ee11cb8ca19b9::t_9e452da0e9f2a2 63,73-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "726a22607cccc3aaa71492b1c5d4723b6f7e33c3",
+  "prompts": {},
+  "sessions": {
+    "s_8ee11cb8ca19b9": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffb62-7ef4-7b72-bad1-2950d9be39c1",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
