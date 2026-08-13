@@ -93,7 +93,7 @@
                   }
                 ],
                 "type": "basic"
-              },{{ if $work }}
+              },
               {
                 "conditions": [
                   {
@@ -102,7 +102,7 @@
                     "value": 1
                   }
                 ],
-                "description": "Hyper + Q, A: Open Google Chrome",
+                "description": "Hyper + Q, A: Open Amp",
                 "from": {
                   "key_code": "a",
                   "modifiers": {
@@ -111,7 +111,30 @@
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Google Chrome.app'"
+                    "shell_command": "open -a 'Amp.app'"
+                  }
+                ],
+                "type": "basic"
+              },
+              {{ if not $work }}
+              {
+                "conditions": [
+                  {
+                    "name": "hyper_sublayer_q",
+                    "type": "variable_if",
+                    "value": 1
+                  }
+                ],
+                "description": "Hyper + Q, M: Open iPhone Mirroring",
+                "from": {
+                  "key_code": "m",
+                  "modifiers": {
+                    "mandatory": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "shell_command": "open -a 'iPhone Mirroring.app'"
                   }
                 ],
                 "type": "basic"
@@ -124,16 +147,16 @@
                     "value": 1
                   }
                 ],
-                "description": "Hyper + Q, {{ if $work }}G: Open Arc{{ else }}M: Open iPhone Mirroring{{ end }}",
+                "description": "Hyper + Q, G: Open Google Chrome",
                 "from": {
-                  "key_code": "{{ if $work }}g{{ else }}m{{ end }}",
+                  "key_code": "g",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a '{{ if $work }}Arc.app{{ else }}iPhone Mirroring.app{{ end }}'"
+                    "shell_command": "open -a 'Google Chrome.app'"
                   }
                 ],
                 "type": "basic"
@@ -146,20 +169,42 @@
                     "value": 1
                   }
                 ],
-                "description": "Hyper + Q, {{ if $work }}B: Open Bitwarden{{ else }}G: Open Helium{{ end }}",
+                "description": "Hyper + Q, H: Open {{ if $work }}Arc{{ else }}Helium{{ end }}",
                 "from": {
-                  "key_code": "{{ if $work }}b{{ else }}g{{ end }}",
+                  "key_code": "h",
                   "modifiers": {
                     "mandatory": ["any"]
                   }
                 },
                 "to": [
                   {
-                    "shell_command": "open -a '{{ if $work }}Bitwarden.app{{ else }}Helium.app{{ end }}'"
+                    "shell_command": "open -a '{{ if $work }}Arc.app{{ else }}Helium.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
-              },
+              },{{ if $work }}
+              {
+                "conditions": [
+                  {
+                    "name": "hyper_sublayer_q",
+                    "type": "variable_if",
+                    "value": 1
+                  }
+                ],
+                "description": "Hyper + Q, B: Open Bitwarden",
+                "from": {
+                  "key_code": "b",
+                  "modifiers": {
+                    "mandatory": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "shell_command": "open -a 'Bitwarden.app'"
+                  }
+                ],
+                "type": "basic"
+              },{{ end }}
               {
                 "conditions": [
                   {
