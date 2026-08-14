@@ -1,0 +1,43 @@
+dot_agents/skills/query-hz/scripts/query-snowflake-hz.py
+  s_cdb04b8ba6faa5::t_1c15b7e6591036 9
+  s_cdb04b8ba6faa5::t_27d4534571067f 1-8,10-324
+dot_agents/skills/akkio-investigate/SKILL.md
+  s_cdb04b8ba6faa5::t_27d4534571067f 22-23
+  s_cdb04b8ba6faa5::t_648575b61e0de6 9
+dot_agents/skills/query-hz/SKILL.md
+  s_cdb04b8ba6faa5::t_47dd14b5135577 1-4,6-60
+  s_cdb04b8ba6faa5::t_60247a88c606d1 5
+dot_agents/skills/query-hz/references/queries.md
+  s_cdb04b8ba6faa5::t_27d4534571067f 1-2,4-87
+  s_cdb04b8ba6faa5::t_1c15b7e6591036 3
+dot_agents/skills/rca/SKILL.md
+  s_cdb04b8ba6faa5::t_27d4534571067f 67
+  s_cdb04b8ba6faa5::t_89006ebc4a2992 46,250
+.chezmoidata.toml
+  s_cdb04b8ba6faa5::t_27d4534571067f 45
+dot_agents/skills/locating-request-origin/SKILL.md
+  s_cdb04b8ba6faa5::t_27d4534571067f 28
+  s_cdb04b8ba6faa5::t_1c15b7e6591036 49
+dot_agents/skills/query-hz/references/secrets-and-access.md
+  s_cdb04b8ba6faa5::t_27d4534571067f 1-32,34-68
+  s_cdb04b8ba6faa5::t_1c15b7e6591036 33
+dot_agents/skills/query-hz/scripts/executable_query-postgres-hz.sh
+  s_cdb04b8ba6faa5::t_27d4534571067f 1-16,22-703,705-707,709-712,714-716,718-727
+  s_cdb04b8ba6faa5::t_1c15b7e6591036 17-21,704,708,713,717
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "abd7ed9edf50fad3c48ac069bb65865b4aecb1cd",
+  "prompts": {},
+  "sessions": {
+    "s_cdb04b8ba6faa5": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019ffd32-5280-7a1c-bb22-9df4170a1dce",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
