@@ -21,6 +21,7 @@ cd ~/.pi/agent && npm install
 | `agents/` | Custom herdr-subagent defs; prompts are shared and model/reasoning settings render by profile |
 | `skills/update-pi/` | Pi update helper skill |
 | `intercepted-commands/` | PATH shims used by `uv.ts` |
+| `extensions/pi-autoresearch.json` | Disables the `pi-autoresearch` fullscreen dashboard shortcut so it does not take `ctrl+shift+f` from transcript search |
 | `extensions/btw/` | `/btw` side threads (`index.ts` + tests) |
 | `extensions/pi-multi-pass/` | Local multipass fork for Pi 0.84 (`/subs`, `/pool`) |
 | `extensions/web-tools/` | `webfetch` + Kagi `websearch` (own package) |
@@ -38,7 +39,7 @@ cd ~/.pi/agent && npm install
 ## Edit often vs leave alone
 
 **Edit often (hot):**
-- `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`, `cloak.json`
+- `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`, `cloak.json`, `extensions/pi-autoresearch.json`
 - `extensions/btw/`
 - `agents/*.md.tmpl`
 - `package.json` (when adding shared deps)
