@@ -27,6 +27,7 @@ cd ~/.pi/agent && npm install
 | `extensions/pi-cloak/` | Mask secrets in `read` tool results (`/cloak-status`) |
 | `extensions/cpimg/` | Clipboard image helper |
 | `extensions/atuin.ts` | Atuin integration |
+| `extensions/cd.ts` | `/cd` move the session to another directory (fork + switch) with autocomplete |
 | `extensions/context.ts` | Context helpers |
 | `extensions/continue-after-compaction.ts` | Resume after compaction |
 | `extensions/git-ai.ts` | Git AI helpers |
