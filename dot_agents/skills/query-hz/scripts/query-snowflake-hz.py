@@ -6,7 +6,7 @@
 """Read-only Snowflake query runner backed by ~/.dbt/profiles.yml.
 
 Run with:
-  uv run ~/.agents/skills/query-snowflake-hz/scripts/query-snowflake-hz.py --sql "select current_version()"
+  uv run ~/.agents/skills/query-hz/scripts/query-snowflake-hz.py --sql "select current_version()"
 """
 from __future__ import annotations
 
@@ -268,7 +268,7 @@ def main() -> int:
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_SECONDS)
     parser.add_argument("--max-rows", type=int, default=DEFAULT_MAX_ROWS)
     parser.add_argument("--format", choices=["json", "csv", "tsv", "table"], default="tsv")
-    parser.add_argument("--query-tag", default="query-snowflake-hz")
+    parser.add_argument("--query-tag", default="query-hz")
     args = parser.parse_args()
 
     sql = validate_read_only(read_sql(args))

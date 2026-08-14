@@ -25,7 +25,7 @@ Find the real user launch point, not only the backend endpoint or feature name. 
 
    A backend name such as `AudienceExplore` or `chat-features: ["audience-explore"]` identifies processing mode, not the visible tab. A dashboard chat on Audience Insights can use that same backend feature.
 
-2. **Resolve IDs directly in environment-matched Postgres.** Read and follow `~/.agents/skills/query-postgres-hz/SKILL.md`. Run its `envs` command first, then query the same environment as the request.
+2. **Resolve IDs directly in environment-matched Postgres.** Read and follow `~/.agents/skills/query-hz/SKILL.md`. Run its `envs` command first, then query the same environment as the request.
 
    If the payload has `dashboardId`, use the dashboard row as the direct source of the sub-tab name:
 
@@ -46,7 +46,7 @@ Find the real user launch point, not only the backend endpoint or feature name. 
    If the payload has a chart ID, run:
 
    ```bash
-   ~/.agents/skills/query-postgres-hz/scripts/query-postgres-hz.sh \
+   ~/.agents/skills/query-hz/scripts/query-postgres-hz.sh \
      --env <environment> lookup-chart <chart-id>
    ```
 

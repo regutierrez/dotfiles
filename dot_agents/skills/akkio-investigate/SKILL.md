@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Akkio Investigate
 
-The **router** for Akkio data investigations: it decides *where to look and which skill to drive*, then hands off. It does not duplicate the pup recipes (`datadog-investigate`), SQL templates (`query-postgres-hz` / `query-snowflake-hz`), or writeup structure (`rca`) — those skills own their detail. Read `akkio-base` first for surfaces, data topology, and the env-match rule.
+The **router** for Akkio data investigations: it decides *where to look and which skill to drive*, then hands off. It does not duplicate the pup recipes (`datadog-investigate`), SQL templates (`query-hz`), or writeup structure (`rca`) — those skills own their detail. Read `akkio-base` first for surfaces, data topology, and the env-match rule.
 
 ## First decision
 
@@ -19,8 +19,8 @@ Collect the strongest identifiers before querying anything: user email/uid, org 
 ## Discovery ladder (stop when you have the answer)
 
 1. **Logs & traces — `/datadog-investigate`.** Anchor on email/org → aggregate to candidate `request_id`s → pull the fat "Done" log (prompt, generated SQL, result, `trace_id`) → expand to the trace. The request payload usually answers the question by itself.
-2. **App entity gaps — `/query-postgres-hz`.** When logs have a `chart_id`/`teamId`/`org_id` but not project/dashboard names or integer IDs, or you need tenant ↔ Firestore-id resolution.
-3. **Data-layer gaps — `/query-snowflake-hz`.** When the symptom is about the *data the customer queried* (`BLUSHIFT_HMI_PROD`): wrong/missing/stale rows, audience contents.
+2. **App entity gaps — `/query-hz`.** When logs have a `chart_id`/`teamId`/`org_id` but not project/dashboard names or integer IDs, or you need tenant ↔ Firestore-id resolution.
+3. **Data-layer gaps — `/query-hz`.** When the symptom is about the *data the customer queried* (`BLUSHIFT_HMI_PROD`): wrong/missing/stale rows, audience contents.
 4. **Build-layer — `~/blu-platform-transformations`.** When Snowflake contents are wrong, trace to the dbt model / YAML / lookback that built them, or a stale dbt Cloud run / supplemental-info cache. See `rca`'s blu-platform-transformations section for mechanics.
 
 ## Store decision

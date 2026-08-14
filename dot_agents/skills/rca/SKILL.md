@@ -43,7 +43,7 @@ A successful investigation lets an engineer understand what happened, why it hap
 
 ## Running validation SQL
 
-Run validation queries yourself via the `/query-postgres-hz` and `/query-snowflake-hz` skills. **Environment match is mandatory:** the query must run in the same environment where the issue was reported (production issue → production DB, staging issue → staging DB). If the skill's connection points at a different environment, do not run it — tell the user about the disconnect and that they may need to run the query themselves.
+Run validation queries yourself via the `/query-hz` skill, selecting its Postgres or Snowflake backend. **Environment match is mandatory:** the query must run in the same environment where the issue was reported (production issue → production DB, staging issue → staging DB). If the skill's connection points at a different environment, do not run it — tell the user about the disconnect and that they may need to run the query themselves.
 
 Every query — run by you or handed to the user — must be:
 
@@ -64,7 +64,7 @@ A "data issue" can live in four layers — isolate which one before blaming any 
 3. **Snowflake table contents** — model is right but the dbt Cloud run failed or is stale (cadence tags `daily`/`weekly`/`monthly`).
 4. **Platform supplemental-info cache** — Snowflake is right, cached metadata is stale until `ml/scripts/refresh_supplemental_info.py` runs.
 
-Checks, in order: query the table via `/query-snowflake-hz`; `DESCRIBE TABLE` for live COMMENTs; compare with the supplemental info the LLM actually received (Datadog logs); read the model SQL/YAML in `~/blu-platform-transformations/models/`.
+Checks, in order: query the table via `/query-hz`; `DESCRIBE TABLE` for live COMMENTs; compare with the supplemental info the LLM actually received (Datadog logs); read the model SQL/YAML in `~/blu-platform-transformations/models/`.
 
 Look in blu-platform-transformations when: LLM SQL uses the wrong value format (case, hyphen vs underscore — column descriptions carry `:lower`/`:upper`/`:space-to-hyphen`/`:space-to-underscore` tags that promise a format); table/column descriptions in the LLM context are wrong or missing; a table exists for one client but not another; rows or partition dates are stale/missing; `data_type`/`use_for_audience_gen` tagging is wrong.
 
@@ -247,7 +247,7 @@ After `## Summary`, include:
   Diagrams are for finding the code and evidence, not decoration: real names, real `file:line`, ≤ ~15 nodes each — split rather than cram. Annotate only what's relevant to the bug.
 - `## ELI5 walkthrough` — short narrative a junior dev new to the codebase can follow: what the user did, what the system tried, where it broke, why that produced the symptom. Define platform concepts inline; reference the diagrams.
 - `## Reproduction steps` — exact steps on the real user surface. If full reproduction is impossible, include a safe partial repro and explain exactly what prevents full reproduction. Attach the assets in the .mdx file.
-- `## Manual validation required` — the honesty section. Numbered, copy-pasteable checks that confirm or break the RCA, each following "Running validation SQL" (store-labeled, schema-verified, cheap, explained up front). Run them yourself via `/query-postgres-hz`/`/query-snowflake-hz` when the environment matches the issue; otherwise flag the disconnect for the user. Include non-SQL checks (UI, Firestore, ask reporter). If nothing manual is needed, say so explicitly — never omit the section.
+- `## Manual validation required` — the honesty section. Numbered, copy-pasteable checks that confirm or break the RCA, each following "Running validation SQL" (store-labeled, schema-verified, cheap, explained up front). Run them yourself via `/query-hz` with the matching backend when the environment matches the issue; otherwise flag the disconnect for the user. Include non-SQL checks (UI, Firestore, ask reporter). If nothing manual is needed, say so explicitly — never omit the section.
 - `## Possible fixes` — REQUIRED. Classify each candidate:
   1. **Code change** — which side (frontend / backend / ml / worker) and service; if both FE and BE angles exist, address both.
   2. **Data fix** — correct/backfill/re-sync/retag the bad data; name the exact table(s) and rows, where the bad data came from, and who owns that pipeline. Say which layer it is (upstream feed / dbt model in `~/blu-platform-transformations` / stale dbt Cloud run / stale supplemental-info cache) with the evidence. A blu-platform-transformations fix = dbt model/YAML change + client resync (`gen_client_schema.py`) + supplemental info refresh; a refresh-only fix = Snowflake is right and only the cache is stale.
