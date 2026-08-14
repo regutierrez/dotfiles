@@ -1,0 +1,21 @@
+dot_pi/agent/extensions/pi-autoresearch.json
+  s_d4d98e93bdf789::t_c495461b0adaff 1-5
+dot_pi/agent/README.md
+  s_d4d98e93bdf789::t_be9381fc61a77a 24,42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "92ed16972f0ee99c3ed423e59cf3215092d332e8",
+  "prompts": {},
+  "sessions": {
+    "s_d4d98e93bdf789": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a001a9-b86b-72f5-83ba-4306473a4a3a",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
