@@ -37,12 +37,3 @@
 [alias]
 	branch-age = "for-each-ref --sort=committerdate refs/heads/ --format=%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))"
 	nuke = "!git add --all && git stash && git stash clear"
-{{- with lookPath "gh" }}
-
-[credential "https://github.com"]
-	helper =
-	helper = !{{ . }} auth git-credential
-[credential "https://gist.github.com"]
-	helper =
-	helper = !{{ . }} auth git-credential
-{{- end }}
