@@ -1,0 +1,45 @@
+dot_config/herdr/config.toml
+  s_dbbdccb6750a66::t_1ed4f5f3562ae1 79-84,87
+  s_dbbdccb6750a66::t_0817914eca34ed 85-86
+.gitignore
+  s_d51a836cec0107::t_c079930d4fb15b 7
+dot_pi/agent/README.md
+  s_d51a836cec0107::t_6d46f040ee3957 75
+  s_d4d98e93bdf789::t_0336abbbff7b58 73
+.chezmoiignore
+  s_d51a836cec0107::t_f2bafe1f1daf62 72
+.chezmoiremove
+  s_d4d98e93bdf789::t_842c349f2bec86 28-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8a8c9512e28e67759e3c1b5db63321ee8c2ce9ea",
+  "prompts": {},
+  "sessions": {
+    "s_d4d98e93bdf789": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a001a9-b86b-72f5-83ba-4306473a4a3a",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_d51a836cec0107": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a001af-651e-7cce-a045-78b103f5d9cb",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_dbbdccb6750a66": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a005e5-0e5c-7da0-9ed8-94626505a2a8",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
