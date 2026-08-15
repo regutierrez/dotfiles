@@ -15,7 +15,6 @@ cd ~/.pi/agent && npm install
 | `keybindings.json` | Pi TUI keybindings |
 | `btw.json` | Optional BTW model/thinking overrides |
 | `cloak.json` | Secret-masking patterns for `pi-cloak` |
-| `claude-bridge.json` | Claude bridge config |
 | `mcp.json` | MCP server wiring for `dmmulroy/pi-mcp` |
 | `package.json` | Shared deps for extensions |
 | `agents/` | Custom herdr-subagent defs; prompts are shared and model/reasoning settings render by profile |
@@ -71,5 +70,6 @@ export SIDESHOW_TOKEN=…
 ## Notes
 
 - `node_modules/` and lockfiles under `~/.pi/agent` are ignored by chezmoi.
-- Orphan extensions removed from source are listed in repo `.chezmoiremove` so apply deletes them from the target.
+- Orphan extensions and retired skill files removed from source are listed in repo `.chezmoiremove` so apply deletes them from the target.
 - `~/.pi/agent/extensions/herdr-agent-state.ts` is owned by herdr (not chezmoi); leave it on the target.
+- `~/.pi/agent/claude-bridge.json` is machine-local (not chezmoi); leave it on the target.

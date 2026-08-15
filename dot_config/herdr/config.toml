@@ -76,6 +76,15 @@ reload_config = "prefix+r"
 # Rebind resize mode since prefix+r is now reload_config
 resize_mode = "prefix+alt+r"
 
+# Floating scratch shell. Closes when the shell exits.
+[[keys.command]]
+key = "prefix+t"
+type = "popup"
+command = "cd \"${HERDR_ACTIVE_PANE_CWD:-.}\" && exec \"${SHELL:-sh}\""
+description = "open scratch terminal"
+width = "60%"
+height = "60%"
+
 [theme]
 name = "terminal"
 auto_switch = false

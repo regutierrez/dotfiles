@@ -69,6 +69,7 @@ akkio-helpers/
 .pi/agent/node_modules/
 .pi/agent/package-lock.json
 .pi/agent/todos/
+.pi/agent/claude-bridge.json
 .pi/todos/
 .agents/skills/web-browser/scripts/node_modules/
 **/package-lock.json
