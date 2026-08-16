@@ -229,6 +229,24 @@ configure_kde() {
   if command -v kbuildsycoca6 >/dev/null 2>&1; then
     kbuildsycoca6 --noincremental >/dev/null
   fi
+
+  if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]] && command -v busctl >/dev/null 2>&1; then
+    busctl --user call \
+      org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel setForeignShortcut \
+      'asai' 4 \
+      caps-launch-helium.desktop _launch \
+      'Caps: Focus or Launch Helium' 'Caps: Focus or Launch Helium' \
+      1 503316552 \
+      >/dev/null || warn "could not register Caps+Q+H for Helium"
+
+    busctl --user call \
+      org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel setForeignShortcut \
+      'asai' 4 \
+      caps-launch-dolphin.desktop _launch \
+      'Caps: Focus or Launch Dolphin' 'Caps: Focus or Launch Dolphin' \
+      1 503316526 \
+      >/dev/null || warn "could not register Caps+Q+. for Files"
+  fi
 }
 
 verify_nvidia() {
