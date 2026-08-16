@@ -85,7 +85,7 @@ install_node() {
   info "ensuring the latest LTS Node.js is active"
   eval "$(fnm env --shell bash)"
   fnm install --lts
-  fnm use --lts
+  fnm use lts-latest
   require_command node
   require_command npm
 }
@@ -163,7 +163,7 @@ configure_helium_command() {
   if [[ -n "$system_helium" ]]; then
     ln -s "$system_helium" "$local_bin/helium"
   else
-    warn "Helium is not installed; Caps+Q+G will not be able to launch it"
+    warn "Helium is not installed; Caps+Q+H will not be able to launch it"
   fi
 }
 
@@ -217,6 +217,7 @@ configure_kde() {
   if command -v desktop-file-validate >/dev/null 2>&1; then
     for desktop_file in \
       caps-launch-dolphin.desktop \
+      caps-launch-discord.desktop \
       caps-launch-ghostty.desktop \
       caps-launch-helium.desktop \
       caps-launch-obsidian.desktop \

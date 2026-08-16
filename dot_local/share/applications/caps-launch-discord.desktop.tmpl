@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Caps: Focus or Launch Discord
+Comment=Focus Discord or launch it from the Caps keyboard layer
+Exec={{ .chezmoi.homeDir }}/.local/bin/kde-focus-or-launch discord /usr/bin/flatpak run com.discordapp.Discord
+TryExec={{ .chezmoi.homeDir }}/.local/bin/kde-focus-or-launch
+NoDisplay=true
+Terminal=false
+StartupNotify=true
+X-KDE-Shortcuts=Meta+Ctrl+Alt+Shift+D

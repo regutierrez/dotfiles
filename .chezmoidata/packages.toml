@@ -89,6 +89,7 @@ packages = [
   "fzf",
   "git",
   "git-delta",
+  "gcc-c++",
   "gh",
   "ghostty",
   "golang",
