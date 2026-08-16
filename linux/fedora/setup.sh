@@ -6,9 +6,9 @@ if [[ "$profile" != "personal" ]]; then
   printf 'fedora-setup: Fedora supports the personal profile only\n' >&2
   exit 1
 fi
-source_dir="$(chezmoi source-path)"
 local_bin="$HOME/.local/bin"
 reboot_required=false
+login_required=false
 sudo_keepalive_pid=""
 
 info() {
@@ -167,27 +167,23 @@ configure_helium_command() {
   fi
 }
 
-configure_keyd() {
-  local source_config="$source_dir/linux/fedora/keyd/default.conf"
-  local changed=false
+configure_xremap() {
+  require_command xremap
 
-  require_command keyd
-  keyd check "$source_config"
-
-  if ! cmp -s "$source_config" /etc/keyd/default.conf; then
-    info "installing the Caps Lock keyd configuration"
-    sudo install -D -m 0644 "$source_config" /etc/keyd/default.conf
-    changed=true
+  if ! id -nG | tr ' ' '\n' | grep -Fxq input; then
+    info "adding $USER to the input group"
+    sudo usermod --append --groups input "$USER"
+    warn "log out and back in, then rerun setup to activate xremap"
+    login_required=true
+    return
   fi
 
-  sudo systemctl enable --now keyd.service
-  if [[ "$changed" == true ]]; then
-    sudo systemctl restart keyd.service
-  fi
+  systemctl --user daemon-reload
+  systemctl --user enable --now xremap.service
 }
 
 configure_kde() {
-  local profile_name desktop_file
+  local profile_name
 
   require_command kwriteconfig6
 
@@ -212,40 +208,6 @@ configure_kde() {
       systemctl --user start plasma-polkit-agent.service || \
         warn "could not start KDE's PolicyKit agent"
     fi
-  fi
-
-  if command -v desktop-file-validate >/dev/null 2>&1; then
-    for desktop_file in \
-      caps-launch-dolphin.desktop \
-      caps-launch-discord.desktop \
-      caps-launch-ghostty.desktop \
-      caps-launch-helium.desktop \
-      caps-launch-obsidian.desktop \
-      caps-window-center.desktop; do
-      desktop-file-validate "$HOME/.local/share/applications/$desktop_file"
-    done
-  fi
-
-  if command -v kbuildsycoca6 >/dev/null 2>&1; then
-    kbuildsycoca6 --noincremental >/dev/null
-  fi
-
-  if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]] && command -v busctl >/dev/null 2>&1; then
-    busctl --user call \
-      org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel setForeignShortcut \
-      'asai' 4 \
-      caps-launch-helium.desktop _launch \
-      'Caps: Focus or Launch Helium' 'Caps: Focus or Launch Helium' \
-      1 503316552 \
-      >/dev/null || warn "could not register Caps+Q+H for Helium"
-
-    busctl --user call \
-      org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel setForeignShortcut \
-      'asai' 4 \
-      caps-launch-dolphin.desktop _launch \
-      'Caps: Focus or Launch Dolphin' 'Caps: Focus or Launch Dolphin' \
-      1 503316526 \
-      >/dev/null || warn "could not register Caps+Q+. for Files"
   fi
 }
 
@@ -291,7 +253,7 @@ print_summary() {
   info "setup complete"
   printf '  profile: %s\n' "$profile"
   printf '  login shell: %s\n' "$(getent passwd "$USER" | cut -d: -f7)"
-  printf '  keyd: %s\n' "$(systemctl is-active keyd.service 2>/dev/null || true)"
+  printf '  xremap: %s\n' "$(systemctl --user is-active xremap.service 2>/dev/null || true)"
   if command -v steam >/dev/null 2>&1; then
     printf '  Steam: installed\n'
   fi
@@ -302,6 +264,9 @@ print_summary() {
     printf '  reboot required: yes\n'
   else
     printf '  reboot required: no\n'
+  fi
+  if [[ "$login_required" == true ]]; then
+    printf '  login required: yes\n'
   fi
 }
 
@@ -326,7 +291,7 @@ main() {
 
   if [[ "$profile" == "personal" ]]; then
     configure_helium_command
-    configure_keyd
+    configure_xremap
     configure_kde
     verify_nvidia
   fi

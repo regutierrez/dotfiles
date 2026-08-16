@@ -61,6 +61,12 @@
 .pi/agent/extensions/btw.ts
 .pi/agent/extensions/package.json
 .pi/agent/extensions/test/btw.test.ts
+.local/share/applications/caps-launch-discord.desktop
+.local/share/applications/caps-launch-dolphin.desktop
+.local/share/applications/caps-launch-ghostty.desktop
+.local/share/applications/caps-launch-helium.desktop
+.local/share/applications/caps-launch-obsidian.desktop
+.local/share/applications/caps-window-center.desktop
 bin/agent-status
 bin/agent-status-claude-hook
 bin/agent-status-claude-notify

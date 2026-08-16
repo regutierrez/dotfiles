@@ -97,9 +97,10 @@ The personal Fedora workstation receives:
 - `dot_config/kitty/`
 - `dot_config/niri/`
 - `dot_config/systemd/user/dms-auto-resolution-profile.service`
+- `dot_config/systemd/user/xremap.service`
+- `dot_config/xremap/`
 - `dot_local/bin/executable_dms-auto-resolution-profile`
 - `dot_local/bin/executable_kde-focus-or-launch`
-- `dot_local/share/applications/caps-*.desktop`
 
 ## Secrets
 

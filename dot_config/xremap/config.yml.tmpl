@@ -1,0 +1,56 @@
+default_mode: default
+
+virtual_modifiers:
+  - BTN_TRIGGER_HAPPY1
+
+modmap:
+  - name: Caps layer lifecycle
+    mode: [default, caps, caps_q]
+    remap:
+      CapsLock:
+        skip_key_event: true
+        press: { set_mode: caps }
+        release: { set_mode: default }
+
+  - name: Caps Q layer lifecycle
+    mode: [caps, caps_q]
+    remap:
+      Q:
+        skip_key_event: true
+        press: { set_mode: caps_q }
+        release: { set_mode: caps }
+
+  - name: Left Meta layer
+    remap:
+      Super_L: BTN_TRIGGER_HAPPY1
+
+keymap:
+  - name: Caps Q application layer
+    mode: [caps_q]
+    remap:
+      H:
+        launch: ["{{ .chezmoi.homeDir }}/.local/bin/kde-focus-or-launch", "helium", "{{ .chezmoi.homeDir }}/.local/bin/helium"]
+      D:
+        launch: ["{{ .chezmoi.homeDir }}/.local/bin/kde-focus-or-launch", "discord", "/usr/bin/flatpak", "run", "com.discordapp.Discord"]
+      Dot:
+        launch: ["{{ .chezmoi.homeDir }}/.local/bin/kde-focus-or-launch", "dolphin", "/usr/bin/dolphin"]
+      Enter:
+        launch: ["{{ .chezmoi.homeDir }}/.local/bin/kde-focus-or-launch", "com[.]mitchellh[.]ghostty", "/usr/bin/ghostty"]
+      O:
+        launch: ["{{ .chezmoi.homeDir }}/.local/bin/kde-focus-or-launch", "obsidian", "/usr/bin/flatpak", "run", "md.obsidian.Obsidian"]
+
+  - name: Caps window layer
+    mode: [caps]
+    remap:
+      H: Super-Left
+      L: Super-Right
+      F: Super-PageUp
+      J:
+        launch: ["/usr/bin/kdotool", "getactivewindow", "windowstate", "--remove", "fullscreen", "--remove", "maximized_horz", "--remove", "maximized_vert", "windowsize", "60%", "60%", "windowmove", "20%", "20%"]
+
+  - name: Left Meta editing layer
+    remap:
+      BTN_TRIGGER_HAPPY1-C: Ctrl-Insert
+      BTN_TRIGGER_HAPPY1-X: Shift-Delete
+      BTN_TRIGGER_HAPPY1-V: Shift-Insert
+      BTN_TRIGGER_HAPPY1-ANY: Ctrl-ANY

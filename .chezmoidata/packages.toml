@@ -94,7 +94,6 @@ packages = [
   "ghostty",
   "golang",
   "jq",
-  "keyd",
   "kdotool",
   "mokutil",
   "neovim",
@@ -109,6 +108,7 @@ packages = [
   "unzip",
   "uv",
   "wl-clipboard",
+  "xremap",
   "zip",
   "zoxide",
   "zsh",
@@ -129,7 +129,7 @@ nvidia_packages = [
   "xorg-x11-drv-nvidia-power",
 ]
 coprs = [
-  "alternateved/keyd",
+  "blakegardner/xremap",
   "imput/helium",
   "scottames/ghostty",
 ]
