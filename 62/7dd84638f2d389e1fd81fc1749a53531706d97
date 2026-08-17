@@ -1,0 +1,19 @@
+.chezmoitemplates/karabiner-personal.json
+  s_0a6d4817d84c92::t_7cc34c70d0d510 318,327,329,336-358
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "627dd84638f2d389e1fd81fc1749a53531706d97",
+  "prompts": {},
+  "sessions": {
+    "s_0a6d4817d84c92": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-46a5972a-80ad-486d-9bc0-de10ebdd3793",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
