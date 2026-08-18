@@ -33,6 +33,7 @@ cd ~/.pi/agent && npm install
 | `extensions/git-ai.ts` | Git AI helpers |
 | `extensions/loop.ts` | Loop / iteration helper |
 | `extensions/review.ts` | Review UI extension |
+| `extensions/sideshow-lazy-tools.ts` | Defers follow-up sideshow tools until the first design-guide or publish call |
 | `extensions/uv.ts` | Prefers `uv` via intercepted-commands |
 
 ## Edit often vs leave alone

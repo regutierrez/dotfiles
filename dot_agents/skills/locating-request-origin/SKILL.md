@@ -1,6 +1,7 @@
 ---
 name: locating-request-origin
 description: Identifies the exact Akkio UI route, primary tab, dashboard sub-tab, and chart or artifact where a logged request started. Use when asked where a request ran, which page/tab/sub-tab to open, or how to reach the same user surface for reproduction.
+disable-model-invocation: true
 ---
 
 # Locate Request Origin
