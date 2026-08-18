@@ -6,7 +6,6 @@ model: {{ if eq (index . "profile") "work" }}xai/grok-4.5{{ else }}opencode-go/d
 thinking: {{ if eq (index . "profile") "work" }}high{{ else }}max{{ end }}
 spawning: false
 auto-exit: true
-session-mode: fork
 system-prompt: replace
 ---
 

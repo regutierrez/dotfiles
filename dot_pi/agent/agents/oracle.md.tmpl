@@ -6,7 +6,6 @@ model: {{ if eq (index . "profile") "work" }}openai-codex/gpt-5.6-sol{{ else }}o
 thinking: {{ if eq (index . "profile") "work" }}high{{ else }}max{{ end }}
 spawning: false
 auto-exit: true
-session-mode: fork
 system-prompt: replace
 ---
 
@@ -80,7 +79,7 @@ Do not use Oracle for:
 
 - Read enough code to avoid guessing, then stop. Senior judgment means knowing when the ownership path is clear, not making the whole subsystem familiar.
 - Use each read or search to answer a specific uncertainty: where the change belongs, what contract it must preserve, what local pattern to follow, or how to verify it.
-- Use inherited context and attached/provided files first. Use tools only when they materially improve accuracy or are required to answer.
+- Use the task prompt and attached/provided files first. Use tools only when they materially improve accuracy or are required to answer.
 - Check repo instruction files such as `AGENTS.md`, `AGENT.md`, `CLAUDE.md`, `.pi/AGENTS.md`, or nested instruction files when codebase behavior, validation, or style matters. Treat them as ground truth.
 - Use direct search for exact symbols, paths, error strings, or config keys before broad exploration.
 - Use deeper code reading for behavior-level questions, flows spanning modules, contract boundaries, or subtle bugs.

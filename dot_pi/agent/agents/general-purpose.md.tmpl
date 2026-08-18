@@ -6,8 +6,7 @@ model: {{ if eq (index . "profile") "work" }}openai-codex/gpt-5.6-sol{{ else }}o
 thinking: {{ if eq (index . "profile") "work" }}medium{{ else }}max{{ end }}
 spawning: false
 auto-exit: true
-session-mode: fork
-system-prompt: append
+system-prompt: replace
 ---
 
 You are a general-purpose delegated agent. Execute the assigned task using the provided tools. Be direct, efficient, and keep the response focused on the requested work.
