@@ -1,0 +1,76 @@
+run_onchange_after_50-link-herdr-workspace-mru.sh.tmpl
+  s_97749aafd9e9a4::t_0a27a1deaada7d 1-20
+dot_config/herdr/config.toml
+  s_97749aafd9e9a4::t_0a27a1deaada7d 88-93
+dot_local/share/herdr-plugins/workspace-mru/herdr-plugin.toml
+  s_44f60af90e78d2::t_6c092c556839b0 3,5,10
+  s_97749aafd9e9a4::t_0a27a1deaada7d 1-2,4,6-9,11-20
+dot_local/share/herdr-plugins/workspace-mru/workspace-mru.test.mjs
+  s_97749aafd9e9a4::t_0a27a1deaada7d 1-24,26-28,30-32,34,39-40,52-54,56-58,60-65,71
+  s_f01c52098d4d9c::t_b34cfcb7f1e9e5 67-70
+  s_5485f9b68f822b::t_9ad361bf107dee 29,42-46,48-51,55,59,66
+  s_44f60af90e78d2::t_6c092c556839b0 25,35-38
+  s_b516dd0be4ebdf::t_3321da2d941309 33,41,47
+dot_local/share/herdr-plugins/workspace-mru/workspace-mru.mjs
+  s_97749aafd9e9a4::t_0a27a1deaada7d 1-12,15-27,34-56,60-63,66-67,71-73,75,78-83,87-88,93-177,180,183-215
+  s_b516dd0be4ebdf::t_3321da2d941309 13
+  s_44f60af90e78d2::t_6c092c556839b0 65,68-70,74,84-86,89-91
+  s_a20111b4449a1b::t_3cfef18e935736 178-179,181-182
+  s_5485f9b68f822b::t_9ad361bf107dee 14,28-33,57-59,64,76-77,92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "7e551497016a9eb456ad0b7604b3864aa34dcaf6",
+  "prompts": {},
+  "sessions": {
+    "s_44f60af90e78d2": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349Kr7qgTMVovwcQWYw8T",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_5485f9b68f822b": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349KdYlJLuhN7L2InNuBq",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_97749aafd9e9a4": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349KQAFybMZH0s1htqiNh",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_a20111b4449a1b": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349KfDUkwNpcnIQk297i5",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_b516dd0be4ebdf": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349KimHIvPqItqwLFn0ew",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_f01c52098d4d9c": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349KSjJqQ7COGuTnv7FtP",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
