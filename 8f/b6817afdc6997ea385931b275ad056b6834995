@@ -1,0 +1,21 @@
+dot_pi/agent/modify_settings.json
+  s_fbaf48e47df9cb::t_860ba4da979c82 6-21
+dot_pi/agent/README.md
+  s_fbaf48e47df9cb::t_edcb0402333ed4 79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "8fb6817afdc6997ea385931b275ad056b6834995",
+  "prompts": {},
+  "sessions": {
+    "s_fbaf48e47df9cb": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a0154e-477a-7aea-b82c-02936ed28670",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
