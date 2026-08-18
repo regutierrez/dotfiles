@@ -19,6 +19,7 @@ cd ~/.pi/agent && npm install
 | `package.json` | Shared deps for extensions |
 | `agents/` | Custom herdr-subagent defs; prompts are shared and model/reasoning settings render by profile |
 | `skills/update-pi/` | Pi update helper skill |
+| `skills/sideshow/` | Local override of `npm:sideshow`: keeps `/skill:sideshow`, disables model auto-invoke |
 | `intercepted-commands/` | PATH shims used by `uv.ts` |
 | `extensions/pi-autoresearch.json` | Disables the `pi-autoresearch` fullscreen dashboard shortcut so it does not take `ctrl+shift+f` from transcript search |
 | `extensions/btw/` | `/btw` side threads (`index.ts` + tests) |
