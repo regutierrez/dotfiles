@@ -1,0 +1,25 @@
+dot_pi/agent/skills/sideshow/SKILL.md
+  s_8e3c4b627e24a2::t_68e7caea58b95f 1-32
+dot_agents/skills/show-me/SKILL.md
+  s_8e3c4b627e24a2::t_d87e59c1d981e2 5
+dot_pi/agent/README.md
+  s_8e3c4b627e24a2::t_4f0bc204382efa 22
+dot_agents/skills/prototype/SKILL.md
+  s_8e3c4b627e24a2::t_b8eaa4e8585f0a 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "64f5b43e2137569a0f4c3451c0d2af849ea80903",
+  "prompts": {},
+  "sessions": {
+    "s_8e3c4b627e24a2": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a01537-0481-7a54-8457-192001858a44",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
