@@ -1,0 +1,20 @@
+{{- if or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux") -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+manifest_hash='{{ include "dot_local/share/herdr-plugins/workspace-mru/herdr-plugin.toml" | sha256sum }}'
+implementation_hash='{{ include "dot_local/share/herdr-plugins/workspace-mru/workspace-mru.mjs" | sha256sum }}'
+test_hash='{{ include "dot_local/share/herdr-plugins/workspace-mru/workspace-mru.test.mjs" | sha256sum }}'
+: "$manifest_hash" "$implementation_hash" "$test_hash"
+
+plugin_id="dotfiles.workspace-mru"
+plugin_dir="$HOME/.local/share/herdr-plugins/workspace-mru"
+
+if ! command -v herdr >/dev/null 2>&1; then
+  echo "link-herdr-workspace-mru: herdr not found; install Herdr first" >&2
+  exit 1
+fi
+
+herdr plugin unlink "$plugin_id" >/dev/null 2>&1 || true
+herdr plugin link "$plugin_dir" --enabled
+{{- end -}}

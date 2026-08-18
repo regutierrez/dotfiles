@@ -85,6 +85,12 @@ description = "open scratch terminal"
 width = "60%"
 height = "60%"
 
+[[keys.command]]
+key = "prefix+tab"
+type = "plugin_action"
+command = "dotfiles.workspace-mru.switch"
+description = "switch workspace by recent use"
+
 [theme]
 name = "terminal"
 auto_switch = false
