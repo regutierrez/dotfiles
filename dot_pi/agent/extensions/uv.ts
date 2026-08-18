@@ -107,15 +107,20 @@ function getBlockedCommandMessage(command: string): string | null {
 }
 
 export default function (pi: ExtensionAPI) {
-  const cwd = process.cwd();
+  let cwd = process.cwd();
+
+  pi.on("session_start", (_event, ctx) => {
+    cwd = ctx.cwd;
+  });
+
   const bashTool = createBashTool(cwd, {
     commandPrefix: `export PATH="${interceptedCommandsPath}:$PATH"`,
-    spawnHook: (ctx) => {
-      const blockedMessage = getBlockedCommandMessage(ctx.command);
+    spawnHook: (spawnContext) => {
+      const blockedMessage = getBlockedCommandMessage(spawnContext.command);
       if (blockedMessage) {
         throw new Error(blockedMessage);
       }
-      return ctx;
+      return { ...spawnContext, cwd };
     },
   });
 
