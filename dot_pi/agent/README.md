@@ -16,8 +16,9 @@ cd ~/.pi/agent && npm install
 | `btw.json` | Optional BTW model/thinking overrides |
 | `cloak.json` | Secret-masking patterns for `pi-cloak` |
 | `mcp.json` | MCP server wiring for `dmmulroy/pi-mcp` |
+| `subagents.json` | Lean global settings for `@tintinweb/pi-subagents` |
 | `package.json` | Shared deps for extensions |
-| `agents/` | Custom herdr-subagent defs; prompts are shared and model/reasoning settings render by profile |
+| `agents/` | Custom Tintinweb subagent definitions; prompts are shared and model/reasoning settings render by profile |
 | `skills/update-pi/` | Pi update helper skill |
 | `skills/sideshow/` | Local override of `npm:sideshow`: keeps `/skill:sideshow`, disables model auto-invoke |
 | `intercepted-commands/` | PATH shims used by `uv.ts` |
@@ -41,7 +42,7 @@ cd ~/.pi/agent && npm install
 ## Edit often vs leave alone
 
 **Edit often (hot):**
-- `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`, `cloak.json`, `extensions/pi-autoresearch.json`
+- `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`, `cloak.json`, `subagents.json`, `extensions/pi-autoresearch.json`
 - `extensions/btw/`
 - `agents/*.md.tmpl`
 - `package.json` (when adding shared deps)
@@ -76,4 +77,4 @@ export SIDESHOW_TOKEN=…
 - Orphan extensions and retired skill files removed from source are listed in repo `.chezmoiremove` so apply deletes them from the target.
 - `~/.pi/agent/extensions/herdr-agent-state.ts` is owned by herdr (not chezmoi); leave it on the target.
 - `~/.pi/agent/claude-bridge.json` is machine-local (not chezmoi); leave it on the target.
-- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction` and the `npm:sideshow` `skills: []` filter. `modify_settings.json` keeps those so the local sideshow skill does not collide with the package skill.
+- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction`, the `npm:sideshow` `skills: []` filter, and removal of retired `git:github.com/regutierrez/pi-herdr-subagents`. `modify_settings.json` keeps those so the local sideshow skill does not collide with the package skill.

@@ -60,6 +60,7 @@ work_casks = [
 [packages.pi]
 extensions = [
   "npm:@plannotator/pi-extension",
+  "npm:@tintinweb/pi-subagents",
   "git:github.com/dmmulroy/pi-mcp",
 ]
 

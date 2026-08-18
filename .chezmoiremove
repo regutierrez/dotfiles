@@ -74,3 +74,4 @@ bin/agent-status-cursor-hook
 bin/agent-sessions-picker
 .pi/agent/_mcp.json
 .pi/agent/git/github.com/fitchmultz
+.pi/agent/git/github.com/regutierrez/pi-herdr-subagents

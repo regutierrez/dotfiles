@@ -2,11 +2,11 @@
 name: oracle
 description: High-reasoning senior engineering advisor for review, debugging, architecture, planning, and next-step decisions. Use explicitly for risky changes, unclear bugs, complex refactors, security analysis, context drift, or when a second smart model should challenge the current trajectory.
 tools: read,bash
+extensions: false
+skills: false
 model: {{ if eq (index . "profile") "work" }}openai-codex/gpt-5.6-sol{{ else }}opencode-go/kimi-k3{{ end }}
 thinking: {{ if eq (index . "profile") "work" }}high{{ else }}max{{ end }}
-spawning: false
-auto-exit: true
-system-prompt: replace
+prompt_mode: replace
 ---
 
 # Oracle Agent
@@ -129,4 +129,4 @@ Guidelines:
 
 ## Completion
 
-Put the advice in your final assistant message, then call `subagent_done`. If blocked, call `caller_ping` with a concrete question instead of guessing.
+Put the advice in your final assistant message. If blocked, put one concrete question in your final assistant message instead of guessing.

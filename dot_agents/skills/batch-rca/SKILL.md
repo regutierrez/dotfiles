@@ -2,7 +2,7 @@
 name: batch-rca
 description: Batch-create Investigatr MDX docs for filtered Linear tickets using one subagent per ticket. Use when explicitly asked to batch missing Investigatr investigations, fan out Linear tickets, or run investigation subagents.
 disable-model-invocation: true
-compatibility: Requires linear-cli, pup, jq, npm, herdr, and pi-herdr-subagents.
+compatibility: Requires linear-cli, pup, jq, npm, and @tintinweb/pi-subagents.
 ---
 
 # RCA Batch Authoring
@@ -62,9 +62,9 @@ test -d /Users/pakkio/playground/investigatr/src/content/investigations/<TICKET-
 
 ## Worker orchestration
 
-Use `pi-herdr-subagents` (requires pi inside a herdr pane) and launch one `impl` subagent per ticket. Do not assign multiple tickets to one subagent. Pass the subagent the prompt contract below and collect the steered completion summary. Require the final response to end with `## TLDR` so the main agent can aggregate it.
+Use `@tintinweb/pi-subagents` and launch one background `impl` agent per ticket with the `Agent` tool. Set `run_in_background: true`, use the ticket ID in the agent name and description, and keep each prompt self-contained. Do not assign multiple tickets to one subagent. Keep each returned agent ID and collect its final result with `get_subagent_result`. Require the final response to end with `## TLDR` so the main agent can aggregate it.
 
-Start at most the configured concurrency. Before launching, use `subagents_list` and verify `impl` is available. If `impl` is unavailable, stop and report that blocker instead of substituting another orchestration path.
+Start at most the configured concurrency. Before launching, verify that `impl` appears in the `Agent` tool's available type list. If `impl` is unavailable, stop and report that blocker instead of substituting another orchestration path.
 
 If `linear-cli` or `pup` fails only because the subagent environment lacks keychain/network access, rerun that ticket with the narrowest stronger environment available and record that reason in the aggregate. Do not start auth flows unless the user explicitly asks.
 
@@ -100,6 +100,6 @@ After each worker finishes:
 3. Optionally run a targeted MDX compile for new docs, then run `npm run build` once at the end when feasible.
 4. Write `/tmp/investigatr-batch-<timestamp>/aggregate.md` containing every worker TLDR.
 5. Report to the user with: created docs, skipped docs, duplicate mappings, build status, blockers, and the aggregate path.
-6. Do not include tmux monitor/capture instructions; batch workers must run through pi-herdr-subagents in herdr panes.
+6. Do not include terminal multiplexer monitor or capture instructions; batch workers must run through `@tintinweb/pi-subagents`.
 
 Do not silently continue to a new timeframe or unrelated ticket batch after completing the requested inventory. Ask before expanding scope.

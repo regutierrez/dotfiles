@@ -50,7 +50,7 @@ On macOS, both workstation profiles install Karabiner-Elements and render the ma
 personal or work configuration; Karabiner is ignored on other operating systems.
 
 On Fedora, the bootstrap installs Node and Pi before `chezmoi apply`, so the
-`[packages.pi]` hooks install Plannotator and Herdr subagents on the first run.
+`[packages.pi]` hooks install Plannotator and `@tintinweb/pi-subagents` on the first run.
 
 ## Amp plugins
 

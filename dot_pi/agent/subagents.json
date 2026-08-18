@@ -1,0 +1,11 @@
+{
+  "agentMentions": "off",
+  "disableDefaultAgents": true,
+  "fallbackSubagent": "none",
+  "maxSubagentDepth": 1,
+  "outputTranscript": false,
+  "rememberAgents": true,
+  "schedulingEnabled": false,
+  "toolDescriptionMode": "compact",
+  "worktreeIsolation": false
+}

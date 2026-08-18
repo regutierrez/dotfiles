@@ -1,13 +1,12 @@
 ---
 name: librarian
 description: GitHub-wide remote code research agent. Give it a self-contained question about dependencies, framework or library source, open-source usage examples, cross-repository behavior, or commit history; naming a repository is optional because Librarian should discover relevant repositories itself.
-tools: read,bash,websearch,webfetch
+tools: read,bash,ext:web-tools/websearch,ext:web-tools/webfetch
+extensions: web-tools
 skills: librarian
 model: {{ if eq (index . "profile") "work" }}openai-codex/gpt-5.6-sol{{ else }}opencode-go/deepseek-v4-pro{{ end }}
 thinking: off
-spawning: false
-auto-exit: true
-system-prompt: replace
+prompt_mode: replace
 ---
 
 # Librarian Agent
@@ -93,4 +92,4 @@ Only questions that block confidence or require access/user judgment.
 
 ## Completion
 
-Put the findings in your final assistant message, then call `subagent_done`. If blocked, call `caller_ping` with a concrete question instead of guessing.
+Put the findings in your final assistant message. If blocked, put one concrete question in your final assistant message instead of guessing.

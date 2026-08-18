@@ -8,7 +8,9 @@
 {{- if hasKey $data "packages" -}}
 {{-   $packages := list -}}
 {{-   range $entry := index $data "packages" -}}
-{{-     if and (kindIs "string" $entry) (eq $entry "npm:sideshow") -}}
+{{-     if and (kindIs "string" $entry) (eq $entry "git:github.com/regutierrez/pi-herdr-subagents") -}}
+{{-     else if and (kindIs "map" $entry) (eq (index $entry "source") "git:github.com/regutierrez/pi-herdr-subagents") -}}
+{{-     else if and (kindIs "string" $entry) (eq $entry "npm:sideshow") -}}
 {{-       $packages = append $packages (dict "source" "npm:sideshow" "skills" (list)) -}}
 {{-     else if and (kindIs "map" $entry) (eq (index $entry "source") "npm:sideshow") -}}
 {{-       $packages = append $packages (mustMergeOverwrite $entry (dict "skills" (list))) -}}

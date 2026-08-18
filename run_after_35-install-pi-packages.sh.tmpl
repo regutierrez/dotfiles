@@ -12,7 +12,33 @@ if ! command -v node >/dev/null 2>&1; then
   exit 0
 fi
 
-settings="${PI_CODING_AGENT_DIR:-${HOME}/.pi/agent}/settings.json"
+agent_dir="${PI_CODING_AGENT_DIR:-${HOME}/.pi/agent}"
+settings="${agent_dir}/settings.json"
+
+# Uninstall packages retired from [packages.pi]. Settings may already have
+# dropped them via modify_settings.json; still delete leftover checkouts.
+retired_herdr_subagents="git:github.com/regutierrez/pi-herdr-subagents"
+retired_herdr_checkout="${agent_dir}/git/github.com/regutierrez/pi-herdr-subagents"
+if node - "$settings" "$retired_herdr_subagents" <<'NODE'
+const fs = require("node:fs");
+const [, , settingsPath, source] = process.argv;
+try {
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  const configured = (settings.packages ?? []).some((entry) =>
+    (typeof entry === "string" ? entry : entry?.source) === source
+  );
+  process.exit(configured ? 0 : 1);
+} catch {
+  process.exit(1);
+}
+NODE
+then
+  echo "install-pi-packages: removing retired ${retired_herdr_subagents}..."
+  pi remove "$retired_herdr_subagents"
+elif [ -e "$retired_herdr_checkout" ]; then
+  echo "install-pi-packages: removing leftover ${retired_herdr_checkout}"
+  rm -rf "$retired_herdr_checkout"
+fi
 
 packages=(
 {{- range .packages.pi.extensions }}
