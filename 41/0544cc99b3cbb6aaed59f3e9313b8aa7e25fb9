@@ -1,0 +1,32 @@
+dot_agents/skills/domain-modeling/SKILL.md
+  s_53d05a51240e18::t_d1b503161eb3da 4
+dot_pi/agent/README.md
+  s_53d05a51240e18::t_12e7b67392faa1 36
+dot_agents/skills/coding-standards/SKILL.md
+  s_53d05a51240e18::t_13ca0047af2989 4
+dot_agents/skills/tdd/SKILL.md
+  s_53d05a51240e18::t_73c6e70c21a986 4
+dot_pi/agent/APPEND_SYSTEM.md
+  s_53d05a51240e18::t_4685f2c41f5dba 7,9,11,15,17,19,21,25,27,29,33,35,37,41,43,47,49,51,55,57,61
+dot_agents/skills/locating-request-origin/SKILL.md
+  s_53d05a51240e18::t_8052b1f441ff7b 4
+dot_pi/agent/extensions/sideshow-lazy-tools.ts
+  s_53d05a51240e18::t_d763c39470c096 23-24,43-45,94
+  s_53d05a51240e18::t_d65468509898e6 1-22,25-42,46-93,95-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "410544cc99b3cbb6aaed59f3e9313b8aa7e25fb9",
+  "prompts": {},
+  "sessions": {
+    "s_53d05a51240e18": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a01506-a973-78bb-8904-7a04a8991a07",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
