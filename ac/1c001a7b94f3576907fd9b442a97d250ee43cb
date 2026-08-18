@@ -1,0 +1,74 @@
+dot_pi/agent/agents/oracle.md.tmpl
+  s_09bccc3c92ff9c::t_cf3eaaeacc5dcf 5-6,9,132
+.chezmoiremove
+  s_b6e31867c8e77a::t_3654f430c4fcd2 77
+dot_pi/agent/modify_settings.json
+  s_cf3fc3e3100bde::t_0de807a8dc94b5 11-13
+dot_pi/agent/README.md
+  s_cf3fc3e3100bde::t_0de807a8dc94b5 19,21,45
+  s_b6e31867c8e77a::t_eb56f1dca18547 80
+dot_pi/agent/agents/general-purpose.md.tmpl
+  s_09bccc3c92ff9c::t_cf3eaaeacc5dcf 5-6,9,14
+.chezmoidata/packages.toml
+  s_cf3fc3e3100bde::t_0de807a8dc94b5 63
+dot_pi/agent/subagents.json
+  s_cf3fc3e3100bde::t_0de807a8dc94b5 1-11
+dot_agents/skills/batch-rca/SKILL.md
+  s_cf3fc3e3100bde::t_0de807a8dc94b5 5,65,67,103
+README.md
+  s_0a85fd223541f2::t_326f39b4af4f36 53
+dot_pi/agent/agents/impl.md.tmpl
+  s_b6e31867c8e77a::t_a97e17a38c019e 8
+  s_09bccc3c92ff9c::t_cf3eaaeacc5dcf 5-6,9,22,40
+  s_b6e31867c8e77a::t_2eb41fa3b7de18 7
+dot_pi/agent/agents/explore.md.tmpl
+  s_b6e31867c8e77a::t_876d769f120c7c 8
+  s_09bccc3c92ff9c::t_cf3eaaeacc5dcf 5-6,9,29-30
+  s_b6e31867c8e77a::t_d9e8595621e488 7
+dot_pi/agent/agents/reviewer.md.tmpl
+  s_09bccc3c92ff9c::t_cf3eaaeacc5dcf 5-6,9,104
+run_after_35-install-pi-packages.sh.tmpl
+  s_b6e31867c8e77a::t_752e989ef94d03 15-41
+dot_pi/agent/agents/librarian.md.tmpl
+  s_09bccc3c92ff9c::t_cf3eaaeacc5dcf 4-5,9,95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ac1c001a7b94f3576907fd9b442a97d250ee43cb",
+  "prompts": {},
+  "sessions": {
+    "s_09bccc3c92ff9c": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349OOh8aj7TxLfhsb3O4c",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_0a85fd223541f2": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349OZcwkjj9e0xnRra4Dk",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_b6e31867c8e77a": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a015e6-b8a6-749e-b1fc-d19757fb46d8",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_cf3fc3e3100bde": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349ONj8ANQ0C8BUHDDXTJ",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
