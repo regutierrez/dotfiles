@@ -1,0 +1,21 @@
+dot_pi/agent/agents/general-purpose.md.tmpl
+  s_192a856e35ae3c::t_c73accfe4974af 9
+dot_pi/agent/agents/oracle.md.tmpl
+  s_192a856e35ae3c::t_3051dea02d22a5 82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d6eb24cee17b00058354b7ba72655c6abedbd4ad",
+  "prompts": {},
+  "sessions": {
+    "s_192a856e35ae3c": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a011fd-a5e1-735a-81d7-4069339c3e45",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
