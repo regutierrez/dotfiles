@@ -76,3 +76,4 @@ export SIDESHOW_TOKEN=…
 - Orphan extensions and retired skill files removed from source are listed in repo `.chezmoiremove` so apply deletes them from the target.
 - `~/.pi/agent/extensions/herdr-agent-state.ts` is owned by herdr (not chezmoi); leave it on the target.
 - `~/.pi/agent/claude-bridge.json` is machine-local (not chezmoi); leave it on the target.
+- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction` and the `npm:sideshow` `skills: []` filter. `modify_settings.json` keeps those so the local sideshow skill does not collide with the package skill.

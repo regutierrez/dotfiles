@@ -3,4 +3,19 @@
 {{- if and (hasKey .chezmoi "stdin") .chezmoi.stdin -}}
 {{-   $data = fromJson .chezmoi.stdin -}}
 {{- end -}}
-{{ $data | setValueAtPath "doubleEscapeAction" "none" | toPrettyJson }}
+{{- $data = $data | setValueAtPath "doubleEscapeAction" "none" -}}
+{{- /* Drop npm:sideshow's bundled skill so the local override can own the name. */ -}}
+{{- if hasKey $data "packages" -}}
+{{-   $packages := list -}}
+{{-   range $entry := index $data "packages" -}}
+{{-     if and (kindIs "string" $entry) (eq $entry "npm:sideshow") -}}
+{{-       $packages = append $packages (dict "source" "npm:sideshow" "skills" (list)) -}}
+{{-     else if and (kindIs "map" $entry) (eq (index $entry "source") "npm:sideshow") -}}
+{{-       $packages = append $packages (mustMergeOverwrite $entry (dict "skills" (list))) -}}
+{{-     else -}}
+{{-       $packages = append $packages $entry -}}
+{{-     end -}}
+{{-   end -}}
+{{-   $data = $data | setValueAtPath "packages" $packages -}}
+{{- end -}}
+{{ $data | toPrettyJson }}
