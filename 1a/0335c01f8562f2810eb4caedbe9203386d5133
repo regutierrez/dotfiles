@@ -1,0 +1,19 @@
+dot_pi/agent/extensions/uv.ts
+  s_4a157c613fb604::t_60b1d002a340ac 110-115,118-119,123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "1a0335c01f8562f2810eb4caedbe9203386d5133",
+  "prompts": {},
+  "sessions": {
+    "s_4a157c613fb604": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-0349HHZhC1Se420MZASEtm",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
