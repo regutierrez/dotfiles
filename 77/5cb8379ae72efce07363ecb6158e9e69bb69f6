@@ -1,0 +1,20 @@
+dot_config/finicky/finicky.js
+  s_a81d6eaf931fd0::t_2431bd2f4ac2b5 10,32-36,131-133
+  s_a81d6eaf931fd0::t_db7cb8d80a353d 134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "775cb8379ae72efce07363ecb6158e9e69bb69f6",
+  "prompts": {},
+  "sessions": {
+    "s_a81d6eaf931fd0": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a0173f-2e7b-78bd-a218-25ee2016b8c5",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
