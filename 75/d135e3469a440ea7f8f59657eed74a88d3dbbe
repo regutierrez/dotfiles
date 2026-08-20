@@ -1,0 +1,129 @@
+dot_pi/agent/extensions/herdr-rename/herdr-display-agent.test.ts
+  s_fe9bb52549ab91::t_848a9fb918c2f4 165-166
+  s_fe9bb52549ab91::t_4c9fc02f3a17d6 146,167-168,172-187,191-195,208-211
+  s_fe9bb52549ab91::t_1e36d8ee46ad9b 62,67-68,71-88
+  s_f5d3db51c5e0cb::t_7a6b13c8e55776 1-8,10-11,14-21,23-39,41-44,46-61,63-66,69-70,89-145,147-164,169-171,196-207,212-215
+  s_fe9bb52549ab91::t_4b97269386972f 9,12-13
+  s_fe9bb52549ab91::t_b15f316deca81c 22
+  s_fe9bb52549ab91::t_854260139dd3b1 188-190
+  s_f5d3db51c5e0cb::t_dc90ef1d53e302 40,45
+dot_pi/agent/extensions/sideshow-lazy-tools.ts
+  s_106f965e9a131e::t_1a4144dcca9228 2-3,7-9,17-19,21-23,25-28,30-31,34,36,39-42,44,50-51,53,85,89,92-99,102-104
+  s_106f965e9a131e::t_960267fcb33cc4 67-71
+dot_pi/agent/README.md
+  s_106f965e9a131e::t_c6bee5d68c5ae8 38
+  s_f5d3db51c5e0cb::t_9f23692e695553 48
+  s_fe9bb52549ab91::t_505a8aa4a62428 40
+  s_1c356f3b153531::t_ee788095dbca70 39
+dot_config/herdr/config.toml
+  s_fe9bb52549ab91::t_02f9f234f54fe0 32
+  s_fe9bb52549ab91::t_844cf961dc11ac 29-31,33-34
+  s_fe9bb52549ab91::t_f39d9194cd6b2b 35
+dot_pi/agent/skills/sideshow/SKILL.md
+  s_106f965e9a131e::t_d583e42ddacc26 9
+dot_pi/agent/extensions/herdr-rename/index.ts
+  s_fe9bb52549ab91::t_4d34ba2ce5aaf0 83-84
+  s_f5d3db51c5e0cb::t_74c0ec5be3d0e3 144
+  s_f5d3db51c5e0cb::t_4f7fc3f6651801 31
+  s_f5d3db51c5e0cb::t_0bcec5dbc1a846 188-190,197-217
+  s_f5d3db51c5e0cb::t_adbf2915876607 42
+  s_f5d3db51c5e0cb::t_0fa8c008cea24a 7
+  s_f5d3db51c5e0cb::t_165c0aeed1954d 1-6,9-30,32-41,43-82,85-117,119-143,145-187,191-196,218-229
+  s_f5d3db51c5e0cb::t_a7360efc10f6c9 118
+  s_f5d3db51c5e0cb::t_2440e457bb04da 8
+.chezmoidata/packages.toml
+  s_f8a9251d658dff::t_27f8567173e94d 62
+dot_pi/agent/extensions/herdr-rename/herdr-display-agent.ts
+  s_fe9bb52549ab91::t_422f1532715130 11-16,20
+  s_fe9bb52549ab91::t_78173af354d257 173-177,179-194,216-222,227-228,235-238
+  s_f5d3db51c5e0cb::t_232388c28d82e3 1-10,17-19,21-88,90-172,178,195,198-215,223-226,239-241
+  s_fe9bb52549ab91::t_2fb37b76b54f35 89
+  s_fe9bb52549ab91::t_7474ff4f242a78 196-197,229-234
+dot_pi/agent/extensions/inline-skill-mentions/index.test.ts
+  s_1c356f3b153531::t_b48f19d8b75221 67,71-72,75,77-87,89-90
+  s_31b762999636f6::t_98ab56d6540b47 4-5,9-10,26,29-57,62-66,68-70,73-74,76,88,91-130
+  s_2666420f0f83ef::t_fa8376020b27e7 7-8
+  s_2666420f0f83ef::t_69a58b659b1818 135-136,138-167
+dot_pi/agent/extensions/inline-skill-mentions/index.ts
+  s_1c356f3b153531::t_7b5291184d3a21 122-123,130-137
+  s_2666420f0f83ef::t_882a03e7273457 35-51,53,60-93
+  s_31b762999636f6::t_98537f24c58a4e 4,11,15-16,26-32,94-121,124-129,138-174,203-215,217-241,276-277,279-299
+  s_1c356f3b153531::t_9a29295e3099ba 2,5-6
+  s_2666420f0f83ef::t_46d01342710fe7 3
+  s_1c356f3b153531::t_cb421f1d2806f9 192
+  s_2666420f0f83ef::t_d83fc4b2b7bc92 14
+  s_1c356f3b153531::t_9f3caedfd50d29 33
+  s_2666420f0f83ef::t_d299d7d6e8bdcb 242-244
+  s_1c356f3b153531::t_dc04e0d5860275 278
+  s_2666420f0f83ef::t_1bb3ad74723bc6 245,250-263
+  s_2666420f0f83ef::t_93d2222e8797ce 34
+dot_pi/agent/APPEND_SYSTEM.md
+  s_106f965e9a131e::t_08bab7ea5ae0f9 19,59
+  s_106f965e9a131e::t_109082225227a8 9-10,13-14,21,35-38,53,60,69
+  s_106f965e9a131e::t_8615cdae46be3c 20
+  s_106f965e9a131e::t_9f68744b13ff66 70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "75d135e3469a440ea7f8f59657eed74a88d3dbbe",
+  "prompts": {},
+  "sessions": {
+    "s_106f965e9a131e": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a01f5b-0be2-7bc3-b320-9ea6ec78f521",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_1c356f3b153531": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-3bf954e6-178f-4492-b909-366800078adf",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_2666420f0f83ef": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-15be6da6-dca7-4c7e-9107-f8c6b6c49eca",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_31b762999636f6": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a01b5d-9faf-7b2b-ab9c-b071494b3cc9",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_f5d3db51c5e0cb": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-f5bfdfd8-ac4f-4663-9918-f00f3d62a976",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_f8a9251d658dff": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a01f52-38f7-7803-b542-7926f3ad857f",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_fe9bb52549ab91": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-5fcffa42-64fd-4701-a02a-59cd32059a52",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
