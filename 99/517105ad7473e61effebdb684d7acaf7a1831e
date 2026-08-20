@@ -1,0 +1,19 @@
+.gitignore
+  s_b4f9d62d87b6d2::t_f96b2b7b7d1d6a 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "99517105ad7473e61effebdb684d7acaf7a1831e",
+  "prompts": {},
+  "sessions": {
+    "s_b4f9d62d87b6d2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-d37ad69f-0093-4198-85e9-a9238244798e",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
