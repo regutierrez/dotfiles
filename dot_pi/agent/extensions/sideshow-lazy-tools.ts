@@ -1,13 +1,12 @@
 /**
- * Keep follow-up sideshow tools inactive until the first design-guide or
- * publish call. Their schemas are large and unused on most first turns.
- *
- * Image uploads stay locked until that first call, so a first-card image
- * needs `sideshow_get_design_guide` before `sideshow_upload_asset`.
+ * Keep all sideshow tool schemas inactive until `/skill:sideshow` is used.
+ * The `/sideshow` status command stays available because commands are not tools.
  */
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
-const SIDESHOW_LAZY_TOOL_NAMES = [
+const SIDESHOW_TOOL_NAMES = [
+	"sideshow_get_design_guide",
+	"sideshow_publish_surface",
 	"sideshow_update_surface",
 	"sideshow_wait_for_feedback",
 	"sideshow_reply_to_user",
@@ -15,42 +14,43 @@ const SIDESHOW_LAZY_TOOL_NAMES = [
 	"sideshow_upload_asset",
 ] as const;
 
-const SIDESHOW_UNLOCK_TOOL_NAMES = [
-	"sideshow_get_design_guide",
-	"sideshow_publish_surface",
-] as const;
-
-const SIDESHOW_UNLOCK_TOOL_NAME_SET = new Set<string>(SIDESHOW_UNLOCK_TOOL_NAMES);
-
-const SIDESHOW_TOOL_NAMES = new Set<string>([
-	...SIDESHOW_LAZY_TOOL_NAMES,
-	...SIDESHOW_UNLOCK_TOOL_NAMES,
-]);
+const SIDESHOW_TOOL_NAME_SET = new Set<string>(SIDESHOW_TOOL_NAMES);
+const SIDESHOW_SKILL_COMMAND = "/skill:sideshow";
+const SIDESHOW_SKILL_PROMPT_PREFIX = '<skill name="sideshow" ';
 
 function isSideshowToolName(name: string): boolean {
-	return SIDESHOW_TOOL_NAMES.has(name);
+	return SIDESHOW_TOOL_NAME_SET.has(name);
 }
 
-function registeredSideshowLazyToolNames(pi: ExtensionAPI): string[] {
+function isSideshowSkillCommand(text: string): boolean {
+	const command = text.trimStart();
+	return command === SIDESHOW_SKILL_COMMAND || command.startsWith(`${SIDESHOW_SKILL_COMMAND} `);
+}
+
+function isExpandedSideshowSkillPrompt(text: string): boolean {
+	return text.trimStart().startsWith(SIDESHOW_SKILL_PROMPT_PREFIX);
+}
+
+function registeredSideshowToolNames(pi: ExtensionAPI): string[] {
 	const registered = new Set(pi.getAllTools().map((tool) => tool.name));
-	return SIDESHOW_LAZY_TOOL_NAMES.filter((name) => registered.has(name));
+	return SIDESHOW_TOOL_NAMES.filter((name) => registered.has(name));
 }
 
-/** Hide follow-up sideshow tools from the first-turn active set. */
-function deactivateSideshowLazyTools(pi: ExtensionAPI): void {
-	const lazy = new Set(registeredSideshowLazyToolNames(pi));
-	if (lazy.size === 0) return;
+/** Hide all sideshow tools from the first-turn active set. */
+function deactivateSideshowTools(pi: ExtensionAPI): void {
+	const sideshowTools = new Set(registeredSideshowToolNames(pi));
+	if (sideshowTools.size === 0) return;
 	const active = pi.getActiveTools();
-	const next = active.filter((name) => !lazy.has(name));
+	const next = active.filter((name) => !sideshowTools.has(name));
 	if (next.length !== active.length) {
 		pi.setActiveTools(next);
 	}
 }
 
-/** Add follow-up sideshow tools without removing anything already active. */
-function activateSideshowLazyTools(pi: ExtensionAPI): void {
+/** Add all registered sideshow tools without removing other active tools. */
+function activateSideshowTools(pi: ExtensionAPI): void {
 	const active = pi.getActiveTools();
-	const missing = registeredSideshowLazyToolNames(pi).filter((name) => !active.includes(name));
+	const missing = registeredSideshowToolNames(pi).filter((name) => !active.includes(name));
 	if (missing.length === 0) return;
 	pi.setActiveTools([...active, ...missing]);
 }
@@ -64,10 +64,12 @@ function sessionAlreadyUsedSideshow(ctx: ExtensionContext): boolean {
 		}
 		if (!("content" in message) || !Array.isArray(message.content)) continue;
 		for (const part of message.content) {
+			if (!part || typeof part !== "object" || !("type" in part)) continue;
+			if (part.type === "text" && "text" in part && typeof part.text === "string") {
+				if (isExpandedSideshowSkillPrompt(part.text)) return true;
+				continue;
+			}
 			if (
-				part &&
-				typeof part === "object" &&
-				"type" in part &&
 				part.type === "toolCall" &&
 				"name" in part &&
 				typeof part.name === "string" &&
@@ -80,18 +82,25 @@ function sessionAlreadyUsedSideshow(ctx: ExtensionContext): boolean {
 	return false;
 }
 
-/** Defer unused sideshow tool schemas until the first sideshow call. */
+/** Defer every sideshow tool schema until the sideshow skill is used. */
 export default function sideshowLazyTools(pi: ExtensionAPI): void {
 	pi.on("session_start", (_event, ctx) => {
 		if (sessionAlreadyUsedSideshow(ctx)) {
-			activateSideshowLazyTools(pi);
+			activateSideshowTools(pi);
 			return;
 		}
-		deactivateSideshowLazyTools(pi);
+		deactivateSideshowTools(pi);
 	});
 
-	pi.on("tool_call", (event) => {
-		if (!SIDESHOW_UNLOCK_TOOL_NAME_SET.has(event.toolName)) return;
-		activateSideshowLazyTools(pi);
+	pi.on("input", (event) => {
+		if (isSideshowSkillCommand(event.text)) {
+			activateSideshowTools(pi);
+		}
+		return { action: "continue" };
+	});
+
+	pi.on("before_agent_start", (event) => {
+		if (!isExpandedSideshowSkillPrompt(event.prompt)) return;
+		activateSideshowTools(pi);
 	});
 }

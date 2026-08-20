@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # sideshow
 
-Local override of `npm:sideshow` so `/skill:sideshow` still works, but the model does not auto-invoke it.
+Local override of `npm:sideshow` so `/skill:sideshow` still works, but the model does not auto-invoke it. Invoking this skill makes all registered `sideshow_*` tools available for the rest of the session.
 
 The user may have a sideshow surface open in their browser. The installed skill
 is only a bootstrap: consult the current sideshow-specific instructions from the

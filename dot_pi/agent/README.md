@@ -35,8 +35,9 @@ cd ~/.pi/agent && npm install
 | `extensions/git-ai.ts` | Git AI helpers |
 | `extensions/loop.ts` | Loop / iteration helper |
 | `extensions/review.ts` | Review UI extension |
-| `extensions/sideshow-lazy-tools.ts` | Defers follow-up sideshow tools until the first design-guide or publish call |
-| `extensions/inline-skill-mentions/` | Expand mid-prompt `@skill-name` mentions and offer `@` skill autocomplete |
+| `extensions/sideshow-lazy-tools.ts` | Defers all Sideshow tools until `/skill:sideshow` is invoked |
+| `extensions/inline-skill-mentions/` | Rewrite `@skill-name` to `/skill:name`, keep extra mentions as `skill-context`, and offer `@` skill autocomplete |
+| `extensions/herdr-rename/` | `/herdr-rename` + `herdr_rename`: replace the Agents-panel `agent` token with a 64-char comment (`$name2` wraps). GPT-5.6 Luna (low). Active only inside Herdr. |
 | `extensions/uv.ts` | Prefers `uv` via intercepted-commands |
 
 ## Edit often vs leave alone
@@ -44,6 +45,7 @@ cd ~/.pi/agent && npm install
 **Edit often (hot):**
 - `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`, `cloak.json`, `subagents.json`, `extensions/pi-autoresearch.json`
 - `extensions/btw/`
+- `extensions/herdr-rename/`
 - `agents/*.md.tmpl`
 - `package.json` (when adding shared deps)
 
