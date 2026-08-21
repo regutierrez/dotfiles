@@ -10,6 +10,16 @@ fi
 window_class="$1"
 shift
 
+# Callers may predate the session env import (e.g. xremap started before
+# Plasma imported WAYLAND_DISPLAY). Normalize at this boundary so exec'd GUI
+# apps can connect to the display.
+uid="$(id -u)"
+if [[ -z "${WAYLAND_DISPLAY:-}" && -d "/run/user/$uid" ]]; then
+  sock="$(find /run/user/$uid -maxdepth 1 -name 'wayland-[0-9]*' ! -name '*.*' | head -n 1)"
+  [[ -n "$sock" ]] && export WAYLAND_DISPLAY="${sock##*/}"
+fi
+export DISPLAY="${DISPLAY:-:0}"
+
 window_id=""
 if command -v kdotool >/dev/null 2>&1; then
   window_id="$(kdotool search --case-sensitive --class "$window_class" --limit 1 getwindowid 2>/dev/null | head -n 1)"
