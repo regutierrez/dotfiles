@@ -1,0 +1,148 @@
+dot_pi/agent/extensions/inline-skill-mentions/index.ts
+  s_03cdd8cc5a6fd7::t_699337faba10f7 5-7,93,99,102-104,106-110,114,122,126-127
+dot_pi/agent/README.md
+  s_03cdd8cc5a6fd7::t_4fbb432cbf70d6 39
+.chezmoidata.toml
+  s_1fabfd60d7c6a4::t_b9ace805f8c59d 19,23,26-27
+dot_agents/skills/reviewing-typescript-vue/SKILL.md
+  s_c48115cd825da4::t_9ca842a7627a8d 4
+  s_c48115cd825da4::t_7e09df71ff43a9 1-3
+  s_c48115cd825da4::t_9cbbb2f6a8f324 5-7
+dot_pi/agent/extensions/inline-skill-mentions/index.test.ts
+  s_03cdd8cc5a6fd7::t_3e9876b1e37b6a 29,35,38,41,44,52,58-59,62,66,70,74,82
+dot_agents/skills/reviewing-python/reference/independent-review.md
+  s_27c57202ef3da8::t_dbae7b2d9be725 1-102
+dot_agents/skills/preventing-py-slop/SKILL.md
+  s_c48115cd825da4::t_9ca842a7627a8d 4
+  s_c48115cd825da4::t_f96693d74c4c8f 1-3
+  s_c48115cd825da4::t_691da2f2634ea9 5-7
+dot_agents/skills/reviewing-python/SKILL.md
+  s_27c57202ef3da8::t_dbae7b2d9be725 1-3,5-98
+  s_c48115cd825da4::t_9ca842a7627a8d 4
+dot_agents/skills/install-anti-slop/SKILL.md
+  s_c48115cd825da4::t_9ca842a7627a8d 4
+  s_c48115cd825da4::t_8de7759878b472 1-3
+  s_c48115cd825da4::t_abf51779b01228 5-7
+dot_agents/skills/install-anti-slop/assets/anti-slop/effect/index.ts
+  s_27c57202ef3da8::t_76edf7bac65091 1-13
+dot_agents/skills/install-anti-slop/assets/anti-slop/effect/rules/no-service-constructor-imports.ts
+  s_27c57202ef3da8::t_e900463b6076cd 1-52
+dot_agents/skills/install-anti-slop/assets/anti-slop/index.ts
+  s_27c57202ef3da8::t_ada6e50e3d58ce 1-41
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-chained-type-assertions.ts
+  s_27c57202ef3da8::t_01f311ea81be0c 1-77
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-conditional-empty-object-spread.ts
+  s_27c57202ef3da8::t_53a821e69c26db 1-49
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-known-value-widening.ts
+  s_27c57202ef3da8::t_7e714ce336c826 1-247
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-module-mocking.ts
+  s_27c57202ef3da8::t_223153ffae0a0a 1-91
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-object-parameters.ts
+  s_27c57202ef3da8::t_fb571bb7664577 1-126
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-reflect-apply.ts
+  s_27c57202ef3da8::t_d1076769d325ba 1-28
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-reflect-get.ts
+  s_27c57202ef3da8::t_258d68f7cb6d51 1-28
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-runtime-typeof.ts
+  s_27c57202ef3da8::t_22a3c288208c62 1-67
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-shape-in-symbol-names.ts
+  s_27c57202ef3da8::t_e67f53f50f047f 1-39
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-unknown-parameters.ts
+  s_27c57202ef3da8::t_de7202855ce5b4 1-83
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-unknown-returns.ts
+  s_27c57202ef3da8::t_e51208ac51f3b5 1-115
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-unknown-type-aliases.ts
+  s_27c57202ef3da8::t_ca1ffbb597b68b 1-70
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-unsafe-dictionary-type.ts
+  s_27c57202ef3da8::t_c6c3aaab0158fa 1-134
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/no-widen-then-assert.ts
+  s_27c57202ef3da8::t_6f7e1a524fe956 1-366
+dot_agents/skills/install-anti-slop/assets/anti-slop/rules/require-safety-comment-for-type-assertion.ts
+  s_27c57202ef3da8::t_f2b0b555980b2a 1-62
+dot_agents/skills/install-anti-slop/assets/anti-slop/shared/dictionary-types.ts
+  s_27c57202ef3da8::t_5ef294438df1a7 1-502
+dot_agents/skills/install-anti-slop/assets/anti-slop/shared/lexical-type-parameters.ts
+  s_27c57202ef3da8::t_fac85681a35069 1-61
+dot_agents/skills/install-anti-slop/assets/anti-slop/shared/reflect-method.ts
+  s_27c57202ef3da8::t_42220bf67bfb2a 1-35
+dot_agents/skills/install-anti-slop/scripts/executable_install.mjs
+  s_27c57202ef3da8::t_a56889c1e4a123 1-21
+dot_agents/skills/preventing-py-slop/reference/checkers.md
+  s_27c57202ef3da8::t_c0bfa35c393b00 1-88
+dot_agents/skills/preventing-py-slop/reference/examples.md
+  s_27c57202ef3da8::t_c12c6dd61d54df 1-63
+dot_agents/skills/preventing-py-slop/reference/principles.md
+  s_27c57202ef3da8::t_e7cf1321181cae 1-66
+dot_agents/skills/preventing-py-slop/reference/review.md
+  s_27c57202ef3da8::t_4edde4a775df5a 1-121
+dot_agents/skills/reviewing-python/reference/architecture-standard.md
+  s_27c57202ef3da8::t_32e4324ec24eaf 1-119
+dot_agents/skills/reviewing-python/reference/communication.md
+  s_27c57202ef3da8::t_dee2b7922b1d3f 1-73
+dot_agents/skills/reviewing-python/reference/corpus.md
+  s_27c57202ef3da8::t_0aaae1e2328652 1-87
+dot_agents/skills/reviewing-python/reference/finding-contract.md
+  s_27c57202ef3da8::t_d2d630aa6cc411 1-60
+dot_agents/skills/reviewing-python/reference/pragmatic-fixes.md
+  s_27c57202ef3da8::t_9719cec2d670b8 1-85
+dot_agents/skills/reviewing-python/reference/review-lenses.md
+  s_27c57202ef3da8::t_7857a5d8447ee6 1-110
+dot_agents/skills/reviewing-typescript-vue/reference/architecture-standard.md
+  s_27c57202ef3da8::t_c72221f42c3c43 1-137
+dot_agents/skills/reviewing-typescript-vue/reference/communication.md
+  s_27c57202ef3da8::t_3178db18999c6e 1-73
+dot_agents/skills/reviewing-typescript-vue/reference/corpus.md
+  s_27c57202ef3da8::t_73da2f70fabfe0 1-270
+dot_agents/skills/reviewing-typescript-vue/reference/finding-contract.md
+  s_27c57202ef3da8::t_3ee7e1e0b631b1 1-61
+dot_agents/skills/reviewing-typescript-vue/reference/independent-review.md
+  s_27c57202ef3da8::t_025b6b8190ff7d 1-103
+dot_agents/skills/reviewing-typescript-vue/reference/pragmatic-fixes.md
+  s_27c57202ef3da8::t_f03905d1f81e26 1-101
+dot_agents/skills/reviewing-typescript-vue/reference/review-lenses.md
+  s_27c57202ef3da8::t_56d20cd39c909b 1-91
+dot_agents/skills/reviewing-typescript-vue/reference/typescript-contracts.md
+  s_27c57202ef3da8::t_7381186d8efe2c 1-114
+dot_agents/skills/reviewing-typescript-vue/reference/vue-guidance.md
+  s_27c57202ef3da8::t_d30e9025fb86dd 1-165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "0f02512404e72b066c1083730a6165a25f72a869",
+  "prompts": {},
+  "sessions": {
+    "s_03cdd8cc5a6fd7": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a0205e-afb2-79dd-a148-b237fb219489",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_1fabfd60d7c6a4": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034BkkebrYylIVXAldLQkY",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_27c57202ef3da8": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034BkfTVnEtYYb0PajRasI",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    },
+    "s_c48115cd825da4": {
+      "agent_id": {
+        "tool": "amp",
+        "id": "TU-034Bl4zXRpYzpmXOuq4Gvd",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
