@@ -26,57 +26,52 @@ const skills = new Map<string, InlineSkill>([
 	["knowledgebase", skill("knowledgebase")],
 ]);
 
-test("strips known @mentions from the user prompt and does not inline skill bodies", () => {
+test("collects known @mentions and does not inline skill bodies", () => {
 	const collected = collectInlineSkillMentions(
 		"i want you to transcribe this and put it in my @knowledgebase",
 		skills,
 	);
 	assert.deepEqual(
-		collected.skills.map((item) => item.name),
+		collected.map((item) => item.name),
 		["knowledgebase"],
 	);
-	assert.equal(collected.stripped, "i want you to transcribe this and put it in my");
-	assert.doesNotMatch(collected.stripped, /@knowledgebase|<skill |knowledgebase body/);
+	assert.equal(collected[0]?.body, "knowledgebase body");
 });
 
-test("collects multiple mentions in first-seen order and strips both", () => {
+test("collects multiple mentions in first-seen order", () => {
 	const collected = collectInlineSkillMentions("grill this @grilling then @show-me", skills);
 	assert.deepEqual(
-		collected.skills.map((item) => item.name),
+		collected.map((item) => item.name),
 		["grilling", "show-me"],
 	);
-	assert.equal(collected.stripped, "grill this then");
 });
 
 test("dedupes repeated mentions", () => {
 	const collected = collectInlineSkillMentions("@grilling and again @grilling", skills);
 	assert.deepEqual(
-		collected.skills.map((item) => item.name),
+		collected.map((item) => item.name),
 		["grilling"],
 	);
-	assert.equal(collected.stripped, "and again");
 });
 
 test("leaves emails, escapes, unknown names, and /skill:name alone", () => {
-	const input = "user@grilling.com @@grilling /skill:grilling @nope";
-	const collected = collectInlineSkillMentions(input, skills);
-	assert.deepEqual(collected.skills, []);
-	assert.equal(collected.stripped, input);
+	const collected = collectInlineSkillMentions("user@grilling.com @@grilling /skill:grilling @nope", skills);
+	assert.deepEqual(collected, []);
 });
 
-test("rewrites a leftover prompt to /skill:name so Pi expands the skill", () => {
+test("rewrites a leftover prompt to /skill:name and keeps the original @mention", () => {
 	const plan = planInlineSkillMentionInput("transcribe this @knowledgebase", skills);
 	assert.equal(plan.action, "transform");
 	if (plan.action !== "transform") return;
-	assert.equal(plan.text, "/skill:knowledgebase transcribe this");
+	assert.equal(plan.text, "/skill:knowledgebase transcribe this @knowledgebase");
 	assert.deepEqual(plan.extraSkills, []);
 });
 
-test("rewrites a mention-only prompt to /skill:name so the agent still starts", () => {
+test("rewrites a mention-only prompt to /skill:name and keeps the original @mention", () => {
 	const plan = planInlineSkillMentionInput("@knowledgebase", skills);
 	assert.equal(plan.action, "transform");
 	if (plan.action !== "transform") return;
-	assert.equal(plan.text, "/skill:knowledgebase");
+	assert.equal(plan.text, "/skill:knowledgebase @knowledgebase");
 	assert.deepEqual(plan.extraSkills, []);
 });
 
@@ -84,7 +79,7 @@ test("keeps extra mentions for skill-context after the first /skill command", ()
 	const plan = planInlineSkillMentionInput("grill this @grilling then @show-me", skills);
 	assert.equal(plan.action, "transform");
 	if (plan.action !== "transform") return;
-	assert.equal(plan.text, "/skill:grilling grill this then");
+	assert.equal(plan.text, "/skill:grilling grill this @grilling then @show-me");
 	assert.deepEqual(
 		plan.extraSkills.map((item) => item.name),
 		["show-me"],

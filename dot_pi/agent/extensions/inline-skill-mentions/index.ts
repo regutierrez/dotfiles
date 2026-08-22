@@ -2,8 +2,9 @@
  * Recognize `@skill-name` in user input and invoke it as `/skill:name`.
  * Mid-prompt `@` lists skill names above file and agent rows.
  *
- * One mention becomes `/skill:name leftover`. Extra mentions stay queued
- * and are injected on before_agent_start as a skill-context custom message.
+ * One mention becomes `/skill:name` plus the original prompt, so the user
+ * message still shows `@skill-name`. Extra mentions stay queued and are
+ * injected on before_agent_start as a skill-context custom message.
  */
 import { readFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -21,11 +22,6 @@ export type InlineSkill = {
 	baseDir: string;
 	description?: string;
 	body: string;
-};
-
-export type CollectedInlineSkillMentions = {
-	skills: InlineSkill[];
-	stripped: string;
 };
 
 export type InlineSkillMentionPlan =
@@ -94,32 +90,28 @@ export function mergeInlineSkillAutocompleteSuggestions(
 }
 
 /**
- * Collect known `@skill` mentions and strip them from the user prompt.
+ * Collect known `@skill` mentions in first-seen order.
  * Unknown names, emails, and `/skill:name` stay literal. Does not inline skill bodies.
  */
 export function collectInlineSkillMentions(
 	text: string,
 	skills: ReadonlyMap<string, InlineSkill>,
-): CollectedInlineSkillMentions {
+): InlineSkill[] {
 	const seen = new Set<string>();
 	const collected: InlineSkill[] = [];
-	const stripped = text.replace(AT_SKILL, (full, lead: string, name: string) => {
+	for (const match of text.matchAll(AT_SKILL)) {
+		const name = match[2];
+		if (!name) continue;
 		const skill = skills.get(name);
-		if (!skill) return full;
-		if (!seen.has(skill.name)) {
-			seen.add(skill.name);
-			collected.push(skill);
-		}
-		return lead;
-	});
-	return {
-		skills: collected,
-		stripped: collapseInlineSkillMentionGaps(stripped),
-	};
+		if (!skill || seen.has(skill.name)) continue;
+		seen.add(skill.name);
+		collected.push(skill);
+	}
+	return collected;
 }
 
 /**
- * Rewrite known `@skill` mentions to `/skill:name leftover`.
+ * Prefix known `@skill` mentions with `/skill:name` and keep the original prompt.
  * That uses Pi's skill-command expansion so mention-only input still starts a turn.
  */
 export function planInlineSkillMentionInput(
@@ -127,13 +119,12 @@ export function planInlineSkillMentionInput(
 	skills: ReadonlyMap<string, InlineSkill>,
 ): InlineSkillMentionPlan {
 	const collected = collectInlineSkillMentions(text, skills);
-	const first = collected.skills[0];
+	const first = collected[0];
 	if (!first) return { action: "continue" };
-	const command = `/skill:${first.name}`;
 	return {
 		action: "transform",
-		text: collected.stripped ? `${command} ${collected.stripped}` : command,
-		extraSkills: collected.skills.slice(1),
+		text: `/skill:${first.name} ${text}`,
+		extraSkills: collected.slice(1),
 	};
 }
 
@@ -158,14 +149,6 @@ export function queueUniqueInlineSkills(queue: readonly InlineSkill[], incoming:
 		names.add(skill.name);
 	}
 	return next;
-}
-
-function collapseInlineSkillMentionGaps(text: string): string {
-	return text
-		.replace(/[ \t]{2,}/g, " ")
-		.replace(/[ \t]+\n/g, "\n")
-		.replace(/\n{3,}/g, "\n\n")
-		.trim();
 }
 
 function escapeInlineSkillAttribute(value: string): string {
