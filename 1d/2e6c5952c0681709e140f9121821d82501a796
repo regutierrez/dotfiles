@@ -1,0 +1,14 @@
+dot_agents/skills/tdd/SKILL.md
+  h_a1d7d183b9ec37 27-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "1d2e6c5952c0681709e140f9121821d82501a796",
+  "prompts": {},
+  "humans": {
+    "h_a1d7d183b9ec37": {
+      "author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
