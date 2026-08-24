@@ -37,7 +37,7 @@ cd ~/.pi/agent && npm install
 | `extensions/review.ts` | Review UI extension |
 | `extensions/sideshow-lazy-tools.ts` | Defers all Sideshow tools until `/skill:sideshow` is invoked |
 | `extensions/inline-skill-mentions/` | Prefix `@skill-name` as `/skill:name` while keeping the original prompt, extra mentions as `skill-context`, and `@` skill autocomplete |
-| `extensions/herdr-rename/` | `/herdr-rename` + `herdr_rename`: replace the Agents-panel `agent` token with a 64-char comment (`$name2` wraps). GPT-5.6 Luna (low). Active only inside Herdr. |
+| `extensions/herdr-rename/` | Mirror Pi's native session name in Herdr as `pi - <session name>`; unnamed sessions show `pi` |
 | `extensions/uv.ts` | Prefers `uv` via intercepted-commands |
 
 ## Edit often vs leave alone

@@ -30,7 +30,6 @@ prompt_new_workspace_name = true
 rows = [
   ["state_icon", "workspace", "tab"],
   ["agent"],
-  ["$name2"],
 ]
 
 [ui.sound]
