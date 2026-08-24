@@ -346,7 +346,7 @@
                     "value": 1
                   }
                 ],
-                "description": "Hyper + Q, C: Open Cursor",
+                "description": "Hyper + Q, C: Open {{ if $work }}Cursor{{ else }}Delta{{ end }}",
                 "from": {
                   "key_code": "c",
                   "modifiers": {
@@ -355,7 +355,7 @@
                 },
                 "to": [
                   {
-                    "shell_command": "open -a 'Cursor.app'"
+                    "shell_command": "open -a '{{ if $work }}Cursor.app{{ else }}Delta.app{{ end }}'"
                   }
                 ],
                 "type": "basic"
