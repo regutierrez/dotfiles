@@ -1,0 +1,23 @@
+dot_config/finicky/finicky.js
+  s_a745dca4474c88::t_1a9268e8e5f769 140-143,146-148
+  s_a745dca4474c88::t_636fd42eba2978 10-11
+  s_a745dca4474c88::t_1b44f09f628998 70-72,92-94
+  s_a745dca4474c88::t_acfc1e538840ef 95
+  s_a745dca4474c88::t_29880f743154e7 149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "5c4df26dea444ec6b3507e731e7ed395668c79f6",
+  "prompts": {},
+  "sessions": {
+    "s_a745dca4474c88": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-868f6be7-16b7-4443-ad57-2428843583b1",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
