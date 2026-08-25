@@ -7,7 +7,8 @@
 // ATC setup (Arc → Settings → Links → Air Traffic Control):
 //   URL contains "finicky_dest_space=akkio"   → Space bound to the akkio profile
 //   URL contains "finicky_dest_space=horizon" → Space bound to the horizon profile
-// Everything else (except localhost) is tagged akkio, so the default Space is Akkio.
+//   URL contains "finicky_dest_space=work"    → Space bound to the work profile
+// Everything else (except localhost) is tagged work, so the default Space is Work.
 //
 // AWS SSO: portal hosts are stable (d-9067661171 → horizon, akkio.awsapps.com →
 // akkio). OIDC authorize shares oidc.<region>.amazonaws.com, so route that by
@@ -66,6 +67,9 @@ const slackTargetUri = (url) => {
 const isHorizonUrl = (s) =>
   /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|github\.com\/HorizonMedia|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/.test(s);
 
+const isAkkioUrl = (s) =>
+  /^https?:\/\/(akkio\.awsapps\.com|github\.com\/akkio-inc|blu\.sky\.horizonmedia\.com)/.test(s);
+
 export default {
   defaultBrowser: "Arc",
   rewrite: [
@@ -84,6 +88,10 @@ export default {
     {
       match: ["github.com/HorizonMedia", "github.com/HorizonMedia/*"],
       url: tagSpace("horizon"),
+    },
+    {
+      match: ["github.com/akkio-inc", "github.com/akkio-inc/*"],
+      url: tagSpace("akkio"),
     },
     {
       match: "spirehorizon.atlassian.net/*",
@@ -129,8 +137,15 @@ export default {
       url: tagSpace("horizon"),
     },
     {
-      match: (url) => !isLocal(url),
+      match: (url) => {
+        const t = slackTargetUri(url);
+        return t && isAkkioUrl(t);
+      },
       url: tagSpace("akkio"),
+    },
+    {
+      match: (url) => !isLocal(url),
+      url: tagSpace("work"),
     },
   ],
 };
