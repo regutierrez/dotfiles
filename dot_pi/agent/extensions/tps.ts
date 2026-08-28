@@ -17,6 +17,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
 
 const ENTRY = "tps-stats";
+const MIN_GEN_MS = 250;
 
 /** One assistant generation inside the agent run. */
 type Sample = {
@@ -213,7 +214,7 @@ export default function (pi: ExtensionAPI) {
 
 		resetMessageClock();
 
-		if (output <= 0 || genMs <= 0) return;
+		if (output <= 0 || genMs < MIN_GEN_MS) return;
 		if (msg.stopReason === "error" || msg.stopReason === "aborted") return;
 
 		samples.push({ output, reasoning, genMs, ttftMs });
