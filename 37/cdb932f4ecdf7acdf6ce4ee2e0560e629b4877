@@ -1,0 +1,20 @@
+dot_pi/agent/extensions/tps.ts
+  s_1dd9d3e45d7e8e::t_79a4f7cf565037 20
+  s_1dd9d3e45d7e8e::t_8f0aacef0ea159 217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "37cdb932f4ecdf7acdf6ce4ee2e0560e629b4877",
+  "prompts": {},
+  "sessions": {
+    "s_1dd9d3e45d7e8e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "agent-a9cc0f52-f15f-4fbb-9678-3412774b594c",
+        "model": "unknown"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
