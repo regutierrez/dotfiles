@@ -1,0 +1,14 @@
+dot_pi/agent/extensions/tps.ts
+  h_a1d7d183b9ec37 20,217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "bc58ecf8c2dd8c35c5fba0a0dfe4437e0be5d3d1",
+  "prompts": {},
+  "humans": {
+    "h_a1d7d183b9ec37": {
+      "author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
