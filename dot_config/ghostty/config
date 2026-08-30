@@ -59,6 +59,7 @@ bold-is-bright = true
 
 desktop-notifications = true
 auto-update=download
+env = HERDR_ENV=0
 macos-titlebar-style = tabs
 macos-option-as-alt = true
 keybind = alt+arrow_left=unbind
