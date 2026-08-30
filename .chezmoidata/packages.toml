@@ -94,15 +94,14 @@ packages = [
   "gcc-c++",
   "gh",
   "ghostty",
+  "gnome-shell-extension-appindicator",
   "golang",
   "jq",
-  "kdotool",
   "mokutil",
   "neovim",
   "openssh-clients",
   "pandoc-cli",
   "pciutils",
-  "polkit-kde",
   "ripgrep",
   "rust",
   "stow",
@@ -110,7 +109,6 @@ packages = [
   "unzip",
   "uv",
   "wl-clipboard",
-  "xremap",
   "zip",
   "zoxide",
   "zsh",
@@ -131,7 +129,6 @@ nvidia_packages = [
   "xorg-x11-drv-nvidia-power",
 ]
 coprs = [
-  "blakegardner/xremap",
   "imput/helium",
   "scottames/ghostty",
 ]

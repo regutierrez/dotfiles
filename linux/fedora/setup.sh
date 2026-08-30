@@ -8,7 +8,6 @@ if [[ "$profile" != "personal" ]]; then
 fi
 local_bin="$HOME/.local/bin"
 reboot_required=false
-login_required=false
 sudo_keepalive_pid=""
 
 info() {
@@ -152,65 +151,6 @@ configure_login_shell() {
   fi
 }
 
-configure_helium_command() {
-  local system_helium
-
-  if [[ -e "$local_bin/helium" || -L "$local_bin/helium" ]]; then
-    return
-  fi
-
-  system_helium="$(PATH=/usr/local/bin:/usr/bin:/bin command -v helium || true)"
-  if [[ -n "$system_helium" ]]; then
-    ln -s "$system_helium" "$local_bin/helium"
-  else
-    warn "Helium is not installed; Caps+Q+H will not be able to launch it"
-  fi
-}
-
-configure_xremap() {
-  require_command xremap
-
-  if ! id -nG | tr ' ' '\n' | grep -Fxq input; then
-    info "adding $USER to the input group"
-    sudo usermod --append --groups input "$USER"
-    warn "log out and back in, then rerun setup to activate xremap"
-    login_required=true
-    return
-  fi
-
-  systemctl --user daemon-reload
-  systemctl --user enable --now xremap.service
-}
-
-configure_kde() {
-  local profile_name
-
-  require_command kwriteconfig6
-
-  kwriteconfig6 --file kcminputrc --group Keyboard --key KeyRepeat repeat
-  kwriteconfig6 --file kcminputrc --group Keyboard --key RepeatDelay 200
-  kwriteconfig6 --file kcminputrc --group Keyboard --key RepeatRate 50
-
-  for profile_name in AC Battery LowBattery; do
-    kwriteconfig6 --file powerdevilrc \
-      --group "$profile_name" --group SuspendAndShutdown \
-      --key AutoSuspendAction 0
-  done
-
-  if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
-    gdbus call --session \
-      --dest org.kde.Solid.PowerManagement \
-      --object-path /org/kde/Solid/PowerManagement \
-      --method org.kde.Solid.PowerManagement.refreshStatus \
-      >/dev/null 2>&1 || warn "PowerDevil is not running; settings will apply at next login"
-
-    if ! systemctl --user is-active --quiet plasma-polkit-agent.service; then
-      systemctl --user start plasma-polkit-agent.service || \
-        warn "could not start KDE's PolicyKit agent"
-    fi
-  fi
-}
-
 verify_nvidia() {
   local kernel_release kmod_package installed_version loaded_version
 
@@ -253,7 +193,6 @@ print_summary() {
   info "setup complete"
   printf '  profile: %s\n' "$profile"
   printf '  login shell: %s\n' "$(getent passwd "$USER" | cut -d: -f7)"
-  printf '  xremap: %s\n' "$(systemctl --user is-active xremap.service 2>/dev/null || true)"
   if command -v steam >/dev/null 2>&1; then
     printf '  Steam: installed\n'
   fi
@@ -264,9 +203,6 @@ print_summary() {
     printf '  reboot required: yes\n'
   else
     printf '  reboot required: no\n'
-  fi
-  if [[ "$login_required" == true ]]; then
-    printf '  login required: yes\n'
   fi
 }
 
@@ -290,9 +226,6 @@ main() {
   configure_login_shell
 
   if [[ "$profile" == "personal" ]]; then
-    configure_helium_command
-    configure_xremap
-    configure_kde
     verify_nvidia
   fi
 

@@ -9,7 +9,7 @@ Two values decide what gets applied:
 - **Profile:** `personal` or `work`; selected during `chezmoi init`.
 - **OS:** detected automatically by chezmoi.
 
-Both profiles are full workstations. `personal` is used on macOS and on the Fedora gaming workstation; `work` is used on macOS. Personal Fedora also receives the gaming, Kitty, Niri, DMS, and KDE-specific configuration.
+Both profiles are full workstations. `personal` is used on macOS and on the Fedora gaming workstation; `work` is used on macOS. Personal Fedora also receives the gaming, Kitty, Niri, and DMS configuration.
 
 There are two separate operations:
 
@@ -97,10 +97,7 @@ The personal Fedora workstation receives:
 - `dot_config/kitty/`
 - `dot_config/niri/`
 - `dot_config/systemd/user/dms-auto-resolution-profile.service`
-- `dot_config/systemd/user/xremap.service`
-- `dot_config/xremap/`
 - `dot_local/bin/executable_dms-auto-resolution-profile`
-- `dot_local/bin/executable_kde-focus-or-launch`
 
 ## Secrets
 
@@ -122,9 +119,9 @@ GH_ACCOUNT=regutierrez gh repo fork owner/repository
 
 ## Platform setup
 
-### Fedora KDE personal workstation
+### Fedora personal workstation
 
-The normal bootstrap reproduces this gaming workstation: Fedora KDE packages, RPM Fusion's NVIDIA/Steam/Proton stack, CLI tools, Node, Pi, Zsh and Starship, managed Git identity, a machine-local passwordless Ed25519 key, Herdr, Helium, Obsidian, KDE repeat/power/PolicyKit settings, and the Caps Lock window/application layer. It installs prerequisites before the managed configuration, installs only missing software, checks akmods and Secure Boot, and reports rather than performs a required reboot.
+The normal bootstrap reproduces this gaming workstation: RPM Fusion's NVIDIA/Steam/Proton stack, CLI tools, Node, Pi, Zsh and Starship, managed Git identity, a machine-local passwordless Ed25519 key, Herdr, Helium, and Obsidian. It installs prerequisites before the managed configuration, installs only missing software, checks akmods and Secure Boot, and reports rather than performs a required reboot.
 
 It never formats or mounts disks, modifies `/etc/fstab`, chooses a Steam library, copies credentials, or stores private SSH keys. The existing 4 TB ext4 Steam drive at `/mnt/storage` remains manual and outside this automation.
 
