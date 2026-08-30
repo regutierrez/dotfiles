@@ -43,6 +43,8 @@ akkio-helpers/
 .config/kitty
 .config/niri
 .config/systemd/user/dms-auto-resolution-profile.service
+.config/systemd/user/xremap.service
+.config/xremap
 .local/bin/dms-auto-resolution-profile
 {{- end }}
 

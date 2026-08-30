@@ -1,0 +1,35 @@
+virtual_modifiers:
+  - CapsLock
+
+modmap:
+  - name: Caps Escape and shortcut layer
+    remap:
+      CapsLock:
+        tap: Esc
+        hold: CapsLock
+        hold_threshold_millis: 0
+        tap_timeout_millis: 1000
+
+keymap:
+  - name: Caps Q application layer
+    remap:
+      CapsLock-Q:
+        remap:
+          H: Super-1
+          D: Super-2
+          C: Super-3
+          V: Super-4
+          Dot: Super-5
+          Enter: Super-6
+          O: Super-7
+          S: Super-8
+        timeout_millis: 1000
+
+  - name: Caps window layer
+    remap:
+      CapsLock-H: Super-Left
+      CapsLock-L: Super-Right
+      CapsLock-B: Super-PageUp
+      CapsLock-F: Super-PageDown
+      CapsLock-Shift-B: Super-Shift-PageUp
+      CapsLock-Shift-F: Super-Shift-PageDown

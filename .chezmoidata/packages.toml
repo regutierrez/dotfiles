@@ -108,6 +108,7 @@ packages = [
   "unzip",
   "uv",
   "wl-clipboard",
+  "xremap",
   "zip",
   "zoxide",
   "zsh",
@@ -128,6 +129,7 @@ nvidia_packages = [
   "xorg-x11-drv-nvidia-power",
 ]
 coprs = [
+  "blakegardner/xremap",
   "imput/helium",
   "scottames/ghostty",
 ]

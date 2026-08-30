@@ -1,0 +1,16 @@
+{{- $osid := "" -}}
+{{- if hasKey .chezmoi.osRelease "id" -}}
+{{-   $osid = lower .chezmoi.osRelease.id -}}
+{{- end -}}
+{{- if and (eq .chezmoi.os "linux") (eq $osid "fedora") (eq .profile "personal") -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+xremap_config_hash='{{ include "dot_config/xremap/config.yml" | sha256sum }}'
+xremap_service_hash='{{ include "dot_config/systemd/user/xremap.service" | sha256sum }}'
+: "$xremap_config_hash" "$xremap_service_hash"
+
+gsettings set org.gnome.shell favorite-apps "['helium.desktop', 'discord.desktop', 'dev.zed.Delta.desktop', 'dev.zed.Zed.desktop', 'org.gnome.Nautilus.desktop', 'com.mitchellh.ghostty.desktop', 'joplin.desktop', 'steam.desktop', 'org.mozilla.firefox.desktop']"
+systemctl --user daemon-reload
+systemctl --user enable --now xremap.service
+{{- end -}}
