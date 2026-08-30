@@ -82,7 +82,6 @@ packages = [
   "chezmoi",
   "curl",
   "dnf5-plugins",
-  "dolphin",
   "docker-compose",
   "eza",
   "fd-find",

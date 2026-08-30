@@ -63,7 +63,6 @@
 .pi/agent/extensions/package.json
 .pi/agent/extensions/test/btw.test.ts
 .local/share/applications/caps-launch-discord.desktop
-.local/share/applications/caps-launch-dolphin.desktop
 .local/share/applications/caps-launch-ghostty.desktop
 .local/share/applications/caps-launch-helium.desktop
 .local/share/applications/caps-launch-obsidian.desktop

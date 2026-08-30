@@ -46,10 +46,6 @@ akkio-helpers/
 .local/bin/dms-auto-resolution-profile
 {{- end }}
 
-.config/systemd/user/xremap.service
-.config/xremap
-.local/bin/kde-focus-or-launch
-
 {{- /* Skill membership lives in .chezmoidata.toml; profiles select groups here. */ -}}
 {{- if index . "skill_groups" }}
 .agents/skills/*
