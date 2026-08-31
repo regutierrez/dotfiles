@@ -1,0 +1,19 @@
+dot_config/finicky/finicky.js
+  s_44ab1f7a168a32::t_0e3fafa09768cc 76-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "35bf2f39c965c1cd51301b713f409df0df398847",
+  "prompts": {},
+  "sessions": {
+    "s_44ab1f7a168a32": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a058c1-6c14-7ca2-8a5b-5aae88332388",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
