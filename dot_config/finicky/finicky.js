@@ -73,6 +73,11 @@ const isAkkioUrl = (s) =>
 export default {
   defaultBrowser: "Arc",
   rewrite: [
+    // OpenVPN links belong to the Akkio Arc Space.
+    {
+      match: (url) => url.protocol === "openvpn:",
+      url: tagSpace("akkio"),
+    },
     {
       match: "blu.sky.horizonmedia.com/ratings-chat/*",
       url: tagSpace("akkio"),
