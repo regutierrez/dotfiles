@@ -1,7 +1,7 @@
 /**
- * On the first user prompt, rename the Herdr tab (window) from `X` to `X: TRI-1234`
+ * On the first user prompt, prepend `(TRI-1234)` to the Herdr window (tab) name
  * when that prompt contains a Linear issue id or linear.app URL. Work profile only.
- * `X` is the 1-based window number inside the current space. No-op outside Herdr.
+ * The space-local window number stays in front. No-op outside Herdr.
  */
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -61,7 +61,7 @@ async function renameLinearWindow(options: {
 	if (windowNumber === undefined) return;
 	const current = tabs.find((tab) => tab.tabId === options.env.tabId);
 	if (!shouldRenameLinearWindow(current?.label, windowNumber, options.linearIssueId)) return;
-	const label = buildLinearWindowLabel(windowNumber, options.linearIssueId);
+	const label = buildLinearWindowLabel(windowNumber, current?.label, options.linearIssueId);
 	await execFileAsync(options.env.herdrBin, buildLinearWindowRenameArgs(options.env.tabId, label), {
 		encoding: "utf8",
 	});

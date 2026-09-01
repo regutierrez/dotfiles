@@ -13,3 +13,5 @@ package-lock.json
 !dot_pi/agent/extensions/web-tools/package-lock.json
 bun.lock
 .env
+dot_local/share/herdr-plugins/window-numbers/window-numbers
+dot_local/share/herdr-plugins/workspace-mru/workspace-mru

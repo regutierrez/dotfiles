@@ -77,3 +77,8 @@ bin/agent-sessions-picker
 .pi/agent/git/github.com/regutierrez/pi-herdr-subagents
 .config/amp/plugins/git-ai.ts
 .pi/agent/extensions/git-ai.ts
+.local/share/herdr-plugins/herdrcli/herdrcli.go
+.local/share/herdr-plugins/window-numbers/window-numbers.mjs
+.local/share/herdr-plugins/window-numbers/window-numbers.test.mjs
+.local/share/herdr-plugins/workspace-mru/workspace-mru.mjs
+.local/share/herdr-plugins/workspace-mru/workspace-mru.test.mjs

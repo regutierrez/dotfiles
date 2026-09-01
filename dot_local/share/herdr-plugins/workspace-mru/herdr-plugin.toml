@@ -1,6 +1,6 @@
 id = "dotfiles.workspace-mru"
 name = "Workspace MRU"
-version = "0.3.0"
+version = "0.4.0"
 min_herdr_version = "0.8.0"
 description = "Switch to the previous workspace, then cycle in sidebar order"
 platforms = ["linux", "macos"]
@@ -9,12 +9,12 @@ platforms = ["linux", "macos"]
 id = "switch"
 title = "Switch workspace by recent use and sidebar order"
 contexts = ["workspace"]
-command = ["node", "workspace-mru.mjs", "switch"]
+command = ["./workspace-mru", "switch"]
 
 [[events]]
 on = "workspace.focused"
-command = ["node", "workspace-mru.mjs", "focused"]
+command = ["./workspace-mru", "focused"]
 
 [[events]]
 on = "workspace.closed"
-command = ["node", "workspace-mru.mjs", "closed"]
+command = ["./workspace-mru", "closed"]

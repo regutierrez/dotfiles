@@ -1,7 +1,7 @@
 /**
- * Rename a Herdr tab (window) from a bare number to `X: TRI-1234`
- * when the starting user prompt contains a Linear issue id or linear.app URL.
- * `X` is the 1-based window number inside the current space (workspace).
+ * Prepend `(TRI-1234)` to a Herdr window (tab) name when the starting user
+ * prompt contains a Linear issue id or linear.app URL.
+ * The space-local window number stays in front; `dotfiles.window-numbers` owns it.
  */
 
 export type HerdrWindowEnv =
@@ -76,25 +76,62 @@ export function localWindowNumberInSpace(tabs: readonly HerdrTabWindow[], tabId:
 	return index + 1;
 }
 
-/** Build the Herdr window (tab) name `X: TRI-1234` from the local window number and Linear issue id. */
-export function buildLinearWindowLabel(windowNumber: number, linearIssueId: string): string {
-	return `${windowNumber}: ${linearIssueId}`;
+/**
+ * Split a Herdr window (tab) name into the leading space-local window number and the rest.
+ * Strips repeated `3`, `3 rest`, `3: rest`, and `3-rest` prefixes. Leaves names such as `2fa work` alone.
+ */
+export function splitWindowNumberPrefix(label: string | undefined): { windowNumber?: number; rest: string } {
+	let text = label?.trim() ?? "";
+	let windowNumber: number | undefined;
+	for (let attempt = 0; attempt < 8 && text; attempt += 1) {
+		const onlyNumber = /^(\d+)$/.exec(text);
+		if (onlyNumber) return { windowNumber: Number(onlyNumber[1]), rest: "" };
+		const withRest = /^(\d+)(?::\s*|\s+|-)(.*)$/.exec(text);
+		if (!withRest) break;
+		windowNumber = Number(withRest[1]);
+		text = withRest[2].trim();
+	}
+	return windowNumber === undefined ? { rest: text } : { windowNumber, rest: text };
 }
 
-/**
- * True when the Herdr tab still shows as a bare number (or has no label)
- * and should become `X: TRI-1234`. Leaves custom names such as `dotfiles` alone.
- */
+/** True when the window-name rest already contains this Linear issue id. */
+export function windowRestHasLinearIssue(rest: string, linearIssueId: string): boolean {
+	const issue = normalizeLinearIssueId(linearIssueId);
+	if (!issue) return false;
+	const escaped = issue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	return new RegExp(`(?:^|[^A-Za-z0-9])${escaped}(?:[^A-Za-z0-9]|$)`).test(rest.toUpperCase());
+}
+
+/** Prepend `(TRI-1234)` to the window-name rest when that issue is not already present. */
+export function prependLinearIssueToWindowRest(rest: string, linearIssueId: string): string {
+	const issue = normalizeLinearIssueId(linearIssueId);
+	const text = rest.trim();
+	if (windowRestHasLinearIssue(text, issue)) return text;
+	if (!text) return `(${issue})`;
+	return `(${issue}) ${text}`;
+}
+
+/** Build `N (TRI-1234)` or `N (TRI-1234) rest` from the space-local window number. */
+export function buildLinearWindowLabel(
+	windowNumber: number,
+	currentLabel: string | undefined,
+	linearIssueId: string,
+): string {
+	const { rest } = splitWindowNumberPrefix(currentLabel);
+	const nextRest = prependLinearIssueToWindowRest(rest, linearIssueId);
+	return nextRest ? `${windowNumber} ${nextRest}` : String(windowNumber);
+}
+
+/** True when the Herdr window name should gain `(TRI-1234)` after the space-local window number. */
 export function shouldRenameLinearWindow(
 	currentLabel: string | undefined,
 	windowNumber: number,
 	linearIssueId: string,
 ): boolean {
-	const nextLabel = buildLinearWindowLabel(windowNumber, linearIssueId);
 	const label = currentLabel?.trim() ?? "";
-	if (!label) return true;
-	if (label === nextLabel) return false;
-	return /^\d+$/.test(label);
+	if (windowRestHasLinearIssue(label, linearIssueId)) return false;
+	const nextLabel = buildLinearWindowLabel(windowNumber, currentLabel, linearIssueId);
+	return label !== nextLabel;
 }
 
 /** Parse one Herdr tab object into id and window label. */
@@ -123,7 +160,7 @@ export function buildLinearWindowListArgs(workspaceId: string): string[] {
 	return ["tab", "list", "--workspace", workspaceId];
 }
 
-/** CLI argv for `herdr tab rename <tabId> <X: TRI-1234>`. */
+/** CLI argv for `herdr tab rename <tabId> <N (TRI-1234)>`. */
 export function buildLinearWindowRenameArgs(tabId: string, label: string): string[] {
 	return ["tab", "rename", tabId, label];
 }

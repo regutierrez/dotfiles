@@ -10,8 +10,10 @@ import {
 	normalizeLinearIssueId,
 	parseHerdrTabList,
 	parseHerdrTabWindow,
+	prependLinearIssueToWindowRest,
 	resolveHerdrWindowEnv,
 	shouldRenameLinearWindow,
+	splitWindowNumberPrefix,
 	workspaceIdFromTabId,
 } from "./linear-window-label.ts";
 
@@ -88,21 +90,31 @@ test("uses 1-based tab order inside the space, not public tab.number", () => {
 	assert.equal(localWindowNumberInSpace(tabs, "w2N:missing"), undefined);
 });
 
-test("builds the window name X: TRI-1234 from the local window number", () => {
-	assert.equal(buildLinearWindowLabel(4, "TRI-1234"), "4: TRI-1234");
-	assert.equal(buildLinearWindowLabel(3, "TRI-1234"), "3: TRI-1234");
-	assert.equal(buildLinearWindowLabel(2, "AKKIO-99"), "2: AKKIO-99");
+test("splits a leading space-local window number from the window name", () => {
+	assert.deepEqual(splitWindowNumberPrefix("3"), { windowNumber: 3, rest: "" });
+	assert.deepEqual(splitWindowNumberPrefix("2 processes"), { windowNumber: 2, rest: "processes" });
+	assert.deepEqual(splitWindowNumberPrefix("3: TRI-1234"), { windowNumber: 3, rest: "TRI-1234" });
+	assert.deepEqual(splitWindowNumberPrefix("1-srv"), { windowNumber: 1, rest: "srv" });
+	assert.deepEqual(splitWindowNumberPrefix("1 1-srv"), { windowNumber: 1, rest: "srv" });
+	assert.deepEqual(splitWindowNumberPrefix("dotfiles"), { rest: "dotfiles" });
 });
 
-test("renames only a bare-number Herdr window label", () => {
+test("prepends (TRI-1234) to the window-name rest without a colon", () => {
+	assert.equal(prependLinearIssueToWindowRest("", "TRI-1234"), "(TRI-1234)");
+	assert.equal(prependLinearIssueToWindowRest("dotfiles", "TRI-1234"), "(TRI-1234) dotfiles");
+	assert.equal(prependLinearIssueToWindowRest("(TRI-1234) rca", "TRI-1234"), "(TRI-1234) rca");
+	assert.equal(buildLinearWindowLabel(4, "4", "TRI-1234"), "4 (TRI-1234)");
+	assert.equal(buildLinearWindowLabel(2, "dotfiles", "TRI-1234"), "2 (TRI-1234) dotfiles");
+	assert.equal(buildLinearWindowLabel(3, "3 rca", "AKKIO-99"), "3 (AKKIO-99) rca");
+});
+
+test("renames a Herdr window when (TRI-1234) is not already in the name", () => {
 	assert.equal(shouldRenameLinearWindow(undefined, 3, "TRI-1234"), true);
 	assert.equal(shouldRenameLinearWindow("", 3, "TRI-1234"), true);
-	assert.equal(shouldRenameLinearWindow("  ", 3, "TRI-1234"), true);
 	assert.equal(shouldRenameLinearWindow("3", 3, "TRI-1234"), true);
-	assert.equal(shouldRenameLinearWindow("4", 4, "TRI-1234"), true);
+	assert.equal(shouldRenameLinearWindow("dotfiles", 2, "TRI-1234"), true);
+	assert.equal(shouldRenameLinearWindow("2 (TRI-1234) dotfiles", 2, "TRI-1234"), false);
 	assert.equal(shouldRenameLinearWindow("4: TRI-1234", 4, "TRI-1234"), false);
-	assert.equal(shouldRenameLinearWindow("dotfiles", 2, "TRI-1234"), false);
-	assert.equal(shouldRenameLinearWindow("triage + rca", 3, "TRI-1234"), false);
 });
 
 test("parses herdr tab get JSON for the window label", () => {
@@ -133,10 +145,10 @@ test("parses herdr tab get JSON for the window label", () => {
 
 test("builds herdr tab list and rename argv", () => {
 	assert.deepEqual(buildLinearWindowListArgs("w2N"), ["tab", "list", "--workspace", "w2N"]);
-	assert.deepEqual(buildLinearWindowRenameArgs("w2K:t8", "3: TRI-1234"), [
+	assert.deepEqual(buildLinearWindowRenameArgs("w2K:t8", "3 (TRI-1234)"), [
 		"tab",
 		"rename",
 		"w2K:t8",
-		"3: TRI-1234",
+		"3 (TRI-1234)",
 	]);
 });

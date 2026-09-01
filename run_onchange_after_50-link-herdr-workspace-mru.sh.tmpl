@@ -2,10 +2,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+mod_hash='{{ include "dot_local/share/herdr-plugins/go.mod" | sha256sum }}'
 manifest_hash='{{ include "dot_local/share/herdr-plugins/workspace-mru/herdr-plugin.toml" | sha256sum }}'
-implementation_hash='{{ include "dot_local/share/herdr-plugins/workspace-mru/workspace-mru.mjs" | sha256sum }}'
-test_hash='{{ include "dot_local/share/herdr-plugins/workspace-mru/workspace-mru.test.mjs" | sha256sum }}'
-: "$manifest_hash" "$implementation_hash" "$test_hash"
+implementation_hash='{{ include "dot_local/share/herdr-plugins/workspace-mru/workspace_mru.go" | sha256sum }}'
+test_hash='{{ include "dot_local/share/herdr-plugins/workspace-mru/workspace_mru_test.go" | sha256sum }}'
+: "$mod_hash" "$manifest_hash" "$implementation_hash" "$test_hash"
 
 plugin_id="dotfiles.workspace-mru"
 plugin_dir="$HOME/.local/share/herdr-plugins/workspace-mru"
@@ -14,6 +15,16 @@ if ! command -v herdr >/dev/null 2>&1; then
   echo "link-herdr-workspace-mru: herdr not found; install Herdr first" >&2
   exit 1
 fi
+if ! command -v go >/dev/null 2>&1; then
+  echo "link-herdr-workspace-mru: go not found; install Go first" >&2
+  exit 1
+fi
+
+(
+  cd "$plugin_dir"
+  CGO_ENABLED=0 go test
+  CGO_ENABLED=0 go build -ldflags='-s -w' -o workspace-mru .
+)
 
 herdr plugin unlink "$plugin_id" >/dev/null 2>&1 || true
 herdr plugin link "$plugin_dir" --enabled
