@@ -1,7 +1,7 @@
 ---
 name: query-hz
 description: Run guarded, read-only queries against Akkio Horizon Postgres or Snowflake. Use Postgres for app entities such as charts, projects, dashboards, and tenants; use Snowflake for warehouse data, datasource validation, and analytics. Match the database environment to the investigation. Agents must use the bundled scripts only.
-compatibility: Postgres requires python3 and either psql or Docker; Snowflake requires uv, network access, and ~/.dbt/profiles.yml. AWS CLI is only used for explicit Postgres --from-secrets.
+compatibility: Postgres requires python3, psql, and Tailscale reachability to akkio-remote; Snowflake requires uv, network access, and ~/.dbt/profiles.yml. AWS CLI is only used for explicit Postgres --from-secrets.
 disable-model-invocation: false
 ---
 
@@ -28,7 +28,7 @@ $S --env staging lookup-project 1109853
 $S --env staging -c "SELECT ..."
 ```
 
-The script supports `--env production|staging|dev|local`, `--from-secrets`, and `--max-lines N`. It uses Docker VPN sidecars for production and staging when available.
+The script supports `--env production|staging|dev|local`, `--from-secrets`, and `--max-lines N`. Production, staging, and dev connect through Tailscale Serve on `akkio-remote` (`15432` / `25432` / `35432`).
 
 Every query reports its environment and host on stderr. Confirm them before citing results. Read the Postgres references for query templates, environment resolution, and secrets access:
 

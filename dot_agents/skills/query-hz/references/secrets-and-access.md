@@ -51,16 +51,25 @@ aws sso login --profile horizon-<env>
 
 ## Network
 
-RDS hosts are private. Production/staging can route through simultaneous Docker VPN sidecars instead of the host VPN:
+RDS hosts are private. Dev, staging, and production always route through Tailscale Serve on `akkio-remote`, not a local Docker VPN sidecar or SSH loopback forward:
 
-- default sidecar container names: `vpn-horizon-production`, `vpn-horizon-staging`
-- override per env with `HORIZON_PG_SIDECAR_PRODUCTION` / `HORIZON_PG_SIDECAR_STAGING`, or `~/.config/horizon-pg/<env>.sidecar`
-- client image defaults to `postgres:16`; override with `HORIZON_PG_CLIENT_IMAGE`
-- production/staging use their sidecar when it is running, even if the configured URL host is `localhost`
-- when a sidecar-routed URL points at a published host port like `localhost:25432`, the script maps it back to the matching in-container port before running the postgres client
-- local and ambient exported URLs (`BACKEND_DB_URL` / `HORIZON_PG_URL` without `--env`) stay on the host route
+| Env | Serve port |
+|---|---|
+| dev | `15432` |
+| staging | `25432` |
+| production | `35432` |
 
-The script TCP-checks the configured URL on the selected route before connecting and fails fast with `UNREACHABLE:` — run the `envs` subcommand to see route + reachability instead of retrying.
+Gateway hostname, first match:
+
+1. `HORIZON_PG_GATEWAY`
+2. `GATEWAY=` in `~/.config/akkio-vpn/client.conf`
+3. `akkio-remote.atlas-cherimoya.ts.net`
+
+The script rewrites the resolved URL host and port onto that listener before connecting. Cached RDS `:5432` URLs and `localhost:<serve-port>` URLs both become `gateway:<serve-port>`.
+
+`local` and ambient exported URLs (`BACKEND_DB_URL` / `HORIZON_PG_URL` without `--env`) stay on the host route.
+
+The script TCP-checks the Serve listener before connecting and fails fast with `UNREACHABLE:` — run the `envs` subcommand to see route + reachability instead of retrying. Do not start local Docker sidecars or SSH forwards; ask the user to check Tailscale / `akkio-vpn doctor`.
 
 ## Safety
 
