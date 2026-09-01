@@ -103,9 +103,15 @@ npm_prefix="${NPM_CONFIG_PREFIX:-${HOME}/.npm-global}"
 mkdir -p "${npm_prefix}"
 export PATH="${npm_prefix}/bin:${PATH}"
 
+{{- $osid := index .chezmoi.osRelease "id" | default "" -}}
+{{- $variant := index .chezmoi.osRelease "variantID" | default "" -}}
+{{- $headlessCloud := and (eq .chezmoi.os "linux") (eq $osid "fedora") (eq $variant "cloud") }}
+
 npm_globals=(
+{{- if not $headlessCloud }}
 {{- range (.packages.npm.globals | default list) }}
   {{ . | quote }}
+{{- end }}
 {{- end }}
 )
 

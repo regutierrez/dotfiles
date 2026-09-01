@@ -1,0 +1,23 @@
+{{- $osid := index .chezmoi.osRelease "id" | default "" -}}
+{{- $variant := index .chezmoi.osRelease "variantID" | default "" -}}
+{{- /* Fedora Cloud is headless; open-computer-use needs a desktop session. */ -}}
+{{- $headlessCloud := and (eq .chezmoi.os "linux") (eq $osid "fedora") (eq $variant "cloud") -}}
+{
+  "mcp": {
+    "toolMode": "proxy",
+    "startup": "lazy",
+    "servers": {
+{{- if not $headlessCloud }}
+      "computer": {
+        "type": "local",
+        "command": [
+          "open-computer-use",
+          "mcp"
+        ],
+        "enabled": true,
+        "timeout": 60000
+      }
+{{- end }}
+    }
+  }
+}
