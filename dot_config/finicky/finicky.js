@@ -50,11 +50,32 @@ const b64urlDecode = (s) => {
   return out;
 };
 
-// Slack's OIDC login_initiate_redirect wraps the real destination inside a
-// signed JWT (login_hint claim). Decode it so we can route on the real target
-// instead of the slack.com entry point. Signature is NOT verified — read-only.
+// True when this click came from the Slack desktop app, not a browser tab.
+const isSlackAppOpener = (opener) =>
+  Boolean(
+    opener?.path?.startsWith("/Applications/Slack.app") ||
+    opener?.bundleId === "com.tinyspeck.slackmacgap"
+  );
+
+const isSlackRoutingHost = (hostname) =>
+  hostname === "slack.com" ||
+  hostname.endsWith(".slack.com") ||
+  hostname === "slack-redir.net";
+
+const isLinearHost = (hostname) =>
+  hostname === "linear.app" || hostname.endsWith(".linear.app");
+
+// Slack wraps the real destination so we can route on the target instead of
+// the Slack entry point. Covers:
+// - OIDC login_initiate_redirect (JWT login_hint → target_uri) on slack.com
+//   and *.slack.com. Signature is NOT verified — read-only.
+// - Slack desktop / Slack app link redirects (slack-redir.net, /link?url=).
 const slackTargetUri = (url) => {
-  if (url.hostname !== "slack.com") return null;
+  const host = url.hostname;
+  if (!isSlackRoutingHost(host)) return null;
+  if (host === "slack-redir.net" || url.pathname === "/link" || url.pathname.startsWith("/link/")) {
+    return url.searchParams.get("url") || url.searchParams.get("redir") || null;
+  }
   if (!url.pathname.includes("login_initiate_redirect")) return null;
   const hint = url.searchParams.get("login_hint");
   if (!hint) return null;
@@ -146,6 +167,12 @@ export default {
         const t = slackTargetUri(url);
         return t && isAkkioUrl(t);
       },
+      url: tagSpace("akkio"),
+    },
+    {
+      // Linear links clicked in the Slack desktop app.
+      match: (url, { opener }) =>
+        isSlackAppOpener(opener) && isLinearHost(url.hostname),
       url: tagSpace("akkio"),
     },
     {
