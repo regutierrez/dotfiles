@@ -1,3 +1,5 @@
+Only call this tool when the user explicitly asked you to spawn, delegate to, or orchestrate a subagent. Do not call it because a task looks large or a type description matches.
+
 Launch an autonomous agent for complex, multi-step tasks. Agent types:
 {{compactTypeList}}
 
