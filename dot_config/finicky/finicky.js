@@ -68,7 +68,7 @@ const isHorizonUrl = (s) =>
   /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|github\.com\/HorizonMedia|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/.test(s);
 
 const isAkkioUrl = (s) =>
-  /^https?:\/\/(akkio\.awsapps\.com|github\.com\/akkio-inc|blu\.sky\.horizonmedia\.com)/.test(s);
+  /^https?:\/\/(akkio\.awsapps\.com|github\.com\/akkio-inc|blu\.sky\.horizonmedia\.com|([a-z0-9-]+\.)*linear\.app)/.test(s);
 
 export default {
   defaultBrowser: "Arc",
@@ -146,6 +146,14 @@ export default {
         const t = slackTargetUri(url);
         return t && isAkkioUrl(t);
       },
+      url: tagSpace("akkio"),
+    },
+    {
+      match: ["linear.app", "linear.app/*", "*.linear.app/*"],
+      url: tagSpace("akkio"),
+    },
+    {
+      match: ["slack.com", "slack.com/*", "*.slack.com/*"],
       url: tagSpace("akkio"),
     },
     {
