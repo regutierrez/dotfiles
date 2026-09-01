@@ -28,6 +28,7 @@ linux/
 
 {{- if ne $profile "work" }}
 akkio-helpers/
+.pi/agent/extensions/linear-window-rename/
 {{- end }}
 
 {{- if ne .chezmoi.os "darwin" }}

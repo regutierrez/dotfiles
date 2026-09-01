@@ -76,7 +76,7 @@ Atuin applies its configured history and secret filters. Even so, do not put sec
 Profile behavior lives in [`.chezmoiignore`](.chezmoiignore). Skill membership lives in [`.chezmoidata.toml`](.chezmoidata.toml):
 
 - `personal`: shared skills.
-- `work`: shared and work skills.
+- `work`: shared and work skills, plus `akkio-helpers/` and the Linear window-rename Pi extension.
 
 Pi subagent prompts are shared across profiles, but their model and reasoning settings are rendered per profile from `dot_pi/agent/agents/*.md.tmpl`. Personal uses the OpenCode Go selections; work keeps the original xAI and OpenAI Codex selections.
 

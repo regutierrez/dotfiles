@@ -37,6 +37,7 @@ cd ~/.pi/agent && npm install
 | `extensions/sideshow-lazy-tools.ts` | Defers all Sideshow tools until `/skill:sideshow` is invoked |
 | `extensions/inline-skill-mentions/` | Prefix `@skill-name` as `/skill:name` while keeping the original prompt, extra mentions as `skill-context`, and `@` skill autocomplete |
 | `extensions/herdr-rename/` | `/herdr-rename` + `herdr_rename`: replace the Agents-panel `agent` token with `pi - <64-char comment>` (`$name2` wraps). GPT-5.6 Luna (low). Active only inside Herdr. |
+| `extensions/linear-window-rename/` | Work profile only. On the first prompt, rename a numbered Herdr tab (window) from `X` to `X: TRI-1234` when the prompt has a Linear issue id or linear.app URL. `X` is the 1-based window number inside the current space. |
 | `extensions/uv.ts` | Prefers `uv` via intercepted-commands |
 
 ## Edit often vs leave alone
@@ -45,6 +46,7 @@ cd ~/.pi/agent && npm install
 - `APPEND_SYSTEM.md`, `agent-tool-description.md`, `keybindings.json`, `btw.json`, `cloak.json`, `subagents.json`, `extensions/pi-autoresearch.json`
 - `extensions/btw/`
 - `extensions/herdr-rename/`
+- `extensions/linear-window-rename/`
 - `agents/*.md.tmpl`
 - `package.json` (when adding shared deps)
 

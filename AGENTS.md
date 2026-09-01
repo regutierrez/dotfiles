@@ -43,7 +43,7 @@ The supported profiles are `personal` and `work`. The selected value is stored u
 - Personal is used on macOS and on the Fedora gaming workstation.
 - Personal Fedora receives Kitty, Niri, DMS, and gaming packages.
 - Work is used on macOS.
-- Work alone receives the `work` skill group and `akkio-helpers/`.
+- Work alone receives the `work` skill group, `akkio-helpers/`, and the Linear window-rename Pi extension.
 
 Skill directories are allow-listed from groups in `.chezmoidata.toml`. Unclassified skills are ignored everywhere.
 
