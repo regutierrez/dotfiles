@@ -57,6 +57,7 @@ On Fedora, the bootstrap installs Node and Pi before `chezmoi apply`, so the
 Managed Amp plugins live under `dot_config/private_amp/plugins/` and apply to `~/.config/amp/plugins/`:
 
 - `atuin-history.ts` records commands run through Amp's shell tool in Atuin. Entries use `amp` as the author and include the Amp thread ID and title as intent. Atuin supplies the timestamp, working directory, hostname, exit code, and duration.
+- `herdr-runner-label.ts` shows Herdr-managed Amp runners as `amp (runner) - N threads`, using Amp's live runner thread count.
 - `plannotator.ts` adds Plannotator command-palette actions (review, annotate file, annotate last answer). It needs the `plannotator` CLI on `PATH` (for example `~/.local/bin/plannotator` from the upstream installer).
 
 After apply, run `plugins: reload` in Amp or restart Amp.
