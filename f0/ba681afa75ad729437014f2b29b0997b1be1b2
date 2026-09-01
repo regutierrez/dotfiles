@@ -1,0 +1,19 @@
+.chezmoitemplates/karabiner-personal.json
+  s_04b605c8b97343::t_339275c1575d5d 8,13-16,20-23,26,28-31,34,36,47-53,58,81-85,96,108-112,123,136-140,151,163-167,178,190-194,205,217-221,232,244-248,259,271-275,286,298-302,313,325-329,340,352-356,367,380-384,395,407-411,422,434-438,449,461-465,476,488-492,503,515-519,530
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f0ba681afa75ad729437014f2b29b0997b1be1b2",
+  "prompts": {},
+  "sessions": {
+    "s_04b605c8b97343": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a05ce6-a767-7fb3-884e-a0b104506188",
+        "model": "grok-4.6"
+      },
+      "human_author": "regutierrez <rpegutierrez@gmail.com>"
+    }
+  }
+}
