@@ -6,6 +6,6 @@
   "outputTranscript": false,
   "rememberAgents": true,
   "schedulingEnabled": false,
-  "toolDescriptionMode": "compact",
+  "toolDescriptionMode": "custom",
   "worktreeIsolation": false
 }

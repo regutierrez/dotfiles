@@ -12,6 +12,7 @@ cd ~/.pi/agent && npm install
 | Path | Role |
 |---|---|
 | `APPEND_SYSTEM.md` | Global prompt addendum |
+| `agent-tool-description.md` | Custom Tintinweb Agent tool prompt (`toolDescriptionMode: custom`) |
 | `keybindings.json` | Pi TUI keybindings |
 | `btw.json` | Optional BTW model/thinking overrides |
 | `cloak.json` | Secret-masking patterns for `pi-cloak` |
@@ -42,7 +43,7 @@ cd ~/.pi/agent && npm install
 ## Edit often vs leave alone
 
 **Edit often (hot):**
-- `APPEND_SYSTEM.md`, `keybindings.json`, `btw.json`, `cloak.json`, `subagents.json`, `extensions/pi-autoresearch.json`
+- `APPEND_SYSTEM.md`, `agent-tool-description.md`, `keybindings.json`, `btw.json`, `cloak.json`, `subagents.json`, `extensions/pi-autoresearch.json`
 - `extensions/btw/`
 - `extensions/herdr-rename/`
 - `agents/*.md.tmpl`
