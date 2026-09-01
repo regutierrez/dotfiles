@@ -24,19 +24,24 @@ Before continuing:
 5. Immediately perform the next unfinished step. Do not stop after the recap and do not ask the user to repeat prior context unless the session data is genuinely unavailable or ambiguous.`;
 };
 
-/** Automatically resumes work after compaction when Pi is not already retrying the turn. */
+/**
+ * Automatically resumes work after every successful Pi compaction.
+ *
+ * The continuation is deferred by one event-loop turn so manual compaction can
+ * finish reconnecting the agent runtime before a new prompt begins. During an
+ * active automatic-compaction recovery, it is delivered as steering so the
+ * continuation is read before the retried agent performs more work.
+ */
 export default function continueAfterCompaction(pi: ExtensionAPI): void {
 	const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
 
 	pi.on("session_compact", (event, ctx) => {
-		if (event.willRetry) return;
-
 		const sessionFile = ctx.sessionManager.getSessionFile();
 		const prompt = buildContinuationPrompt(sessionFile, event.compactionEntry.id);
 
 		const timer = setTimeout(() => {
 			pendingTimers.delete(timer);
-			pi.sendUserMessage(prompt, { deliverAs: "followUp" });
+			pi.sendUserMessage(prompt, { deliverAs: "steer" });
 		}, 0);
 
 		pendingTimers.add(timer);
