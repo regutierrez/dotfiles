@@ -63,6 +63,20 @@ func TestCompactsWindowNumbersAfterClose(t *testing.T) {
 	})
 }
 
+func TestTabStampsForWindowNumbersRewritesMatchingLabels(t *testing.T) {
+	tabs := ParseHerdrTabWindows([]byte(`{"tabs":[
+		{"tab_id":"w2N:t1","label":"1 processes"},
+		{"tab_id":"w2N:t19","label":"2"}
+	]}`))
+	if got := TabRenamesForWindowNumbers(tabs); len(got) != 0 {
+		t.Fatalf("matching labels should not rename, got %#v", got)
+	}
+	assertTabs(t, TabStampsForWindowNumbers(tabs), []HerdrTabWindow{
+		{TabID: "w2N:t1", Label: "1 processes"},
+		{TabID: "w2N:t19", Label: "2"},
+	})
+}
+
 func TestWorkspaceIDsForWindowNumberEvent(t *testing.T) {
 	got := ParseHerdrWorkspaceIDs([]byte(`{"workspaces":[{"workspace_id":"w2N"},{"workspace_id":"w2K"}]}`))
 	if len(got) != 2 || got[0] != "w2N" || got[1] != "w2K" {
@@ -82,6 +96,14 @@ func TestWorkspaceIDsForWindowNumberEvent(t *testing.T) {
 	ids = WorkspaceIDsForWindowNumberEvent("tab.created", []byte(`{"type":"tab_created","tab":{"tab_id":"w2K:t8","workspace_id":"w2K"}}`), "")
 	if len(ids) != 1 || ids[0] != "w2K" {
 		t.Fatalf("got %#v", ids)
+	}
+	ids, tabID := WindowNumberEventTargets("pane.closed", []byte(`{"event":"pane_closed","data":{"type":"pane_closed","pane_id":"w2N:p1","workspace_id":"w2N"}}`), "")
+	if len(ids) != 1 || ids[0] != "w2N" || tabID != "" {
+		t.Fatalf("envelope pane.closed got ids=%#v tab=%q", ids, tabID)
+	}
+	ids, tabID = WindowNumberEventTargets("tab.created", []byte(`{"event":"tab_created","data":{"type":"tab_created","tab":{"tab_id":"w2K:t8","workspace_id":"w2K"}}}`), "")
+	if len(ids) != 1 || ids[0] != "w2K" || tabID != "w2K:t8" {
+		t.Fatalf("envelope tab.created got ids=%#v tab=%q", ids, tabID)
 	}
 }
 

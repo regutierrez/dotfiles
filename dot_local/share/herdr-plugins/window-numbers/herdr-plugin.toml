@@ -1,6 +1,6 @@
 id = "dotfiles.window-numbers"
 name = "Window Numbers"
-version = "0.2.0"
+version = "0.3.0"
 min_herdr_version = "0.8.0"
 description = "Prepend the space-local window number to every Herdr tab (window) name"
 platforms = ["linux", "macos"]
@@ -20,6 +20,10 @@ command = ["./window-numbers"]
 
 [[events]]
 on = "tab.closed"
+command = ["./window-numbers"]
+
+[[events]]
+on = "pane.closed"
 command = ["./window-numbers"]
 
 [[events]]
