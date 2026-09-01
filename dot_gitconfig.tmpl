@@ -16,9 +16,6 @@
 	pager = {{ if eq .profile "work" }}hunk pager{{ else }}delta{{ end }}
 [delta]
 	syntax-theme = {{ if eq .chezmoi.os "darwin" }}Catppuccin Frappe{{ else }}gruvbox-dark{{ end }}
-[trace2]
-	eventTarget = af_unix:stream:{{ .chezmoi.homeDir }}/.git-ai/internal/daemon/trace2.sock
-	eventNesting = 0
 
 [url "https://github.com/regutierrez/"]
 	insteadOf = git@github.com:regutierrez/

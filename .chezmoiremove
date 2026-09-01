@@ -75,3 +75,5 @@ bin/agent-sessions-picker
 .pi/agent/_mcp.json
 .pi/agent/git/github.com/fitchmultz
 .pi/agent/git/github.com/regutierrez/pi-herdr-subagents
+.config/amp/plugins/git-ai.ts
+.pi/agent/extensions/git-ai.ts
