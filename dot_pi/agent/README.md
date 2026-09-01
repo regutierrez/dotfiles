@@ -32,12 +32,11 @@ cd ~/.pi/agent && npm install
 | `extensions/cd.ts` | `/cd` move the session to another directory (fork + switch) with autocomplete |
 | `extensions/context.ts` | Context helpers |
 | `extensions/continue-after-compaction.ts` | Resume after compaction |
-| `extensions/git-ai.ts` | Git AI helpers |
 | `extensions/loop.ts` | Loop / iteration helper |
 | `extensions/review.ts` | Review UI extension |
 | `extensions/sideshow-lazy-tools.ts` | Defers all Sideshow tools until `/skill:sideshow` is invoked |
 | `extensions/inline-skill-mentions/` | Prefix `@skill-name` as `/skill:name` while keeping the original prompt, extra mentions as `skill-context`, and `@` skill autocomplete |
-| `extensions/herdr-rename/` | Mirror Pi's native session name in Herdr as `pi - <session name>`; unnamed sessions show `pi` |
+| `extensions/herdr-rename/` | `/herdr-rename` + `herdr_rename`: replace the Agents-panel `agent` token with `pi - <64-char comment>` (`$name2` wraps). GPT-5.6 Luna (low). Active only inside Herdr. |
 | `extensions/uv.ts` | Prefers `uv` via intercepted-commands |
 
 ## Edit often vs leave alone
@@ -53,7 +52,7 @@ cd ~/.pi/agent && npm install
 - `extensions/pi-multi-pass/` (local Pi 0.84 compat fork of `pi-multi-pass`; upstream npm package is broken on current Pi)
 - `extensions/web-tools/` (vendored; has its own `package.json` + tests)
 - `extensions/pi-cloak/` (vendored from [dmmulroy/.dotfiles](https://github.com/dmmulroy/.dotfiles); edit `cloak.json` for patterns)
-- Large single-file extensions: `review.ts`, `loop.ts`, `context.ts`, `git-ai.ts`, `atuin.ts`, `uv.ts`
+- Large single-file extensions: `review.ts`, `loop.ts`, `context.ts`, `atuin.ts`, `uv.ts`
 
 ## Secret masking (`pi-cloak`)
 
