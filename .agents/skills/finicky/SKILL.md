@@ -77,6 +77,7 @@ Gotchas:
 - The query param rides along to the server. If the target rejects unknown params or uses signed URLs, use a fragment (`#finicky_dest_space=…`) instead — ATC still matches, server never sees it.
 - Do all complex logic (opener, path matches, negation) in finicky. ATC's `contains` / `is equal to` has no documented precedence and no negation.
 - Keep the `searchParams.has(...)` guard in `tagSpace` — safe whether finicky's `rewrite` array is first-match-wins or run-all-matches.
+- Use `forceTagSpace` when a host must overwrite an existing `finicky_dest_space` (Linear does this so copied Work-tagged issue URLs still open in Akkio). The catch-all `tagSpace("work")` still will not clobber it.
 
 ## Firefox / Zen Containers (not profiles)
 

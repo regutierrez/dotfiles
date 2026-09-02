@@ -20,6 +20,13 @@ const tagSpace = (space) => (url) => {
   return url;
 };
 
+// Linear (and similar) links copied from Arc can already carry work/horizon.
+// Overwrite so Akkio always wins for those hosts.
+const forceTagSpace = (space) => (url) => {
+  url.searchParams.set("finicky_dest_space", space);
+  return url;
+};
+
 // Same marker as tagSpace, but in the fragment so signed/query-sensitive URLs
 // still match Arc ATC without changing search params the server sees.
 const tagSpaceInHash = (space) => (url) => {
@@ -259,11 +266,11 @@ export default {
       // Linear links clicked in the Slack desktop app.
       match: (url, { opener }) =>
         isSlackAppOpener(opener) && isLinearHost(url.hostname),
-      url: tagSpace("akkio"),
+      url: forceTagSpace("akkio"),
     },
     {
       match: ["linear.app", "linear.app/*", "*.linear.app/*"],
-      url: tagSpace("akkio"),
+      url: forceTagSpace("akkio"),
     },
     {
       match: ["slack.com", "slack.com/*", "*.slack.com/*"],
