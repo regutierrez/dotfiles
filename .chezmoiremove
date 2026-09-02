@@ -62,6 +62,7 @@
 .pi/agent/extensions/btw.ts
 .pi/agent/extensions/package.json
 .pi/agent/extensions/test/btw.test.ts
+.pi/agent/extensions/subagents-lazy-tools.test.ts
 .local/share/applications/caps-launch-discord.desktop
 .local/share/applications/caps-launch-ghostty.desktop
 .local/share/applications/caps-launch-helium.desktop
