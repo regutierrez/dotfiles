@@ -1,13 +1,14 @@
 /**
- * `/herdr-rename` and `herdr_rename` set the Herdr Agents-panel display-agent
- * comment. Default model is GPT-5.6 Luna with low reasoning. No-op outside Herdr.
+ * `/herdr-rename` sets the Herdr Agents-panel display-agent comment.
+ * Auto-renames on the first TUI prompt. No LLM tool, so the model cannot
+ * call herdr_rename mid-session. Default model is GPT-5.6 Luna with low
+ * reasoning. No-op outside Herdr.
  */
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { UserMessage } from "@earendil-works/pi-ai";
 import { complete } from "@earendil-works/pi-ai/compat";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
 import {
 	buildHerdrDisplayAgentReportArgs,
 	clipHerdrRenamePrompt,
@@ -69,46 +70,6 @@ export default function herdrRenameExtension(pi: ExtensionAPI): void {
 			}
 			autoRenamedThisSession = true;
 			await renameHerdrDisplayAgent({ ctx, notify: true });
-		},
-	});
-
-	pi.registerTool({
-		name: "herdr_rename",
-		label: "Herdr rename",
-		description:
-			"Set the Herdr Agents-panel display name for this pane. Call after the user task is clear. Omit comment to summarize the latest user prompt with GPT-5.6 Luna (low reasoning). Only works inside a Herdr session.",
-		parameters: Type.Object({
-			comment: Type.Optional(
-				Type.String({
-					description:
-						"Literal Agents-panel comment, at most 64 characters. Omit to summarize the latest user prompt.",
-				}),
-			),
-			clear: Type.Optional(
-				Type.Boolean({
-					description: "Clear the display-agent comment and show `pi` again.",
-				}),
-			),
-		}),
-		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-			if (params.clear) {
-				autoRenamedThisSession = true;
-				const result = await clearHerdrDisplayAgent(ctx);
-				return {
-					content: [{ type: "text", text: result }],
-					details: { action: "clear" },
-				};
-			}
-			autoRenamedThisSession = true;
-			const result = await renameHerdrDisplayAgent({
-				ctx,
-				comment: typeof params.comment === "string" ? params.comment : undefined,
-				notify: false,
-			});
-			return {
-				content: [{ type: "text", text: result }],
-				details: { action: "set" },
-			};
 		},
 	});
 }
