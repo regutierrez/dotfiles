@@ -112,9 +112,43 @@ const asUrl = (s) => {
   }
 };
 
+// M365 / Teams / Office / Entra → Horizon. Covers Teams Safe Links CDNs
+// (teams.public.onecdn.static.microsoft, statics.teams.cdn.office.net).
+// Not GitHub, LinkedIn, Xbox, or Bing.
+const MICROSOFT_HOSTS = new Set(["aka.ms", "1drv.ms"]);
+const MICROSOFT_HOST_SUFFIXES = [
+  ".microsoft.com",
+  ".microsoft",
+  ".microsoftonline.com",
+  ".microsoftonline-p.com",
+  ".microsoft365.com",
+  ".office.com",
+  ".office.net",
+  ".office365.com",
+  ".sharepoint.com",
+  ".outlook.com",
+  ".onedrive.com",
+  ".live.com",
+  ".msftauth.net",
+  ".msauth.net",
+  ".svc.ms",
+  ".windows.net",
+  ".onmicrosoft.com",
+  ".powerbi.com",
+  ".dynamics.com",
+];
+const isMicrosoftHost = (hostname) => {
+  const h = hostname.toLowerCase();
+  if (MICROSOFT_HOSTS.has(h)) return true;
+  return MICROSOFT_HOST_SUFFIXES.some(
+    (suffix) => h === suffix.slice(1) || h.endsWith(suffix),
+  );
+};
+
 const isHorizonUrl = (s) => {
   const u = asUrl(s);
   if (u && isGithubOrg(["HorizonMedia"])(u)) return true;
+  if (u && isMicrosoftHost(u.hostname)) return true;
   return /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/i.test(s);
 };
 
@@ -162,6 +196,10 @@ export default {
     },
     {
       match: ["hminc.sharepoint.com/*", "hminc-my.sharepoint.com/*"],
+      url: tagSpace("horizon"),
+    },
+    {
+      match: (url) => isMicrosoftHost(url.hostname),
       url: tagSpace("horizon"),
     },
     {
