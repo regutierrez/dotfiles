@@ -94,12 +94,6 @@ const slackTargetUri = (url) => {
   } catch { return null; }
 };
 
-const isHorizonUrl = (s) =>
-  /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|github\.com\/HorizonMedia|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/i.test(s);
-
-const isAkkioUrl = (s) =>
-  /^https?:\/\/(akkio\.awsapps\.com|github\.com\/akkio-inc|blu\.sky\.horizonmedia\.com|([a-z0-9-]+\.)*linear\.app)/i.test(s);
-
 // github.com/<org> and github.com/<org>/... — trailing slash and case-insensitive.
 const isGithubOrg = (orgs) => {
   const set = new Set(orgs.map((org) => org.toLowerCase()));
@@ -108,6 +102,26 @@ const isGithubOrg = (orgs) => {
     const org = url.pathname.split("/").filter(Boolean)[0];
     return Boolean(org && set.has(org.toLowerCase()));
   };
+};
+
+const asUrl = (s) => {
+  try {
+    return new URL(s);
+  } catch {
+    return null;
+  }
+};
+
+const isHorizonUrl = (s) => {
+  const u = asUrl(s);
+  if (u && isGithubOrg(["HorizonMedia"])(u)) return true;
+  return /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/i.test(s);
+};
+
+const isAkkioUrl = (s) => {
+  const u = asUrl(s);
+  if (u && isGithubOrg(["akkio-inc"])(u)) return true;
+  return /^https?:\/\/(akkio\.awsapps\.com|blu\.sky\.horizonmedia\.com|([a-z0-9-]+\.)*linear\.app)/i.test(s);
 };
 
 export default {
@@ -190,6 +204,17 @@ export default {
         const t = slackTargetUri(url);
         return t && isAkkioUrl(t);
       },
+      url: tagSpace("akkio"),
+    },
+    {
+      // GitHub org links clicked in the Slack desktop app (no slack-redir wrapper).
+      match: (url, { opener }) =>
+        isSlackAppOpener(opener) && isGithubOrg(["HorizonMedia"])(url),
+      url: tagSpace("horizon"),
+    },
+    {
+      match: (url, { opener }) =>
+        isSlackAppOpener(opener) && isGithubOrg(["akkio-inc"])(url),
       url: tagSpace("akkio"),
     },
     {
