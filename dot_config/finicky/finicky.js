@@ -98,7 +98,7 @@ const isHorizonUrl = (s) =>
   /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|github\.com\/HorizonMedia|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/i.test(s);
 
 const isAkkioUrl = (s) =>
-  /^https?:\/\/(akkio\.awsapps\.com|github\.com\/(Akkio|akkio-inc)|blu\.sky\.horizonmedia\.com|([a-z0-9-]+\.)*linear\.app)/i.test(s);
+  /^https?:\/\/(akkio\.awsapps\.com|github\.com\/akkio-inc|blu\.sky\.horizonmedia\.com|([a-z0-9-]+\.)*linear\.app)/i.test(s);
 
 // github.com/<org> and github.com/<org>/... — trailing slash and case-insensitive.
 const isGithubOrg = (orgs) => {
@@ -139,7 +139,7 @@ export default {
       url: tagSpace("horizon"),
     },
     {
-      match: isGithubOrg(["Akkio", "akkio-inc"]),
+      match: isGithubOrg(["akkio-inc"]),
       url: tagSpace("akkio"),
     },
     {
