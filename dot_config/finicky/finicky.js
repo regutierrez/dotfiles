@@ -20,6 +20,15 @@ const tagSpace = (space) => (url) => {
   return url;
 };
 
+// Same marker as tagSpace, but in the fragment so signed/query-sensitive URLs
+// still match Arc ATC without changing search params the server sees.
+const tagSpaceInHash = (space) => (url) => {
+  if (url.hash.includes("finicky_dest_space=")) return url;
+  const marker = `finicky_dest_space=${space}`;
+  url.hash = url.hash ? `${url.hash}&${marker}` : marker;
+  return url;
+};
+
 // From ~/.aws/sso/cache client registrations (clientName botocore-client-*).
 // Refresh these if aws sso login opens the wrong Arc profile after a re-register.
 const HORIZON_SSO_CLIENT_IDS = new Set([
@@ -86,18 +95,32 @@ const slackTargetUri = (url) => {
 };
 
 const isHorizonUrl = (s) =>
-  /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|github\.com\/HorizonMedia|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/.test(s);
+  /^https?:\/\/(spirehorizon\.atlassian\.net|bitbucket\.org\/horizonspireteam|github\.com\/HorizonMedia|blu\.sky\.horizonmedia\.com\/(?!ratings-chat)|hminc(-my)?\.sharepoint\.com|([a-z0-9-]+\.)*datadoghq\.com)/i.test(s);
 
 const isAkkioUrl = (s) =>
-  /^https?:\/\/(akkio\.awsapps\.com|github\.com\/akkio-inc|blu\.sky\.horizonmedia\.com|([a-z0-9-]+\.)*linear\.app)/.test(s);
+  /^https?:\/\/(akkio\.awsapps\.com|github\.com\/(Akkio|akkio-inc)|blu\.sky\.horizonmedia\.com|([a-z0-9-]+\.)*linear\.app)/i.test(s);
+
+// github.com/<org> and github.com/<org>/... — trailing slash and case-insensitive.
+const isGithubOrg = (orgs) => {
+  const set = new Set(orgs.map((org) => org.toLowerCase()));
+  return (url) => {
+    if (url.hostname !== "github.com" && url.hostname !== "www.github.com") return false;
+    const org = url.pathname.split("/").filter(Boolean)[0];
+    return Boolean(org && set.has(org.toLowerCase()));
+  };
+};
 
 export default {
   defaultBrowser: "Arc",
   rewrite: [
-    // OpenVPN links belong to the Akkio Arc Space.
+    // OpenVPN Cloud / CloudConnexa webauth is https://*.openvpn.com, not openvpn:.
+    // Extra query params can break signed connect URLs, so tag in the fragment.
     {
-      match: (url) => url.protocol === "openvpn:",
-      url: tagSpace("akkio"),
+      match: (url) =>
+        url.protocol === "openvpn:" ||
+        url.hostname === "openvpn.com" ||
+        url.hostname.endsWith(".openvpn.com"),
+      url: tagSpaceInHash("akkio"),
     },
     {
       match: "blu.sky.horizonmedia.com/ratings-chat/*",
@@ -112,11 +135,11 @@ export default {
       url: tagSpace("horizon"),
     },
     {
-      match: ["github.com/HorizonMedia", "github.com/HorizonMedia/*"],
+      match: isGithubOrg(["HorizonMedia"]),
       url: tagSpace("horizon"),
     },
     {
-      match: ["github.com/akkio-inc", "github.com/akkio-inc/*"],
+      match: isGithubOrg(["Akkio", "akkio-inc"]),
       url: tagSpace("akkio"),
     },
     {
