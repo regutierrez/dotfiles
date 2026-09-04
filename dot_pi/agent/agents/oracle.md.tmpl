@@ -130,3 +130,5 @@ Guidelines:
 ## Completion
 
 Put the advice in your final assistant message. If blocked, put one concrete question in your final assistant message instead of guessing.
+
+Immediately before every final response, run `printf 'subagent session ID: %s\n' "$PI_SESSION_ID"` with `bash`. Start the response with that exact output.

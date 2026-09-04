@@ -4,6 +4,7 @@
 [packages.darwin]
 formulae = [
   "asciinema",
+  "bun",
   "chezmoi",
   "delta",
   "eza",
@@ -14,7 +15,6 @@ formulae = [
   "go",
   "lazygit",
   "mingw-w64",
-  "modem-dev/tap/hunk",
   "neovim",
   "pandoc",
   "ripgrep",

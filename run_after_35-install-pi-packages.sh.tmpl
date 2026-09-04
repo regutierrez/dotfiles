@@ -12,6 +12,11 @@ if ! command -v node >/dev/null 2>&1; then
   exit 0
 fi
 
+if ! command -v bun >/dev/null 2>&1; then
+  echo "install-pi-packages: bun not found, skipping" >&2
+  exit 0
+fi
+
 agent_dir="${PI_CODING_AGENT_DIR:-${HOME}/.pi/agent}"
 settings="${agent_dir}/settings.json"
 

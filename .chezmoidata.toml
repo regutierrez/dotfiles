@@ -13,7 +13,6 @@ shared = [
   "grilling",
   "handoff",
   "herdr",
-  "implement",
   "improve-codebase-architecture",
   "init-deep",
   "install-anti-slop",

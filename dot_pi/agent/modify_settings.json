@@ -4,6 +4,8 @@
 {{-   $data = fromJson .chezmoi.stdin -}}
 {{- end -}}
 {{- $data = $data | setValueAtPath "doubleEscapeAction" "none" -}}
+{{- /* Use Bun for Pi-managed npm and git package operations. */ -}}
+{{- $data = $data | setValueAtPath "npmCommand" (list "bun") -}}
 {{- /* Drop npm:sideshow's bundled skill so the local override can own the name. */ -}}
 {{- if hasKey $data "packages" -}}
 {{-   $packages := list -}}

@@ -13,7 +13,7 @@
 	email = pael@akkio.com
 {{ end }}
 [core]
-	pager = {{ if eq .profile "work" }}hunk pager{{ else }}delta{{ end }}
+	pager = delta
 [delta]
 	syntax-theme = {{ if eq .chezmoi.os "darwin" }}Catppuccin Frappe{{ else }}gruvbox-dark{{ end }}
 

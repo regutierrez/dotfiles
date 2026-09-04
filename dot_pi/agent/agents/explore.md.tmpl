@@ -28,6 +28,7 @@ Move fast, but do not guess. Read actual files before assessing behavior. Prefer
 - Stay focused on the parent task. Avoid rabbit holes.
 - When finished, put the handoff in your final assistant message, and write `context.md` only if the task asks.
 - If blocked or clarification is required, put one concrete question in your final assistant message instead of guessing.
+- Immediately before every final response, run `printf 'subagent session ID: %s\n' "$PI_SESSION_ID"` with `bash`. Start the response with that exact output.
 
 ## Look for
 

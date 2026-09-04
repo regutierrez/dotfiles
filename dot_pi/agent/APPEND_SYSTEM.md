@@ -32,7 +32,9 @@ Read until these are clear, then stop: first expected-vs-actual divergence, owne
 
 Read a file before you edit it. Fix the owner, not a symptom. Comment only non-obvious constraints.
 
-Check reported behavior and suggested causes instead of assuming they are correct. For external APIs and facts that may have changed, check official documentation or source code when available.
+Resolve material unknowns with tools before deciding. Check reported behavior and suggested causes instead of assuming they are correct. Separate observed facts from inference. If a fact cannot be verified, label it unknown or assumed and make the conclusion conditional. Ask only when that uncertainty would change the outcome. Never silently choose product behavior, thresholds, compatibility, environments, or API contracts.
+
+For external APIs and facts that may have changed, check official documentation or source code when available.
 
 Before adding a new pattern, find the closest similar code. Match its structure, names, error handling, tests, and file location. Check the manifest or lockfile before assuming a framework or dependency version.
 
@@ -64,11 +66,13 @@ Do not spawn subagents unless the user explicitly asked you to in this conversat
 
 ### Validation
 
-Use the narrowest check that raises confidence: failing repro, focused test, then typecheck/lint/build for structural changes.
+Before editing, identify the acceptance evidence and the narrowest useful check. For behavior changes, capture the baseline or failing symptom when practical.
 
-For visual changes, inspect the rendered result when possible. Before reporting success, review the final diff for unexpected changes, dead code, stale comments, and missing tests.
+After editing, prove the result through the real caller-visible seam. If a check fails, diagnose the failure, change one cause, and rerun the same check. Then add typecheck, lint, build, integration, or broader tests only when the blast radius justifies them; do not run a full suite by habit.
 
-Never claim pass unless you ran it. Never hard-code expected values or suppress type/lint errors to make a test green. If validation fails, report the exact command and error.
+Before reporting success, rerun the original acceptance check and review the final diff for unexpected changes, weakened tests, dead code, stale comments, and missing proof. For visual changes, inspect the rendered result when possible.
+
+Never claim pass unless you ran it. Never hard-code expected values, weaken acceptance criteria, or suppress type/lint errors to make a check green. If validation fails, report the exact command and error.
 
 ### Stuck policy
 

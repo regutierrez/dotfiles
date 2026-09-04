@@ -2,32 +2,35 @@
  * Loop Extension
  *
  * Provides a /loop command that starts a follow-up loop with a breakout condition.
- * The loop keeps sending a prompt on turn end until the agent calls the
- * signal_loop_success tool.
+ * The loop sends a prompt on turn end until the agent calls the
+ * signal_loop_success tool or the configured turn budget is exhausted.
  */
 
-import { Type } from "@sinclair/typebox";
-import { complete, type Api, type Model, type UserMessage } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
+import { complete } from "@earendil-works/pi-ai/compat";
+import type { Api, Model, UserMessage } from "@earendil-works/pi-ai";
+import { providerHeadersToRecord } from "@earendil-works/pi-ai/utils/headers";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { compact } from "@earendil-works/pi-coding-agent";
 import { Container, type SelectItem, SelectList, Text } from "@earendil-works/pi-tui";
 import { DynamicBorder } from "@earendil-works/pi-coding-agent";
 
-type LoopMode = "tests" | "custom" | "self";
+type LoopMode = "tests" | "custom";
 
 type LoopStateData = {
 	active: boolean;
 	mode?: LoopMode;
 	condition?: string;
+	validationCommand?: string;
+	maxTurns?: number;
 	prompt?: string;
 	summary?: string;
 	loopCount?: number;
 };
 
 const LOOP_PRESETS = [
-	{ value: "tests", label: "Until tests pass", description: "" },
-	{ value: "custom", label: "Until custom condition", description: "" },
-	{ value: "self", label: "Self driven (agent decides)", description: "" },
+	{ value: "tests", label: "Until exact check passes", description: "(command + turn budget)" },
+	{ value: "custom", label: "Until custom condition", description: "(proof command + turn budget)" },
 ] as const;
 
 const LOOP_STATE_ENTRY = "loop-state";
@@ -42,46 +45,52 @@ Form should be "breaks when ...", "loops until ...", "stops on ...", "runs until
 Use the best form that makes sense for the loop condition.
 `;
 
-function buildPrompt(mode: LoopMode, condition?: string): string {
+function buildPrompt(
+	mode: LoopMode,
+	validationCommand: string,
+	maxTurns: number,
+	condition?: string,
+): string {
+	const proofInstructions =
+		`Use this exact validation command as proof; do not substitute a different or broader command:\n${validationCommand}\n\n` +
+		"Before signaling success, run that command, rerun any separate original symptom or acceptance check, " +
+		"and inspect the final diff for weakened, skipped, or deleted tests. Do not change expected behavior or tests merely to get a pass. " +
+		`This loop stops after ${maxTurns} assistant turns if success is not signaled.`;
+
 	switch (mode) {
 		case "tests":
 			return (
-				"Run all tests. If they are passing, call the signal_loop_success tool. " +
-				"Otherwise continue until the tests pass."
+				`${proofInstructions}\n\n` +
+				"Call the signal_loop_success tool only after the command exits successfully and the final checks are complete. " +
+				"Otherwise continue only while the next step can change the result."
 			);
 		case "custom": {
 			const customCondition = condition?.trim() || "the custom condition is satisfied";
 			return (
-				`Continue until the following condition is satisfied: ${customCondition}. ` +
-				"When it is satisfied, call the signal_loop_success tool."
+				`Continue only while the next step can satisfy this condition: ${customCondition}.\n\n${proofInstructions}\n\n` +
+				"Call the signal_loop_success tool only when both the condition and proof are satisfied."
 			);
 		}
-		case "self":
-			return "Continue until you are done. When finished, call the signal_loop_success tool.";
 	}
 }
 
 function summarizeCondition(mode: LoopMode, condition?: string): string {
 	switch (mode) {
 		case "tests":
-			return "tests pass";
+			return "validation passes";
 		case "custom": {
 			const summary = condition?.trim() || "custom condition";
 			return summary.length > 48 ? `${summary.slice(0, 45)}...` : summary;
 		}
-		case "self":
-			return "done";
 	}
 }
 
 function getConditionText(mode: LoopMode, condition?: string): string {
 	switch (mode) {
 		case "tests":
-			return "tests pass";
+			return "validation passes";
 		case "custom":
 			return condition?.trim() || "custom condition";
-		case "self":
-			return "you are done";
 	}
 }
 
@@ -95,14 +104,14 @@ async function selectSummaryModel(
 		if (haikuModel) {
 			const auth = await ctx.modelRegistry.getApiKeyAndHeaders(haikuModel);
 			if (auth.ok && auth.apiKey) {
-				return { model: haikuModel, apiKey: auth.apiKey, headers: auth.headers };
+				return { model: haikuModel, apiKey: auth.apiKey, headers: providerHeadersToRecord(auth.headers) };
 			}
 		}
 	}
 
 	const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
 	if (!auth.ok || !auth.apiKey) return null;
-	return { model: ctx.model, apiKey: auth.apiKey, headers: auth.headers };
+	return { model: ctx.model, apiKey: auth.apiKey, headers: providerHeadersToRecord(auth.headers) };
 }
 
 async function summarizeBreakoutCondition(
@@ -142,9 +151,36 @@ async function summarizeBreakoutCondition(
 	return summary.length > 60 ? `${summary.slice(0, 57)}...` : summary;
 }
 
-function getCompactionInstructions(mode: LoopMode, condition?: string): string {
-	const conditionText = getConditionText(mode, condition);
-	return `Loop active. Breakout condition: ${conditionText}. Preserve this loop state and breakout condition in the summary.`;
+function getCompactionInstructions(state: LoopStateData): string {
+	const conditionText = state.mode ? getConditionText(state.mode, state.condition) : "unknown";
+	return (
+		`Loop active. Breakout condition: ${conditionText}. ` +
+		`Validation command: ${state.validationCommand ?? "missing"}. ` +
+		`Turn budget: ${state.maxTurns ?? "missing"}. ` +
+		"Preserve this loop state, proof, and budget in the summary."
+	);
+}
+
+function parsePositiveInteger(value: string): number | null {
+	if (!/^\d+$/.test(value.trim())) return null;
+	const parsed = Number(value);
+	return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function isConfiguredLoop(state: LoopStateData): state is LoopStateData & {
+	mode: LoopMode;
+	validationCommand: string;
+	maxTurns: number;
+	prompt: string;
+} {
+	return Boolean(
+		state.active &&
+		state.mode &&
+		state.validationCommand?.trim() &&
+		state.maxTurns &&
+		state.maxTurns > 0 &&
+		state.prompt,
+	);
 }
 
 function updateStatus(ctx: ExtensionContext, state: LoopStateData): void {
@@ -154,7 +190,7 @@ function updateStatus(ctx: ExtensionContext, state: LoopStateData): void {
 		return;
 	}
 	const loopCount = state.loopCount ?? 0;
-	const turnText = `(turn ${loopCount})`;
+	const turnText = state.maxTurns ? `(turn ${loopCount}/${state.maxTurns})` : `(turn ${loopCount})`;
 	const summary = state.summary?.trim();
 	const text = summary
 		? `Loop active: ${summary} ${turnText}`
@@ -209,9 +245,21 @@ export default function loopExtension(pi: ExtensionAPI): void {
 	}
 
 	function triggerLoopPrompt(ctx: ExtensionContext): void {
-		const prompt = loopState.prompt;
-		if (!loopState.active || !loopState.mode || !prompt) return;
+		if (!isConfiguredLoop(loopState)) {
+			if (loopState.active) {
+				clearLoopState(ctx);
+				ctx.ui.notify("Loop stopped: missing proof command or turn budget", "warning");
+			}
+			return;
+		}
 		if (ctx.hasPendingMessages()) return;
+
+		if ((loopState.loopCount ?? 0) >= loopState.maxTurns) {
+			const maxTurns = loopState.maxTurns;
+			clearLoopState(ctx);
+			ctx.ui.notify(`Loop stopped after ${maxTurns} turns without success`, "warning");
+			return;
+		}
 
 		const loopCount = (loopState.loopCount ?? 0) + 1;
 		loopState = { ...loopState, loopCount };
@@ -221,7 +269,7 @@ export default function loopExtension(pi: ExtensionAPI): void {
 		pi.sendMessage(
 			{
 				customType: "loop",
-				content: prompt,
+				content: `${loopState.prompt}\n\nLoop turn ${loopCount} of ${loopState.maxTurns}.`,
 				display: true,
 			},
 			{
@@ -274,19 +322,49 @@ export default function loopExtension(pi: ExtensionAPI): void {
 
 		if (!selection) return null;
 
+		async function getValidationCommand(): Promise<string | null> {
+			const command = await ctx.ui.editor("Enter the exact validation command:", "");
+			return command?.trim() || null;
+		}
+
+		async function getMaxTurns(): Promise<number | null> {
+			const value = await ctx.ui.editor("Enter the maximum number of assistant turns:", "");
+			if (!value?.trim()) return null;
+			const maxTurns = parsePositiveInteger(value);
+			if (!maxTurns) {
+				ctx.ui.notify("Maximum turns must be a positive integer", "warning");
+			}
+			return maxTurns;
+		}
+
 		switch (selection) {
-			case "tests":
-				return { active: true, mode: "tests", prompt: buildPrompt("tests") };
-			case "self":
-				return { active: true, mode: "self", prompt: buildPrompt("self") };
+			case "tests": {
+				const validationCommand = await getValidationCommand();
+				if (!validationCommand) return null;
+				const maxTurns = await getMaxTurns();
+				if (!maxTurns) return null;
+				return {
+					active: true,
+					mode: "tests",
+					validationCommand,
+					maxTurns,
+					prompt: buildPrompt("tests", validationCommand, maxTurns),
+				};
+			}
 			case "custom": {
 				const condition = await ctx.ui.editor("Enter loop breakout condition:", "");
 				if (!condition?.trim()) return null;
+				const validationCommand = await getValidationCommand();
+				if (!validationCommand) return null;
+				const maxTurns = await getMaxTurns();
+				if (!maxTurns) return null;
 				return {
 					active: true,
 					mode: "custom",
 					condition: condition.trim(),
-					prompt: buildPrompt("custom", condition.trim()),
+					validationCommand,
+					maxTurns,
+					prompt: buildPrompt("custom", validationCommand, maxTurns, condition.trim()),
 				};
 			}
 			default:
@@ -296,27 +374,35 @@ export default function loopExtension(pi: ExtensionAPI): void {
 
 	function parseArgs(args: string | undefined): LoopStateData | null {
 		if (!args?.trim()) return null;
-		const parts = args.trim().split(/\s+/);
-		const mode = parts[0]?.toLowerCase();
-
-		switch (mode) {
-			case "tests":
-				return { active: true, mode: "tests", prompt: buildPrompt("tests") };
-			case "self":
-				return { active: true, mode: "self", prompt: buildPrompt("self") };
-			case "custom": {
-				const condition = parts.slice(1).join(" ").trim();
-				if (!condition) return null;
-				return {
-					active: true,
-					mode: "custom",
-					condition,
-					prompt: buildPrompt("custom", condition),
-				};
-			}
-			default:
-				return null;
+		const trimmed = args.trim();
+		const testsMatch = trimmed.match(/^tests\s+(\d+)\s+(.+)$/s);
+		if (testsMatch) {
+			const maxTurns = parsePositiveInteger(testsMatch[1] ?? "");
+			const validationCommand = testsMatch[2]?.trim();
+			if (!maxTurns || !validationCommand) return null;
+			return {
+				active: true,
+				mode: "tests",
+				validationCommand,
+				maxTurns,
+				prompt: buildPrompt("tests", validationCommand, maxTurns),
+			};
 		}
+
+		const customMatch = trimmed.match(/^custom\s+(\d+)\s+(.+?)\s+::\s+(.+)$/s);
+		if (!customMatch) return null;
+		const maxTurns = parsePositiveInteger(customMatch[1] ?? "");
+		const condition = customMatch[2]?.trim();
+		const validationCommand = customMatch[3]?.trim();
+		if (!maxTurns || !condition || !validationCommand) return null;
+		return {
+			active: true,
+			mode: "custom",
+			condition,
+			validationCommand,
+			maxTurns,
+			prompt: buildPrompt("custom", validationCommand, maxTurns, condition),
+		};
 	}
 
 	pi.registerTool({
@@ -342,12 +428,15 @@ export default function loopExtension(pi: ExtensionAPI): void {
 	});
 
 	pi.registerCommand("loop", {
-		description: "Start a follow-up loop until a breakout condition is met",
+		description: "Start a proof-driven follow-up loop with a turn budget",
 		handler: async (args, ctx) => {
 			let nextState = parseArgs(args);
 			if (!nextState) {
 				if (!ctx.hasUI) {
-					ctx.ui.notify("Usage: /loop tests | /loop custom <condition> | /loop self", "warning");
+					ctx.ui.notify(
+						"Usage: /loop tests <max-turns> <command> | /loop custom <max-turns> <condition> :: <command>",
+						"warning",
+					);
 					return;
 				}
 				nextState = await showLoopSelector(ctx);
@@ -407,8 +496,9 @@ export default function loopExtension(pi: ExtensionAPI): void {
 
 		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
 		if (!auth.ok || !auth.apiKey) return;
+		const headers = providerHeadersToRecord(auth.headers);
 
-		const instructionParts = [event.customInstructions, getCompactionInstructions(loopState.mode, loopState.condition)]
+		const instructionParts = [event.customInstructions, getCompactionInstructions(loopState)]
 			.filter(Boolean)
 			.join("\n\n");
 
@@ -417,7 +507,7 @@ export default function loopExtension(pi: ExtensionAPI): void {
 				event.preparation,
 				ctx.model,
 				auth.apiKey,
-				auth.headers,
+				headers,
 				instructionParts || undefined,
 				event.signal,
 			);
@@ -433,6 +523,11 @@ export default function loopExtension(pi: ExtensionAPI): void {
 
 	async function restoreLoopState(ctx: ExtensionContext): Promise<void> {
 		loopState = await loadState(ctx);
+		if (loopState.active && !isConfiguredLoop(loopState)) {
+			clearLoopState(ctx);
+			ctx.ui.notify("Previous loop cleared because it had no proof command or turn budget", "warning");
+			return;
+		}
 		updateStatus(ctx, loopState);
 
 		if (loopState.active && loopState.mode && !loopState.summary) {

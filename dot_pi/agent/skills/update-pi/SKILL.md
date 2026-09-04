@@ -10,48 +10,69 @@ Use this skill when the user asks to upgrade Pi itself.
 
 ## What this skill does
 
-1. Finds the latest Pi version from npm.
-2. Compares the global CLI version and updates it only if needed.
-3. Syncs `@earendil-works/pi-*` deps in the chezmoi source `~/.pi/agent/package.json` only if needed.
-4. Runs `bun install`, or falls back to `npm install` if `bun` is unavailable, in the chezmoi source only when `package.json` changed.
-5. Detects whether the live target `~/.pi/agent` has drift in managed files.
-6. Applies the updated source to the live target only when source changed or target drift exists.
-7. Runs `bun install`, or falls back to `npm install` if `bun` is unavailable, in the live target only when source changed or target drift exists.
-8. Verifies final versions and prints a small summary.
+1. Finds the latest Pi version from the npm registry through Bun.
+2. Compares the Bun-global CLI version and updates it only if needed.
+3. Syncs the shared `@earendil-works/pi-*` runtime deps and managed `bun.lock` in the chezmoi source.
+4. Refreshes source dependencies only when the manifest, lockfile, or installed runtime drifted.
+5. Detects whether the live target `~/.pi/agent` has managed-file or installed-runtime drift.
+6. Applies only the managed runtime files that drifted.
+7. Refreshes the live runtime with the frozen lockfile only when needed.
+8. Verifies the CLI, manifests, lockfile, installed packages, and audit result.
 
 ## Commands
 
 ```bash
 set -euo pipefail
 
-# 1) Resolve latest version once
-LATEST="$(npm view @earendil-works/pi-coding-agent version)"
-TARGET_RANGE="^${LATEST}"
 SOURCE_DIR="$(chezmoi source-path)/dot_pi/agent"
 TARGET_DIR="${HOME}/.pi/agent"
+BUN_INSTALL="${BUN_INSTALL:-${HOME}/.bun}"
+export BUN_INSTALL
+export PATH="${BUN_INSTALL}/bin:${PATH}"
+PI_BIN="${BUN_INSTALL}/bin/pi"
+
+for command_name in bun chezmoi node; do
+  if ! command -v "${command_name}" >/dev/null 2>&1; then
+    echo "Required command not found: ${command_name}" >&2
+    exit 1
+  fi
+done
+
+# 1) Resolve latest version once through Bun's registry client
+LATEST="$(cd "${SOURCE_DIR}" && bun pm view @earendil-works/pi-coding-agent version)"
+TARGET_RANGE="^${LATEST}"
 echo "Latest Pi version: ${LATEST}"
 echo "Source dir: ${SOURCE_DIR}"
 echo "Target dir: ${TARGET_DIR}"
 
-# 2) Update global CLI only when needed
-GLOBAL_CURRENT="$(npm list -g --depth=0 --json 2>/dev/null | node -e '
-const fs = require("fs");
-const input = fs.readFileSync(0, "utf8");
-let v = "";
-try {
-  const j = JSON.parse(input);
-  v = j.dependencies?.["@earendil-works/pi-coding-agent"]?.version || "";
-} catch {}
-process.stdout.write(v);
-')"
+# 2) Update the Bun-global CLI only when needed
+GLOBAL_CURRENT="$("${PI_BIN}" --version 2>/dev/null || true)"
 
 GLOBAL_UPDATED=no
 if [ "${GLOBAL_CURRENT}" != "${LATEST}" ]; then
-  echo "Updating global pi-coding-agent: ${GLOBAL_CURRENT:-<none>} -> ${LATEST}"
-  npm install -g "@earendil-works/pi-coding-agent@${LATEST}"
+  echo "Updating Bun-global pi-coding-agent: ${GLOBAL_CURRENT:-<none>} -> ${LATEST}"
+  bun add --global --ignore-scripts "@earendil-works/pi-coding-agent@${LATEST}"
+  if [ "$("${PI_BIN}" --version)" != "${LATEST}" ]; then
+    echo "Bun-global Pi smoke test did not return ${LATEST}" >&2
+    exit 1
+  fi
   GLOBAL_UPDATED=yes
 else
-  echo "Global pi-coding-agent already at ${LATEST}; skipping npm install -g"
+  echo "Bun-global pi-coding-agent already at ${LATEST}; skipping install"
+fi
+
+# Remove the retired npm-global Pi only after the Bun-global binary is proven.
+LEGACY_NPM_REMOVED=no
+LEGACY_NPM_PREFIX="${NPM_CONFIG_PREFIX:-${HOME}/.npm-global}"
+LEGACY_NPM_PACKAGE="${LEGACY_NPM_PREFIX}/lib/node_modules/@earendil-works/pi-coding-agent"
+if [ -d "${LEGACY_NPM_PACKAGE}" ]; then
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "Legacy npm-global Pi remains at ${LEGACY_NPM_PACKAGE}; npm is unavailable for cleanup" >&2
+    exit 1
+  fi
+  echo "Removing retired npm-global Pi installation"
+  npm --prefix "${LEGACY_NPM_PREFIX}" uninstall --global @earendil-works/pi-coding-agent
+  LEGACY_NPM_REMOVED=yes
 fi
 
 # 3) Sync chezmoi source Pi package versions only when drift exists
@@ -66,6 +87,7 @@ const deps = pkg.dependencies || {};
 const names = [
   "@earendil-works/pi-ai",
   "@earendil-works/pi-coding-agent",
+  "@earendil-works/pi-server",
   "@earendil-works/pi-tui"
 ];
 let changed = false;
@@ -82,68 +104,101 @@ if (changed) {
 process.stdout.write(changed ? "yes" : "no");
 ')"
 
-# 4) Choose package manager once
-if command -v bun >/dev/null 2>&1; then
-  INSTALL_CMD='bun install'
-  LOCKFILE='bun.lock'
-  INSTALL_LABEL='bun'
-else
-  INSTALL_CMD='npm install'
-  LOCKFILE='package-lock.json'
-  INSTALL_LABEL='npm'
+# Return success only when all shared Pi packages are installed at the expected version.
+runtime_is_aligned() {
+  local runtime_dir="$1"
+  node - "${runtime_dir}" "${LATEST}" <<'NODE'
+const fs = require("node:fs");
+const path = require("node:path");
+const [, , runtimeDir, expected] = process.argv;
+const names = [
+  "@earendil-works/pi-ai",
+  "@earendil-works/pi-coding-agent",
+  "@earendil-works/pi-server",
+  "@earendil-works/pi-tui"
+];
+
+for (const name of names) {
+  try {
+    const packagePath = path.join(runtimeDir, "node_modules", ...name.split("/"), "package.json");
+    const version = JSON.parse(fs.readFileSync(packagePath, "utf8")).version;
+    if (version !== expected) process.exit(1);
+  } catch {
+    process.exit(1);
+  }
+}
+NODE
+}
+
+# 4) Refresh the source runtime only when its inputs or installed packages drift
+SOURCE_INSTALL_RAN=no
+SOURCE_RUNTIME_DRIFT=no
+if ! runtime_is_aligned "${SOURCE_DIR}"; then
+  SOURCE_RUNTIME_DRIFT=yes
 fi
 
-echo "Using ${INSTALL_LABEL} for local installs"
-
-# 5) Refresh source install + lockfile only when package.json changed
-SOURCE_INSTALL_RAN=no
-if [ "${PKG_JSON_UPDATED}" = "yes" ]; then
-  echo "Source package.json updated; running ${INSTALL_CMD} in ${SOURCE_DIR}"
-  eval "${INSTALL_CMD}"
+if [ "${PKG_JSON_UPDATED}" = "yes" ] || [ ! -f "${SOURCE_DIR}/bun.lock" ]; then
+  echo "Source manifest or lockfile changed; refreshing ${SOURCE_DIR} with Bun"
+  bun install --ignore-scripts
+  SOURCE_INSTALL_RAN=yes
+elif [ "${SOURCE_RUNTIME_DRIFT}" = "yes" ]; then
+  echo "Source runtime drifted; restoring it from the frozen lockfile"
+  bun install --frozen-lockfile --ignore-scripts
   SOURCE_INSTALL_RAN=yes
 else
-  echo "Source package.json already aligned; skipping ${INSTALL_LABEL} install in ${SOURCE_DIR}"
+  echo "Source manifest, lockfile, and runtime already aligned; skipping install"
 fi
 
-# 6) Detect live target drift in managed files
+# 5) Detect live target drift in managed files
 TARGET_DRIFT=no
 if ! cmp -s "${SOURCE_DIR}/package.json" "${TARGET_DIR}/package.json"; then
   TARGET_DRIFT=yes
-elif [ -f "${SOURCE_DIR}/${LOCKFILE}" ] && [ -f "${TARGET_DIR}/${LOCKFILE}" ] && ! cmp -s "${SOURCE_DIR}/${LOCKFILE}" "${TARGET_DIR}/${LOCKFILE}"; then
+elif [ ! -f "${TARGET_DIR}/bun.lock" ]; then
   TARGET_DRIFT=yes
-elif [ -f "${SOURCE_DIR}/${LOCKFILE}" ] && [ ! -f "${TARGET_DIR}/${LOCKFILE}" ]; then
+elif ! cmp -s "${SOURCE_DIR}/bun.lock" "${TARGET_DIR}/bun.lock"; then
   TARGET_DRIFT=yes
 fi
 
-NEEDS_TARGET_SYNC=no
-if [ "${PKG_JSON_UPDATED}" = "yes" ] || [ "${TARGET_DRIFT}" = "yes" ]; then
-  NEEDS_TARGET_SYNC=yes
+TARGET_RUNTIME_DRIFT=no
+if ! runtime_is_aligned "${TARGET_DIR}"; then
+  TARGET_RUNTIME_DRIFT=yes
 fi
 
-# 7) Apply updated source to live target only when source changed or target drift exists
+# 6) Apply only the managed runtime files when they drift
 CHEZMOI_APPLY_RAN=no
-if [ "${NEEDS_TARGET_SYNC}" = "yes" ]; then
-  echo "Applying chezmoi changes to ${TARGET_DIR}"
-  chezmoi apply "${TARGET_DIR}"
+if [ "${TARGET_DRIFT}" = "yes" ]; then
+  echo "Applying package.json and bun.lock to ${TARGET_DIR}"
+  chezmoi apply "${TARGET_DIR}/package.json" "${TARGET_DIR}/bun.lock"
   CHEZMOI_APPLY_RAN=yes
 else
-  echo "No source changes or target drift; skipping chezmoi apply"
+  echo "Managed target runtime files already match source; skipping chezmoi apply"
 fi
 
-# 8) Refresh live target install only when source changed or target drift exists
+# 7) Refresh the live target when its files or installed runtime drift
 TARGET_INSTALL_RAN=no
-if [ "${NEEDS_TARGET_SYNC}" = "yes" ]; then
-  echo "Running ${INSTALL_CMD} in ${TARGET_DIR}"
+if [ "${TARGET_DRIFT}" = "yes" ] || [ "${TARGET_RUNTIME_DRIFT}" = "yes" ]; then
+  echo "Restoring ${TARGET_DIR} from the frozen Bun lockfile"
   cd "${TARGET_DIR}"
-  eval "${INSTALL_CMD}"
+  bun install --frozen-lockfile --ignore-scripts
   TARGET_INSTALL_RAN=yes
 else
-  echo "No source changes or target drift; skipping ${INSTALL_LABEL} install in ${TARGET_DIR}"
+  echo "Live target runtime already aligned; skipping install"
 fi
 
-# 9) Verify + concise summary
+# 8) Verify CLI, managed files, installed packages, lockfile, and audit
 echo "--- Verification ---"
-npm list -g --depth=0 | rg '@earendil-works/pi-coding-agent'
+test "$("${PI_BIN}" --version)" = "${LATEST}"
+test "$(command -v pi)" = "${PI_BIN}"
+cmp -s "${SOURCE_DIR}/package.json" "${TARGET_DIR}/package.json"
+cmp -s "${SOURCE_DIR}/bun.lock" "${TARGET_DIR}/bun.lock"
+runtime_is_aligned "${SOURCE_DIR}"
+runtime_is_aligned "${TARGET_DIR}"
+cd "${SOURCE_DIR}"
+bun install --frozen-lockfile --ignore-scripts --lockfile-only
+bun audit
+
+echo "Pi binary: $(command -v pi)"
+echo "Pi version: $(pi --version)"
 echo "Source dependencies:"
 cd "${SOURCE_DIR}"
 node -e 'const p=require("./package.json"); console.log(JSON.stringify(p.dependencies, null, 2))'
@@ -153,19 +208,22 @@ node -e 'const p=require("./package.json"); console.log(JSON.stringify(p.depende
 
 echo "--- Summary ---"
 echo "globalUpdated=${GLOBAL_UPDATED}"
+echo "legacyNpmRemoved=${LEGACY_NPM_REMOVED}"
 echo "packageJsonUpdated=${PKG_JSON_UPDATED}"
-echo "installLabel=${INSTALL_LABEL}"
 echo "sourceInstallRan=${SOURCE_INSTALL_RAN}"
+echo "sourceRuntimeDrift=${SOURCE_RUNTIME_DRIFT}"
 echo "targetDrift=${TARGET_DRIFT}"
-echo "needsTargetSync=${NEEDS_TARGET_SYNC}"
+echo "targetRuntimeDrift=${TARGET_RUNTIME_DRIFT}"
 echo "chezmoiApplyRan=${CHEZMOI_APPLY_RAN}"
 echo "targetInstallRan=${TARGET_INSTALL_RAN}"
 ```
 
 ## Notes
 
-- Keep the three `@earendil-works/pi-*` dependency versions aligned.
+- Keep the four shared `@earendil-works/pi-*` dependency versions aligned. `pi-server` is explicit because Pi 0.85's coding-agent root imports it without declaring it.
 - Pi source now lives in `earendil-works/pi-mono` (packages published under `@earendil-works/*`).
 - Treat the chezmoi source as canonical. Update the live target by applying source changes, not by editing `~/.pi/agent/package.json` directly.
 - This skill is idempotent: if already up to date, it should do no-op work and report skips clearly.
-- Prefer `bun install` when `bun` exists. Fall back to `npm install` when it does not.
+- Bun is the package manager; Pi still executes on Node.js. Keep `--ignore-scripts`: Pi's own installation guidance uses it, and the shared runtime does not require dependency lifecycle scripts.
+- The managed root `bun.lock` makes source and target installs repeatable. The vendored `extensions/web-tools` package intentionally keeps its own npm lockfile and install script.
+- `npmCommand: ["bun"]` in Pi settings covers Pi-managed npm packages and dependency installs inside git packages. Their `npm:` source prefix is Pi's package-source syntax, not a requirement to run the npm CLI.
