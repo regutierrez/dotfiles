@@ -9,7 +9,7 @@ Two values decide what gets applied:
 - **Profile:** `personal` or `work`; selected during `chezmoi init`.
 - **OS:** detected automatically by chezmoi.
 
-Both profiles are full workstations. `personal` is used on macOS and on the Fedora gaming workstation; `work` is used on macOS. Personal Fedora also receives the gaming, Kitty, Niri, and DMS configuration.
+Both profiles are full workstations. `personal` is used on macOS and on the Fedora gaming workstation; `work` is used on macOS. Personal Fedora also receives the gaming configuration.
 
 There are two separate operations:
 
@@ -89,15 +89,6 @@ To change profiles, edit `~/.config/chezmoi/chezmoi.toml`:
 [data]
 profile = "work"
 ```
-
-## Fedora desktop files
-
-The personal Fedora workstation receives:
-
-- `dot_config/kitty/`
-- `dot_config/niri/`
-- `dot_config/systemd/user/dms-auto-resolution-profile.service`
-- `dot_local/bin/executable_dms-auto-resolution-profile`
 
 ## Secrets
 

@@ -1,3 +1,7 @@
+.config/kitty
+.config/niri
+.config/systemd/user/dms-auto-resolution-profile.service
+.local/bin/dms-auto-resolution-profile
 .agents/skills/visual-explainer
 .agents/skills/to-prd
 .agents/skills/chrome-devtools-cli

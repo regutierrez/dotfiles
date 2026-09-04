@@ -11,6 +11,10 @@ xremap_service_hash='{{ include "dot_config/systemd/user/xremap.service" | sha25
 : "$xremap_config_hash" "$xremap_service_hash"
 
 gsettings set org.gnome.shell favorite-apps "['helium.desktop', 'discord.desktop', 'dev.zed.Delta.desktop', 'dev.zed.Zed.desktop', 'org.gnome.Nautilus.desktop', 'com.mitchellh.ghostty.desktop', 'joplin.desktop', 'steam.desktop']"
+gsettings set org.gnome.mutter.keybindings toggle-tiled-left "['<Super>Left']"
+gsettings set org.gnome.mutter.keybindings toggle-tiled-right "['<Super>Right']"
+gsettings set org.gnome.desktop.wm.keybindings maximize "['<Super>Up']"
+gsettings set org.gnome.desktop.wm.keybindings unmaximize "['<Super>Down', '<Alt>F5']"
 systemctl --user daemon-reload
 systemctl --user enable --now xremap.service
 {{- end -}}

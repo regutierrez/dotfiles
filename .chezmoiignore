@@ -41,12 +41,8 @@ akkio-helpers/
 {{- end }}
 
 {{- if or (ne .chezmoi.os "linux") (ne $osid "fedora") (ne $profile "personal") }}
-.config/kitty
-.config/niri
-.config/systemd/user/dms-auto-resolution-profile.service
 .config/systemd/user/xremap.service
 .config/xremap
-.local/bin/dms-auto-resolution-profile
 {{- end }}
 
 {{- /* Skill membership lives in .chezmoidata.toml; profiles select groups here. */ -}}

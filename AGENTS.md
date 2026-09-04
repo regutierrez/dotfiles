@@ -41,7 +41,7 @@ The supported profiles are `personal` and `work`. The selected value is stored u
 
 - Both profiles are for workstations.
 - Personal is used on macOS and on the Fedora gaming workstation.
-- Personal Fedora receives Kitty, Niri, DMS, and gaming packages.
+- Personal Fedora receives gaming packages.
 - Work is used on macOS.
 - Work alone receives the `work` skill group, `akkio-helpers/`, and the Linear window-rename Pi extension.
 

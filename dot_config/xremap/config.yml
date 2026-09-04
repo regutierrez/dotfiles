@@ -29,6 +29,8 @@ keymap:
     remap:
       CapsLock-H: Super-Left
       CapsLock-L: Super-Right
+      CapsLock-J: Super-Down
+      CapsLock-K: Super-Up
       CapsLock-B: Super-PageUp
       CapsLock-F: Super-PageDown
       CapsLock-Shift-B: Super-Shift-PageUp
