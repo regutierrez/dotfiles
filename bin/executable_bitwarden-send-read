@@ -1,0 +1,182 @@
+#!/usr/bin/env node
+
+import { createDecipheriv, createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
+import { execFileSync, spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { createInterface } from "node:readline/promises";
+
+const usage = `Usage: bitwarden-send-read [--clipboard]
+
+Enter the complete Bitwarden Send URL at the hidden prompt, or pipe it on stdin.
+
+Options:
+  --clipboard  Copy the decrypted text to the system clipboard
+  --help       Show this help`;
+
+function failBitwardenSend(message) {
+  process.stderr.write(`bitwarden-send-read: ${message}\n`);
+  process.exit(1);
+}
+
+function parseBitwardenSendUrl(input) {
+  let url;
+  try {
+    url = new URL(input);
+  } catch {
+    failBitwardenSend("invalid URL");
+  }
+
+  if (url.protocol !== "https:" || url.hostname !== "send.bitwarden.com") {
+    failBitwardenSend("expected an https://send.bitwarden.com URL");
+  }
+
+  const parts = url.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  if (parts[0] === "send") {
+    parts.shift();
+  }
+  if (parts.length !== 2 || !parts.every((part) => /^[A-Za-z0-9_-]+$/.test(part))) {
+    failBitwardenSend("URL does not contain a valid Send ID and encryption key");
+  }
+
+  return { sendId: parts[0], urlKey: parts[1] };
+}
+
+async function readBitwardenSendUrl() {
+  if (!process.stdin.isTTY) {
+    return readFileSync(0, "utf8").trim();
+  }
+
+  const terminal = createInterface({ input: process.stdin, output: process.stderr });
+  execFileSync("stty", ["-echo"], { stdio: ["inherit", "ignore", "inherit"] });
+  try {
+    return (await terminal.question("Bitwarden Send URL: ")).trim();
+  } finally {
+    execFileSync("stty", ["echo"], { stdio: ["inherit", "ignore", "inherit"] });
+    terminal.close();
+    process.stderr.write("\n");
+  }
+}
+
+async function fetchEncryptedBitwardenSend(sendId) {
+  const tokenResponse = await fetch("https://identity.bitwarden.com/connect/token", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Cache-Control": "no-store",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: "send",
+      grant_type: "send_access",
+      scope: "api.send.access",
+      send_id: sendId,
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!tokenResponse.ok) {
+    failBitwardenSend("Send is unavailable, expired, access-limited, or password-protected");
+  }
+
+  const tokenBody = await tokenResponse.json();
+  if (typeof tokenBody.access_token !== "string") {
+    failBitwardenSend("Bitwarden did not return an access token");
+  }
+
+  const sendResponse = await fetch("https://api.bitwarden.com/sends/access", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${tokenBody.access_token}`,
+    },
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!sendResponse.ok) {
+    failBitwardenSend(`Bitwarden Send download failed with HTTP ${sendResponse.status}`);
+  }
+
+  const sendBody = await sendResponse.json();
+  const encryptedText = sendBody.Text?.Text ?? sendBody.text?.text;
+  if (typeof encryptedText !== "string") {
+    failBitwardenSend("Send is not a text Send");
+  }
+
+  return encryptedText;
+}
+
+function decryptBitwardenSendText(encryptedText, urlKey) {
+  const match = encryptedText.match(/^2\.([^|]+)\|([^|]+)\|([^|]+)$/);
+  if (match === null) {
+    failBitwardenSend("unsupported Bitwarden encryption format");
+  }
+
+  const keyMaterial = Buffer.from(urlKey, "base64url");
+  const derivedKey = Buffer.from(
+    hkdfSync("sha256", keyMaterial, Buffer.from("bitwarden-send"), Buffer.from("send"), 64),
+  );
+  const encryptionKey = derivedKey.subarray(0, 32);
+  const authenticationKey = derivedKey.subarray(32, 64);
+  const initializationVector = Buffer.from(match[1], "base64");
+  const ciphertext = Buffer.from(match[2], "base64");
+  const providedMac = Buffer.from(match[3], "base64");
+  const expectedMac = createHmac("sha256", authenticationKey)
+    .update(Buffer.concat([initializationVector, ciphertext]))
+    .digest();
+
+  if (providedMac.length !== expectedMac.length || !timingSafeEqual(providedMac, expectedMac)) {
+    failBitwardenSend("Send integrity check failed");
+  }
+
+  const decipher = createDecipheriv("aes-256-cbc", encryptionKey, initializationVector);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
+}
+
+function copyBitwardenSendToClipboard(plaintext) {
+  const clipboardCommands = process.platform === "darwin"
+    ? [["pbcopy", []]]
+    : [["wl-copy", []], ["xclip", ["-selection", "clipboard"]], ["xsel", ["--clipboard", "--input"]]];
+
+  for (const [command, args] of clipboardCommands) {
+    const result = spawnSync(command, args, { input: plaintext, encoding: "utf8" });
+    if (result.status === 0) {
+      process.stderr.write("Bitwarden Send text copied to clipboard.\n");
+      return;
+    }
+    if (result.error?.code !== "ENOENT") {
+      failBitwardenSend(`${command} could not copy to the clipboard`);
+    }
+  }
+
+  failBitwardenSend("no supported clipboard command found");
+}
+
+const args = process.argv.slice(2);
+if (args.includes("--help")) {
+  process.stdout.write(`${usage}\n`);
+  process.exit(0);
+}
+if (args.some((arg) => arg !== "--clipboard") || args.filter((arg) => arg === "--clipboard").length > 1) {
+  process.stderr.write(`${usage}\n`);
+  process.exit(2);
+}
+
+try {
+  const sendUrl = await readBitwardenSendUrl();
+  const { sendId, urlKey } = parseBitwardenSendUrl(sendUrl);
+  const encryptedText = await fetchEncryptedBitwardenSend(sendId);
+  const plaintext = decryptBitwardenSendText(encryptedText, urlKey);
+  if (args.includes("--clipboard")) {
+    copyBitwardenSendToClipboard(plaintext);
+  } else {
+    process.stdout.write(plaintext);
+    if (!plaintext.endsWith("\n")) {
+      process.stdout.write("\n");
+    }
+  }
+} catch (error) {
+  if (error?.name === "TimeoutError") {
+    failBitwardenSend("Bitwarden request timed out");
+  }
+  failBitwardenSend(error instanceof Error ? error.message : String(error));
+}
