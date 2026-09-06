@@ -94,7 +94,7 @@ profile = "work"
 
 Private SSH keys stay on each machine. The repository manages only public SSH host routing; work SSH configuration and all key material remain local.
 
-Shell tokens belong in untracked files under `~/.config/secrets/`; `dot_zshrc.tmpl` sources `kagi.env` and `sideshow.env` when present.
+Shell tokens belong in untracked files under `~/.config/secrets/`; `dot_zshrc.tmpl` sources `kagi.env` when present.
 
 ## Remote GitHub account routing
 

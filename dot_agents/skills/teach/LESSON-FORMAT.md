@@ -1,8 +1,8 @@
-# Lesson Manifest Format
+# Lesson Format
 
-Lesson manifests live in `./lessons/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc. Create the directory lazily — only when the first lesson is published.
+Lesson files live in `./lessons/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc. Create the directory lazily — only when the first lesson is written.
 
-A lesson is one Sideshow **session** of small posts. This file is the durable pointer back to that session. The teaching happens in Sideshow, not in this file.
+A lesson is one tightly-scoped teaching unit tied to the mission. The teaching happens in this file and in the conversation.
 
 ## Template
 
@@ -12,19 +12,18 @@ A lesson is one Sideshow **session** of small posts. This file is the durable po
 {One or two sentences: the single win this lesson gives, and how it serves the mission.}
 
 - Date: {YYYY-MM-DD}
-- Session: `{sessionId}`
-- URL: {full Sideshow session URL}
-- Posts: `{postId}` {title}; `{postId}` {title}
-- Practice: {what the user should do — predict, click, or paste code under a named card}
+- Practice: {what the user should do — predict, try, or paste code}
 - Primary source: [{title}]({url})
 - Learning records: {links, or "none yet"}
+
+## Lesson
+
+{The lesson content.}
 ```
 
 ## Rules
 
-- **One lesson, one session.** Do not point one manifest at several unrelated sessions.
-- **Store `sessionId` and post ids**, not a single vague "surface id."
-- **Link the live session**, not a local HTML file.
+- **One lesson, one file.** Do not split one idea across several unrelated lesson files.
 - **Practice is one line.** What should they do before they ask you to look?
-- **Write the manifest after publish**, once you have real ids and a URL.
-- **Do not duplicate the lesson prose here.** That lives on the cards.
+- **Write the lesson when you teach it.** Do not leave a stub with no content.
+- **Do not duplicate the lesson prose into `NOTES.md`.** That file is for preferences and working notes.

@@ -21,7 +21,6 @@ cd ~/.pi/agent && npm install
 | `package.json` | Shared deps for extensions |
 | `agents/` | Custom Tintinweb subagent definitions; prompts are shared and model/reasoning settings render by profile |
 | `skills/update-pi/` | Pi update helper skill |
-| `skills/sideshow/` | Local override of `npm:sideshow`: keeps `/skill:sideshow`, disables model auto-invoke |
 | `intercepted-commands/` | PATH shims used by `uv.ts` |
 | `extensions/pi-autoresearch.json` | Disables the `pi-autoresearch` fullscreen dashboard shortcut so it does not take `ctrl+shift+f` from transcript search |
 | `extensions/btw/` | `/btw` side threads (`index.ts` + tests) |
@@ -34,7 +33,6 @@ cd ~/.pi/agent && npm install
 | `extensions/continue-after-compaction.ts` | Resume after compaction |
 | `extensions/loop.ts` | Loop / iteration helper |
 | `extensions/review.ts` | Review UI extension |
-| `extensions/sideshow-lazy-tools.ts` | Defers all Sideshow tools until `/skill:sideshow` is invoked |
 | `extensions/subagents-lazy-tools.ts` | Defers Agent/SubagentWorkflow tools until the user asks for subagents or runs `/subagents` |
 | `extensions/inline-skill-mentions/` | Prefix `@skill-name` as `/skill:name` while keeping the original prompt, extra mentions as `skill-context`, and `@` skill autocomplete |
 | `extensions/herdr-rename/` | First TUI prompt + `/herdr-rename`: replace the Agents-panel `agent` token with `pi - <64-char comment>` (`$name2` wraps). No LLM tool. GPT-5.6 Luna (low). Active only inside Herdr. |
@@ -64,17 +62,14 @@ cd ~/.pi/agent && npm install
 
 ## Secrets (env hooks, not in git)
 
-Public values can live in `dot_zshrc.tmpl` (e.g. `SIDESHOW_URL`). Tokens stay in untracked files under `~/.config/secrets/`, sourced by zshrc:
+Tokens stay in untracked files under `~/.config/secrets/`, sourced by zshrc:
 
 ```bash
 # ~/.config/secrets/kagi.env
 export KAGI_API_KEY=…
-
-# ~/.config/secrets/sideshow.env
-export SIDESHOW_TOKEN=…
 ```
 
-`dot_zshrc.tmpl` already sources both when present. Do not commit those files; mode `0600`.
+`dot_zshrc.tmpl` already sources this file when present. Do not commit those files; mode `0600`.
 
 ## Notes
 
@@ -82,4 +77,4 @@ export SIDESHOW_TOKEN=…
 - Orphan extensions and retired skill files removed from source are listed in repo `.chezmoiremove` so apply deletes them from the target.
 - `~/.pi/agent/extensions/herdr-agent-state.ts` is owned by herdr (not chezmoi); leave it on the target.
 - `~/.pi/agent/claude-bridge.json` is machine-local (not chezmoi); leave it on the target.
-- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction`, the `npm:sideshow` `skills: []` filter, and removal of retired `git:github.com/regutierrez/pi-herdr-subagents`. `modify_settings.json` keeps those so the local sideshow skill does not collide with the package skill.
+- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction`, removal of `npmCommand`, and removal of retired `git:github.com/regutierrez/pi-herdr-subagents` and `npm:sideshow`. `modify_settings.json` keeps those so Pi uses npm.

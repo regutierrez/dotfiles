@@ -1,13 +1,13 @@
 ---
 name: show-me
-description: Help the user understand the current topic visually with concise diagrams, code-shape sketches, and focused Sideshow cards.
+description: Help the user understand the current topic visually with concise diagrams and code-shape sketches.
 license: MIT
 disable-model-invocation: true
 ---
 
 Help the user understand the current topic of conversation visually. Skip the preamble and keep prose brief. Pick the smallest view that makes the key point clear.
 
-Write the compact views below in the session. Use Sideshow only when the last route applies.
+Write the compact views below in the session.
 
 - Show logic or an algorithm as pseudocode:
 
@@ -118,24 +118,10 @@ function expandSkill(command: string): string {
 }
 ```
 
-- For a visual UI, layout, state comparison, or concept too dense for Mermaid, publish one focused Sideshow card — a diagram, an infographic, or a short slide deck, whichever fits the point. Match the product's colors, type, spacing, and components; use real labels and data.
-
-Before the first publish in a session, fetch the current Sideshow design contract with `sideshow_get_design_guide`. HTML, when needed, is a Sideshow body fragment — not a document. Never write a standalone HTML file, write to `~/.agent/diagrams`, open a browser, or deploy a page.
-
-```text
-sideshow_publish_surface({
-  sessionTitle: "<task name>",
-  title: "<one-line point>",
-  parts: [{ kind: "html", html: "<body fragment>" }]
-})
-```
-
-Prefer a native `mermaid`, `markdown`, `diff`, `code`, or `image` part when that already carries the point. Set `sessionTitle` to the task name, not the tool name. Revise with `sideshow_update_surface`. Treat `userFeedback` as user instruction.
-
 ### guidance
 
 Place each visual next to the short text it supports. Keep only the calls, files, props, states, and boundaries needed to answer the user's current question or the options to resolve the current discussion point.
 
 You may use one of these, you may use several, it is unlikely you will use all of them. Use your judgement and don't overwhelm the user.
 
-This skill is adapted from HumanLayer `show-me`. The standalone HTML file and `open` step are replaced by Sideshow. See [NOTICE.md](NOTICE.md).
+This skill is adapted from HumanLayer `show-me`. This copy keeps the compact in-session views and does not write or open HTML files. See [NOTICE.md](NOTICE.md).

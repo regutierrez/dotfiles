@@ -8,8 +8,7 @@
 
 import { Type } from "typebox";
 import { complete } from "@earendil-works/pi-ai/compat";
-import type { Api, Model, UserMessage } from "@earendil-works/pi-ai";
-import { providerHeadersToRecord } from "@earendil-works/pi-ai/utils/headers";
+import type { Api, Model, ProviderHeaders, UserMessage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { compact } from "@earendil-works/pi-coding-agent";
 import { Container, type SelectItem, SelectList, Text } from "@earendil-works/pi-tui";
@@ -92,6 +91,16 @@ function getConditionText(mode: LoopMode, condition?: string): string {
 		case "custom":
 			return condition?.trim() || "custom condition";
 	}
+}
+
+// Pi's extension loader does not provide the pi-ai/utils/headers subpath.
+function providerHeadersToRecord(headers: ProviderHeaders | undefined): Record<string, string> | undefined {
+	if (!headers) return undefined;
+	const result: Record<string, string> = {};
+	for (const [key, value] of Object.entries(headers)) {
+		if (value !== null) result[key] = value;
+	}
+	return Object.keys(result).length > 0 ? result : undefined;
 }
 
 async function selectSummaryModel(
