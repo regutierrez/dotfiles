@@ -1,6 +1,6 @@
 ---
 name: web-browser
-description: "Automate and interact with web pages through Chrome or Chromium using the Chrome DevTools Protocol (CDP): navigate, click, fill forms, inspect content, take screenshots, and debug console or network activity. Use when an agent needs a real browser. Prefer headless Chrome unless visible browser interaction is required."
+description: "Automate and interact with web pages through Chrome or Chromium using the Chrome DevTools Protocol (CDP): navigate, click, fill forms, inspect content, take screenshots, and debug console or network activity. Use when an agent needs a real browser. Prefer headless Chrome unless visible browser interaction is required. For a visible browser inside a Herdr pane, use terminal-browser."
 license: Stolen from Mario
 disable-model-invocation: true
 ---

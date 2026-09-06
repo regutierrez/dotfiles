@@ -30,6 +30,7 @@ Important locations:
 - `.chezmoidata.toml`: skill-group membership only.
 - `.chezmoidata/packages.toml`: package source of truth.
 - `bootstrap` and `scripts/`: source-only package and one-time setup; never applied into `$HOME`.
+- `scripts/install-terminal-browser.sh`: curl installer for terminal-browser plus the Herdr plugin; not a brew or RPM package.
 - `dot_agents/skills/`: managed `~/.agents/skills`.
 - `dot_pi/agent/`: managed Pi agents, extensions, and configuration.
 - `private_dot_ssh/private_config`: managed personal macOS SSH client configuration, not a private key.

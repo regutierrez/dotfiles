@@ -55,6 +55,9 @@ install_user_tools() {
     curl -fsSL https://herdr.dev/install.sh | sh
   fi
 
+  info "installing terminal-browser"
+  bash "$(chezmoi source-path)/scripts/install-terminal-browser.sh"
+
   if ! command -v mise >/dev/null 2>&1; then
     info "installing mise"
     curl -fsSL https://mise.run | sh

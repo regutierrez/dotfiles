@@ -13,18 +13,19 @@ set -euo pipefail
 {{   $casks = concat $casks .packages.darwin.personal_casks -}}
 {{ end -}}
 if ! command -v brew >/dev/null 2>&1; then
-  echo "install-packages: brew not found, skipping (run macos/scripts/init.sh first)" >&2
-  exit 0
+  echo "install-packages: brew not found, skipping brew packages (run macos/scripts/init.sh first)" >&2
+else
+  # Ensure-present semantics: never upgrade existing packages from this script.
+  # Upgrades stay deliberate (brew upgrade).
+  export HOMEBREW_NO_AUTO_UPDATE=1
+  export HOMEBREW_NO_INSTALL_UPGRADE=1
+
+  echo "install-packages: syncing brew packages..."
+  brew install {{ $formulae | sortAlpha | uniq | join " " }}
+  brew install --cask --adopt {{ $casks | sortAlpha | uniq | join " " }}
 fi
 
-# Ensure-present semantics: never upgrade existing packages from this script.
-# Upgrades stay deliberate (brew upgrade).
-export HOMEBREW_NO_AUTO_UPDATE=1
-export HOMEBREW_NO_INSTALL_UPGRADE=1
-
-echo "install-packages: syncing brew packages..."
-brew install {{ $formulae | sortAlpha | uniq | join " " }}
-brew install --cask --adopt {{ $casks | sortAlpha | uniq | join " " }}
+bash "$(chezmoi source-path)/scripts/install-terminal-browser.sh"
 {{ else if eq .chezmoi.os "linux" -}}
 {{- $osid := index .chezmoi.osRelease "id" | default "" -}}
 #!/bin/bash

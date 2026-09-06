@@ -38,6 +38,8 @@ chezmoi apply ~/.zshrc      # apply one target
 chezmoi apply               # apply all configuration
 ```
 
+Both workstation profiles install [terminal-browser](https://github.com/zenbu-labs/terminal-browser) with the official curl installer (`scripts/install-terminal-browser.sh`), not Homebrew or DNF. When Herdr is present, that script also installs the `zenbu-labs.terminal-browser` plugin. In Herdr, `prefix+b` opens a browser split. Upgrade with `terminal-browser upgrade`. Do not `brew install terminal-browser`; that would fight the curl install.
+
 After changing [`.chezmoidata/packages.toml`](.chezmoidata/packages.toml), install newly listed packages explicitly:
 
 ```bash
@@ -112,7 +114,7 @@ GH_ACCOUNT=regutierrez gh repo fork owner/repository
 
 ### Fedora personal workstation
 
-The normal bootstrap reproduces this gaming workstation: RPM Fusion's NVIDIA/Steam/Proton stack, CLI tools, Node, Pi, Zsh and Starship, managed Git identity, a machine-local passwordless Ed25519 key, Herdr, Helium, and Obsidian. It installs prerequisites before the managed configuration, installs only missing software, checks akmods and Secure Boot, and reports rather than performs a required reboot.
+The normal bootstrap reproduces this gaming workstation: RPM Fusion's NVIDIA/Steam/Proton stack, CLI tools, Node, Pi, Zsh and Starship, managed Git identity, a machine-local passwordless Ed25519 key, Herdr, terminal-browser, Helium, and Obsidian. It installs prerequisites before the managed configuration, installs only missing software, checks akmods and Secure Boot, and reports rather than performs a required reboot.
 
 It never formats or mounts disks, modifies `/etc/fstab`, chooses a Steam library, copies credentials, or stores private SSH keys. The existing 4 TB ext4 Steam drive at `/mnt/storage` remains manual and outside this automation.
 
