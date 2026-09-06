@@ -99,7 +99,7 @@ command = "dotfiles.workspace-mru.switch"
 description = "switch workspace by recent use"
 
 [[keys.command]]
-key = "prefix+b"
+key = "prefix+shift+b"
 type = "plugin_action"
 command = "zenbu-labs.terminal-browser.open-split"
 description = "open terminal-browser split"

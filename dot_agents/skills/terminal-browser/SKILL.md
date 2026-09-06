@@ -27,7 +27,7 @@ From Herdr, the same split is:
 herdr plugin action invoke open-split --plugin zenbu-labs.terminal-browser
 ```
 
-Human shortcut: prefix+b.
+Human shortcut: prefix+shift+b.
 
 ## Drive the page
 
