@@ -59,6 +59,7 @@
 .pi/agent/agents/worker.md
 .pi/agent/agents/delegate.md
 .pi/agent/agents/planner.md
+.pi/agent/bun.lock
 .pi/agent/extensions/cpimg
 .pi/agent/extensions/better-tui.ts
 .pi/agent/extensions/junior-mode.ts

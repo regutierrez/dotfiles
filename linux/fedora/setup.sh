@@ -89,25 +89,14 @@ install_node() {
   require_command npm
 }
 
-install_bun() {
-  export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
-  export PATH="$BUN_INSTALL/bin:$PATH"
-
-  if ! command -v bun >/dev/null 2>&1; then
-    info "installing Bun"
-    curl -fsSL https://bun.com/install | bash
-  fi
-
-  require_command bun
-}
-
 install_pi() {
-  export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
-  export PATH="$BUN_INSTALL/bin:$PATH"
+  export PATH="$HOME/.npm-global/bin:$PATH"
 
-  if [[ ! -x "$BUN_INSTALL/bin/pi" ]]; then
+  if [[ ! -x "$HOME/.npm-global/bin/pi" ]]; then
     info "installing Pi"
-    bun add --global --ignore-scripts @earendil-works/pi-coding-agent
+    npm install --global --ignore-scripts \
+      --prefix "$HOME/.npm-global" \
+      @earendil-works/pi-coding-agent
   fi
 
   require_command pi
@@ -227,7 +216,6 @@ main() {
   cache_sudo
   install_user_tools
   install_node
-  install_bun
   install_pi
 
   info "applying managed configuration and Pi dependencies"

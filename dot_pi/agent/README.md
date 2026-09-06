@@ -3,7 +3,7 @@
 Managed via chezmoi from `dot_pi/agent/`. After sync:
 
 ```bash
-cd ~/.pi/agent && bun install --frozen-lockfile --ignore-scripts
+cd ~/.pi/agent && npm install
 # then in pi: /reload
 ```
 
@@ -18,7 +18,7 @@ cd ~/.pi/agent && bun install --frozen-lockfile --ignore-scripts
 | `cloak.json` | Secret-masking patterns for `pi-cloak` |
 | `mcp.json` | MCP server wiring for `dmmulroy/pi-mcp` |
 | `subagents.json` | Lean global settings for `@tintinweb/pi-subagents` |
-| `package.json`, `bun.lock` | Bun-managed shared deps for extensions |
+| `package.json` | Shared deps for extensions |
 | `agents/` | Custom Tintinweb subagent definitions; prompts are shared and model/reasoning settings render by profile |
 | `skills/update-pi/` | Pi update helper skill |
 | `skills/sideshow/` | Local override of `npm:sideshow`: keeps `/skill:sideshow`, disables model auto-invoke |
@@ -50,7 +50,7 @@ cd ~/.pi/agent && bun install --frozen-lockfile --ignore-scripts
 - `extensions/linear-window-rename/`
 - `extensions/subagents-lazy-tools.ts`
 - `agents/*.md.tmpl`
-- `package.json`, `bun.lock` (when adding shared deps)
+- `package.json` (when adding shared deps)
 
 **Leave alone unless intentionally changing (cold / vendored):**
 - `extensions/pi-multi-pass/` (local compatibility fork of `pi-multi-pass`; upstream npm package is broken on current Pi)
@@ -78,8 +78,8 @@ export SIDESHOW_TOKEN=…
 
 ## Notes
 
-- `node_modules/` and npm lockfiles under `~/.pi/agent` are ignored by chezmoi; the root `bun.lock` is managed for repeatable installs.
+- `node_modules/` and lockfiles under `~/.pi/agent` are ignored by chezmoi.
 - Orphan extensions and retired skill files removed from source are listed in repo `.chezmoiremove` so apply deletes them from the target.
 - `~/.pi/agent/extensions/herdr-agent-state.ts` is owned by herdr (not chezmoi); leave it on the target.
 - `~/.pi/agent/claude-bridge.json` is machine-local (not chezmoi); leave it on the target.
-- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction`, `npmCommand: ["bun"]`, the `npm:sideshow` `skills: []` filter, and removal of retired `git:github.com/regutierrez/pi-herdr-subagents`. `modify_settings.json` keeps those so Pi package operations use Bun and the local sideshow skill does not collide with the package skill.
+- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction`, the `npm:sideshow` `skills: []` filter, and removal of retired `git:github.com/regutierrez/pi-herdr-subagents`. `modify_settings.json` keeps those so the local sideshow skill does not collide with the package skill.
