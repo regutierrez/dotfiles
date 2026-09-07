@@ -23,7 +23,7 @@ agent_panel_sort = "spaces"
 sidebar_width = 32
 # Close panes/tabs without prompting.
 confirm_close = false
-prompt_new_tab_name = true
+prompt_new_tab_name = false
 prompt_new_workspace_name = true
 
 [ui.sidebar.agents]
