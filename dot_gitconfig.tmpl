@@ -13,9 +13,7 @@
 	email = pael@akkio.com
 {{ end }}
 [core]
-	pager = delta
-[delta]
-	syntax-theme = {{ if eq .chezmoi.os "darwin" }}Catppuccin Frappe{{ else }}gruvbox-dark{{ end }}
+	pager = hunk pager
 
 [url "https://github.com/regutierrez/"]
 	insteadOf = git@github.com:regutierrez/

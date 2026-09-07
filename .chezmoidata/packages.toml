@@ -6,7 +6,6 @@ formulae = [
   "asciinema",
   "bun",
   "chezmoi",
-  "delta",
   "eza",
   "fd",
   "ffmpeg",
@@ -65,11 +64,12 @@ extensions = [
   "git:github.com/dmmulroy/pi-mcp",
 ]
 
-# CLIs required by managed Pi MCP servers (installed into ~/.npm-global).
+# Global CLIs (installed into ~/.npm-global).
 # open-computer-use needs a desktop session; Fedora Cloud skips it in
 # run_after_35-install-pi-packages.sh.tmpl.
 [packages.npm]
 globals = [
+  "hunkdiff",
   "open-computer-use",
 ]
 
@@ -91,7 +91,6 @@ packages = [
   "flatpak",
   "fzf",
   "git",
-  "git-delta",
   "gcc-c++",
   "gh",
   "ghostty",
