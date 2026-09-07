@@ -4,7 +4,7 @@ description: Fast read-only codebase recon that returns compressed context for h
 tools: read,bash,write
 extensions: false
 skills: false
-model: {{ if eq (index . "profile") "work" }}xai/grok-4.6{{ else }}opencode-go/deepseek-v4-flash{{ end }}
+model: xai/grok-4.6
 thinking: medium
 prompt_mode: replace
 ---

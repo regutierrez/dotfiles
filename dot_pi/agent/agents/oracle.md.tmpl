@@ -4,8 +4,8 @@ description: High-reasoning senior engineering advisor for review, debugging, ar
 tools: read,bash
 extensions: false
 skills: false
-model: {{ if eq (index . "profile") "work" }}openai-codex/gpt-5.6-sol{{ else }}opencode-go/kimi-k3{{ end }}
-thinking: {{ if eq (index . "profile") "work" }}high{{ else }}max{{ end }}
+model: openai-codex/gpt-6-astra-xhigh
+thinking: high
 prompt_mode: replace
 ---
 

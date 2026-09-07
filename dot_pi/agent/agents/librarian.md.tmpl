@@ -4,7 +4,7 @@ description: GitHub-wide remote code research agent. Give it a self-contained qu
 tools: read,bash,ext:web-tools/websearch,ext:web-tools/webfetch
 extensions: web-tools
 skills: librarian
-model: {{ if eq (index . "profile") "work" }}openai-codex/gpt-5.6-sol{{ else }}opencode-go/deepseek-v4-pro{{ end }}
+model: openai-codex/gpt-5.6-sol
 thinking: off
 prompt_mode: replace
 ---

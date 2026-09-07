@@ -4,8 +4,8 @@ description: Isolated general-purpose subagent for normal multi-step coding task
 tools: read,bash,edit,write
 extensions: false
 skills: false
-model: {{ if eq (index . "profile") "work" }}openai-codex/gpt-5.6-sol{{ else }}opencode-go/glm-5.2{{ end }}
-thinking: {{ if eq (index . "profile") "work" }}medium{{ else }}max{{ end }}
+model: openai-codex/gpt-5.6-sol
+thinking: medium
 prompt_mode: replace
 ---
 

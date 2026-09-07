@@ -4,8 +4,8 @@ description: Implementation agent for normal tasks and approved oracle handoffs.
 tools: read,bash,edit,write
 extensions: false
 skills: false
-model: {{ if eq (index . "profile") "work" }}xai/grok-4.6{{ else }}opencode-go/deepseek-v4-pro{{ end }}
-thinking: {{ if eq (index . "profile") "work" }}xhigh{{ else }}max{{ end }}
+model: xai/grok-4.6
+thinking: xhigh
 prompt_mode: replace
 ---
 
