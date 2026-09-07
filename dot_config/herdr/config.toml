@@ -89,8 +89,8 @@ key = "prefix+t"
 type = "popup"
 command = "cd \"${HERDR_ACTIVE_PANE_CWD:-.}\" && exec \"${SHELL:-sh}\""
 description = "open scratch terminal"
-width = "60%"
-height = "60%"
+width = "80%"
+height = "80%"
 
 [[keys.command]]
 key = "prefix+tab"
