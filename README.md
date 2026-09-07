@@ -62,7 +62,7 @@ On Fedora, the bootstrap installs Node and Pi before `chezmoi apply`, so the
 herdr plugin install kryptamine/herdr-auto-title --ref a34f22d1fc8a6037d171789cfda17289088527e0 --yes
 ```
 
-Apply the Pi changes before starting Auto Title: `pi-rename` reports a descriptive sidebar name and a separate terse title, and chezmoi removes the competing `linear-window-rename` extension. The window-number link hook now keeps `dotfiles.window-numbers` disabled; on an existing machine you can also run `herdr plugin disable dotfiles.window-numbers` when ready to switch. Do not run both title writers together.
+Apply the Pi changes before starting Auto Title: `pi-rename` reports a descriptive sidebar name and a separate terse title, and chezmoi removes the competing `linear-window-rename` extension. The old window-number plugin and its install hook are retired. On other machines, run `herdr plugin unlink dotfiles.window-numbers` before starting Auto Title; apply removes its managed files. Do not run both title writers together.
 
 Auto Title starts on the next Herdr server startup, not on install or client reattach. Restart only when it is safe to stop the session and its pane processes. Reload Pi after applying its extension changes.
 

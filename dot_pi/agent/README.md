@@ -60,7 +60,7 @@ cd ~/.pi/agent && npm install
 
 If Luna is unavailable or returns invalid JSON, the session name falls back to the clipped prompt and the tab topic to its first four words or ticket ID. Ticket extraction checks the full prompt, even when model input is clipped. An issue URL wins over the first bare `TEAM-123` match. Bare matches are a naming heuristic, not a Linear API lookup.
 
-The retired `linear-window-rename` extension is removed on apply. See the repository README for installing Auto Title and switching off the competing window-number plugin.
+The retired `linear-window-rename` extension is removed on apply. See the repository README for installing Auto Title and unlinking the retired window-number plugin.
 
 ## Secret masking (`pi-cloak`)
 

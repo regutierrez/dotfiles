@@ -90,8 +90,7 @@ bin/agent-sessions-picker
 .pi/agent/skills/sideshow
 .pi/agent/skills/sideshow/SKILL.md
 .local/share/herdr-plugins/herdrcli/herdrcli.go
-.local/share/herdr-plugins/window-numbers/window-numbers.mjs
-.local/share/herdr-plugins/window-numbers/window-numbers.test.mjs
+.local/share/herdr-plugins/window-numbers
 .local/share/herdr-plugins/workspace-mru/workspace-mru.mjs
 .local/share/herdr-plugins/workspace-mru/workspace-mru.test.mjs
 .config/herdr/plugins/config/cloudmanic.herdr-plus/projects/akkio.toml
