@@ -94,3 +94,10 @@ bin/agent-sessions-picker
 .local/share/herdr-plugins/window-numbers/window-numbers.test.mjs
 .local/share/herdr-plugins/workspace-mru/workspace-mru.mjs
 .local/share/herdr-plugins/workspace-mru/workspace-mru.test.mjs
+.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/akkio.toml
+.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/dotfiles.toml
+.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/henry.toml
+.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/knowledgebase.toml
+.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/rca-and-triage.toml
+.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/scratch-tuis-global-processes.toml
+.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/tool-shed.toml
