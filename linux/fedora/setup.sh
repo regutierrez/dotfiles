@@ -58,6 +58,14 @@ install_user_tools() {
   info "installing terminal-browser"
   bash "$(chezmoi source-path)/scripts/install-terminal-browser.sh"
 
+  info "installing Herdr Annotate"
+  bash "$(chezmoi source-path)/scripts/install-herdr-annotate.sh"
+
+  if ! command -v plannotator-tui >/dev/null 2>&1; then
+    info "installing Plannotator TUI"
+    cargo install plannotator-tui --locked --root "$HOME/.local"
+  fi
+
   if ! command -v mise >/dev/null 2>&1; then
     info "installing mise"
     curl -fsSL https://mise.run | sh

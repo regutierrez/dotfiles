@@ -20,6 +20,7 @@ shared = [
   "librarian",
   "manage-worktree",
   "preventing-py-slop",
+  "plannotator-tui",
   "prototype",
   "research",
   "reviewing-python",

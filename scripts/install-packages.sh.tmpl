@@ -20,12 +20,18 @@ else
   export HOMEBREW_NO_AUTO_UPDATE=1
   export HOMEBREW_NO_INSTALL_UPGRADE=1
 
+  # Homebrew 6 requires explicit trust before it loads this third-party tap.
+  if brew help trust >/dev/null 2>&1; then
+    brew trust plannotator/tap
+  fi
+
   echo "install-packages: syncing brew packages..."
   brew install {{ $formulae | sortAlpha | uniq | join " " }}
   brew install --cask --adopt {{ $casks | sortAlpha | uniq | join " " }}
 fi
 
 bash "$(chezmoi source-path)/scripts/install-terminal-browser.sh"
+bash "$(chezmoi source-path)/scripts/install-herdr-annotate.sh"
 {{ else if eq .chezmoi.os "linux" -}}
 {{- $osid := index .chezmoi.osRelease "id" | default "" -}}
 #!/bin/bash

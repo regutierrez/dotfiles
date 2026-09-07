@@ -40,6 +40,8 @@ chezmoi apply               # apply all configuration
 
 Both workstation profiles install [terminal-browser](https://github.com/zenbu-labs/terminal-browser) with the official curl installer (`scripts/install-terminal-browser.sh`), not Homebrew or DNF. When Herdr is present, that script also installs the `zenbu-labs.terminal-browser` plugin. In Herdr, `prefix+shift+b` opens a browser split. `prefix+b` stays the sidebar toggle. Upgrade with `terminal-browser upgrade`. Do not `brew install terminal-browser`; that would fight the curl install.
 
+The bootstrap also installs [Herdr Annotate](https://github.com/plannotator/herdr-annotate) and the standalone [Plannotator TUI](https://github.com/plannotator/plannotator-tui). macOS uses the trusted `plannotator/tap` Homebrew formula. Fedora installs the Rust crate. Managed settings open document reviews as a full-tab Herdr overlay. Use `prefix+o` to review a file or folder and `prefix+shift+o` to review the agent's last reply.
+
 After changing [`.chezmoidata/packages.toml`](.chezmoidata/packages.toml), install newly listed packages explicitly:
 
 ```bash
