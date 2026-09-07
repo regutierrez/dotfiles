@@ -1,5 +1,6 @@
 {
   "agentMentions": "off",
+  "defaultMaxTurns": 30,
   "disableDefaultAgents": true,
   "fallbackSubagent": "none",
   "maxSubagentDepth": 1,
