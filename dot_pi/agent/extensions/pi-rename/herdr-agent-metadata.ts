@@ -2,7 +2,8 @@
  * Herdr Agents-panel metadata for the `/pi-rename` session-name mirror: build
  * `herdr pane report-metadata` argv that sets `pi - <name>` as the pane's
  * display-agent comment (split across the first name row and `$name2`) or
- * clears it. Pure helpers; the session name itself lives in pi-session-name.ts.
+ * clears it. The independent `--title` feeds Auto Title without renaming tabs.
+ * Pure helpers; the names themselves live in pi-session-name.ts.
  */
 
 export const HERDR_METADATA_SOURCE = "user:pi-rename";
@@ -78,6 +79,7 @@ export function buildHerdrDisplayAgentReportArgs(options: {
 	paneId: string;
 	action: "set" | "clear";
 	displayAgent?: string;
+	tabTitle?: string;
 	source?: string;
 }): string[] {
 	const args = [
@@ -93,6 +95,7 @@ export function buildHerdrDisplayAgentReportArgs(options: {
 	];
 	if (options.action === "clear") {
 		args.push(
+			"--clear-title",
 			"--clear-display-agent",
 			"--clear-token",
 			HERDR_NAME1_TOKEN,
@@ -103,6 +106,11 @@ export function buildHerdrDisplayAgentReportArgs(options: {
 	}
 	if (!options.displayAgent) {
 		throw new Error("pi-rename: display-agent comment is empty");
+	}
+	if (options.tabTitle) {
+		args.push("--title", options.tabTitle);
+	} else {
+		args.push("--clear-title");
 	}
 	const rows = splitHerdrDisplayAgentRows(formatHerdrDisplayAgent(options.displayAgent));
 	args.push(
