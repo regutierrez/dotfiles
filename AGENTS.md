@@ -44,7 +44,8 @@ The supported profiles are `personal` and `work`. The selected value is stored u
 - Personal is used on macOS and on the Fedora gaming workstation.
 - Personal Fedora receives gaming packages.
 - Work is used on macOS.
-- Work alone receives the `work` skill group, `akkio-helpers/`, and the Linear window-rename Pi extension.
+- Work alone receives the `work` skill group and `akkio-helpers/`.
+- Both profiles use `pi-rename` for session names and Linear-aware Herdr title metadata. Auto Title owns tab names; the old window-number plugin stays disabled.
 
 Skill directories are allow-listed from groups in `.chezmoidata.toml`. Unclassified skills are ignored everywhere.
 

@@ -54,6 +54,24 @@ personal or work configuration; Karabiner is ignored on other operating systems.
 On Fedora, the bootstrap installs Node and Pi before `chezmoi apply`, so the
 `[packages.pi]` hooks install Plannotator and `@tintinweb/pi-subagents` on the first run.
 
+## Herdr tab titles
+
+[Auto Title](https://github.com/kryptamine/herdr-auto-title) owns generated tab names and workspace-local window numbers. Install the reviewed version on each machine (requires Herdr 0.8.2+ and Go 1.24+):
+
+```bash
+herdr plugin install kryptamine/herdr-auto-title --ref a34f22d1fc8a6037d171789cfda17289088527e0 --yes
+```
+
+Apply the Pi changes before starting Auto Title: `pi-rename` reports a descriptive sidebar name and a separate terse title, and chezmoi removes the competing `linear-window-rename` extension. The window-number link hook now keeps `dotfiles.window-numbers` disabled; on an existing machine you can also run `herdr plugin disable dotfiles.window-numbers` when ready to switch. Do not run both title writers together.
+
+Auto Title starts on the next Herdr server startup, not on install or client reattach. Restart only when it is safe to stop the session and its pane processes. Reload Pi after applying its extension changes.
+
+Defaults poll every 500 ms and keep the window position prefix. Optional settings live in `~/.config/herdr-auto-title/config.env` on Linux or `~/Library/Application Support/herdr-auto-title/config.env` on macOS, **not** the config directory printed by `herdr plugin install`. Keep `HERDR_AUTO_TITLE_POSITION=true`. Set `HERDR_AUTO_TITLE_AGENT_NAME=false` to omit the agent name if desired.
+
+Pi's first unnamed session prompt generates two names in one Luna call. The short title becomes just `TRI-1234` when the prompt contains that ticket or its Linear URL; the full Pi session/sidebar name remains descriptive. Auto Title may still add directory, branch, agent and number context around the short topic. For split tabs, its selected pane determines the topic.
+
+Upstream caveats: manually renamed tabs stop auto-updating, including their numbers. Clearing the tab name restores automatic naming. On first startup, existing custom names without a saved Auto Title lock can be overwritten. Generated titles retain numbers; this is not the old plugin's guarantee for manually named tabs.
+
 ## Amp plugins
 
 Managed Amp plugins live under `dot_config/private_amp/plugins/` and apply to `~/.config/amp/plugins/`:
@@ -79,7 +97,7 @@ Atuin applies its configured history and secret filters. Even so, do not put sec
 Profile behavior lives in [`.chezmoiignore`](.chezmoiignore). Skill membership lives in [`.chezmoidata.toml`](.chezmoidata.toml):
 
 - `personal`: shared skills.
-- `work`: shared and work skills, plus `akkio-helpers/` and the Linear window-rename Pi extension.
+- `work`: shared and work skills, plus `akkio-helpers/`. Linear-aware Pi title metadata is shared by both profiles.
 
 Pi subagent prompts are shared across profiles, but their model and reasoning settings are rendered per profile from `dot_pi/agent/agents/*.md.tmpl`. Personal uses the OpenCode Go selections; work keeps the original xAI and OpenAI Codex selections.
 

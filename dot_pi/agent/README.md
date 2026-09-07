@@ -35,8 +35,7 @@ cd ~/.pi/agent && npm install
 | `extensions/review.ts` | Review UI extension |
 | `extensions/subagents-lazy-tools.ts` | Defers Agent/SubagentWorkflow tools until the user asks for subagents or runs `/subagents` |
 | `extensions/inline-skill-mentions/` | Prefix `@skill-name` as `/skill:name` while keeping the original prompt, extra mentions as `skill-context`, and `@` skill autocomplete |
-| `extensions/pi-rename/` | First Herdr TUI prompt + `/pi-rename`: name the Pi session (Luna low); every name change - including Pi's `/name` - mirrors to the Agents panel as `pi - <name>` (`$name2` wraps). No LLM tool. Auto-rename and mirror are Herdr-only; the command works anywhere. |
-| `extensions/linear-window-rename/` | Work profile only. On the first prompt, prepend `(TRI-1234)` after the space-local window number when the prompt has a Linear issue id or linear.app URL. |
+| `extensions/pi-rename/` | First unnamed Herdr TUI prompt + `/pi-rename`: one Luna low call produces a descriptive Pi session name and a 2–4-word tab topic. A Linear issue ID/URL overrides the topic with the ticket ID in either profile. The full name mirrors to the Agents panel (`$name2` wraps); the topic goes to `--title` metadata for Auto Title. Names persist across reloads/resumes. No LLM tool or direct tab renames. The command works anywhere; auto-naming and metadata are Herdr-only. |
 | `extensions/uv.ts` | Prefers `uv` via intercepted-commands |
 
 ## Edit often vs leave alone
@@ -45,7 +44,6 @@ cd ~/.pi/agent && npm install
 - `APPEND_SYSTEM.md`, `agent-tool-description.md`, `keybindings.json`, `btw.json`, `cloak.json`, `subagents.json`, `extensions/pi-autoresearch.json`
 - `extensions/btw/`
 - `extensions/pi-rename/`
-- `extensions/linear-window-rename/`
 - `extensions/subagents-lazy-tools.ts`
 - `agents/*.md.tmpl`
 - `package.json` (when adding shared deps)
@@ -55,6 +53,14 @@ cd ~/.pi/agent && npm install
 - `extensions/web-tools/` (vendored; has its own `package.json` + tests)
 - `extensions/pi-cloak/` (vendored from [dmmulroy/.dotfiles](https://github.com/dmmulroy/.dotfiles); edit `cloak.json` for patterns)
 - Large single-file extensions: `review.ts`, `loop.ts`, `context.ts`, `atuin.ts`, `uv.ts`
+
+## Session and Herdr names
+
+`/pi-rename` summarizes the latest prompt. `/pi-rename <name>` sets a literal session name; its tab topic is the first four words, or a Linear ticket ID in that name. Pi's `/name` uses the same deterministic tab fallback without another model call. `/pi-rename --clear` clears the session name, sidebar label and title metadata; Auto Title can then use its other sources.
+
+If Luna is unavailable or returns invalid JSON, the session name falls back to the clipped prompt and the tab topic to its first four words or ticket ID. Ticket extraction checks the full prompt, even when model input is clipped. An issue URL wins over the first bare `TEAM-123` match. Bare matches are a naming heuristic, not a Linear API lookup.
+
+The retired `linear-window-rename` extension is removed on apply. See the repository README for installing Auto Title and switching off the competing window-number plugin.
 
 ## Secret masking (`pi-cloak`)
 

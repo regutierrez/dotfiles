@@ -27,5 +27,6 @@ fi
 )
 
 herdr plugin unlink "$plugin_id" >/dev/null 2>&1 || true
-herdr plugin link "$plugin_dir" --enabled
+# Auto Title owns generated tab names. Keep this plugin available but inactive.
+herdr plugin link "$plugin_dir" --disabled
 {{- end -}}
