@@ -33,6 +33,11 @@ akkio-helpers/
 {{- if ne .chezmoi.os "darwin" }}
 .config/karabiner
 .config/zed
+Library/Application Support/herdr-auto-title/
+{{- end }}
+
+{{- if ne .chezmoi.os "linux" }}
+.config/herdr-auto-title/
 {{- end }}
 
 {{- if ne .chezmoi.os "darwin" }}

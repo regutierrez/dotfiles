@@ -79,6 +79,19 @@ test("first prompt generates both names in one call and reports metadata, never 
 	assert.equal(completeCalls, 1);
 });
 
+test("clipboard filenames cannot reach the Herdr title metadata", async () => {
+	const path = "/tmp/herdr-clipboard-images-1000/client-4-clipboard-1788803735556435667-0.png";
+	completion = async () => response("Fix login redirect", path);
+	const h = harness();
+	await h.emit("session_start");
+	await h.emit("before_agent_start", { prompt: `${path}\nFix login redirect` });
+	await setImmediate();
+	const report = h.reports.at(-1)!;
+	assert.equal(report[report.indexOf("--title") + 1], "Fix login redirect");
+	assert.equal(h.name(), "Fix login redirect");
+	assert.ok(!report.some((arg) => arg.includes("herdr-clipboard") || arg.includes("CLIENT-4")));
+});
+
 test("bare command uses the latest prompt; reload restores the terse name without another call", async () => {
 	const h = harness({ entries: [{ type: "message", message: { role: "user", content: "fix login redirects" } }] });
 	await h.emit("session_start");
@@ -101,7 +114,9 @@ test("literal names, built-in /name and clear update both metadata fields withou
 	assert.ok(h.reports.at(-1)!.includes("AKKIO-99"));
 	h.pi.setSessionName("Review authentication middleware behavior today");
 	await setImmediate();
-	assert.ok(h.reports.at(-1)!.includes("Review authentication middleware behavior"));
+	const report = h.reports.at(-1)!;
+	assert.equal(report[report.indexOf("--title") + 1], "Review authenticatio");
+	assert.equal(h.name(), "Review authentication middleware behavior today");
 	await h.command("--clear");
 	assert.equal(h.name(), undefined);
 	assert.ok(h.reports.at(-1)!.includes("--clear-title"));

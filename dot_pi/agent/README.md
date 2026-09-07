@@ -35,7 +35,7 @@ cd ~/.pi/agent && npm install
 | `extensions/review.ts` | Review UI extension |
 | `extensions/subagents-lazy-tools.ts` | Defers Agent/SubagentWorkflow tools until the user asks for subagents or runs `/subagents` |
 | `extensions/inline-skill-mentions/` | Prefix `@skill-name` as `/skill:name` while keeping the original prompt, extra mentions as `skill-context`, and `@` skill autocomplete |
-| `extensions/pi-rename/` | First unnamed Herdr TUI prompt + `/pi-rename`: one Luna low call produces a descriptive Pi session name and a 2–4-word tab topic. A Linear issue ID/URL overrides the topic with the ticket ID in either profile. The full name mirrors to the Agents panel (`$name2` wraps); the topic goes to `--title` metadata for Auto Title. Names persist across reloads/resumes. No LLM tool or direct tab renames. The command works anywhere; auto-naming and metadata are Herdr-only. |
+| `extensions/pi-rename/` | First unnamed Herdr TUI prompt + `/pi-rename`: one Luna low call produces a descriptive Pi session name and a tab topic capped at 20 characters. A Linear issue ID/URL overrides the topic with the ticket ID in either profile. The full name mirrors to the Agents panel (`$name2` wraps); the topic goes to `--title` metadata for Auto Title. Names persist across reloads/resumes. No LLM tool or direct tab renames. The command works anywhere; auto-naming and metadata are Herdr-only. |
 | `extensions/uv.ts` | Prefers `uv` via intercepted-commands |
 
 ## Edit often vs leave alone
@@ -56,9 +56,9 @@ cd ~/.pi/agent && npm install
 
 ## Session and Herdr names
 
-`/pi-rename` summarizes the latest prompt. `/pi-rename <name>` sets a literal session name; its tab topic is the first four words, or a Linear ticket ID in that name. Pi's `/name` uses the same deterministic tab fallback without another model call. `/pi-rename --clear` clears the session name, sidebar label and title metadata; Auto Title can then use its other sources.
+`/pi-rename` summarizes the latest prompt. `/pi-rename <name>` sets a literal session name; its tab topic is the first four words, or a Linear ticket ID in that name. Pi's `/name` uses the same deterministic tab fallback without another model call. Every topic is capped at 20 characters, including generated names, fallbacks, restored titles and ticket IDs. Auto Title can add numbers and other context outside this Pi topic limit. `/pi-rename --clear` clears the session name, sidebar label and title metadata; Auto Title can then use its other sources.
 
-If Luna is unavailable or returns invalid JSON, the session name falls back to the clipped prompt and the tab topic to its first four words or ticket ID. Ticket extraction checks the full prompt, even when model input is clipped. An issue URL wins over the first bare `TEAM-123` match. Bare matches are a naming heuristic, not a Linear API lookup.
+If Luna is unavailable or returns invalid JSON, the session name falls back to the clipped prompt and the tab topic to its first four words or ticket ID. Herdr clipboard-image paths are removed before naming and ticket extraction, so filenames such as `client-4-clipboard-….png` cannot become topics or false ticket IDs. Ticket extraction checks the full prompt, even when model input is clipped. An issue URL wins over the first bare `TEAM-123` match. Bare matches are a naming heuristic, not a Linear API lookup.
 
 The retired `linear-window-rename` extension is removed on apply. See the repository README for installing Auto Title and unlinking the retired window-number plugin.
 

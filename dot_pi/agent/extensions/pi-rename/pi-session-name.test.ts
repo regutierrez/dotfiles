@@ -7,6 +7,8 @@ import {
 	normalizePiTabTitle,
 	parsePiSessionTitles,
 	PI_RENAME_TITLES_ENTRY,
+	PI_RENAME_SYSTEM_PROMPT,
+	PI_TAB_TITLE_MAX_CHARS,
 	restorePiSessionTitles,
 	extractLatestUserPromptText,
 	fallbackPiSessionName,
@@ -123,6 +125,41 @@ test("parses distinct names and keeps the tab topic terse", () => {
 		sessionName: "Fix login redirects after session expiry", tabTitle: "Login redirects",
 	});
 	assert.equal(normalizePiTabTitle("one two three four five", "no ticket"), "one two three four");
+});
+
+test("clipboard image paths never become names or false Linear ticket IDs", () => {
+	const path = "/tmp/herdr-clipboard-images-1000/client-4-clipboard-1788803735556435667-0.png";
+	const prompt = `${path}\nFix login redirect`;
+	assert.equal(clipPiRenamePrompt(prompt), "Fix login redirect");
+	assert.equal(extractLinearIssueId(path), undefined);
+	assert.equal(extractLinearIssueId(`${path} TRI-42`), "TRI-42");
+	assert.deepEqual(fallbackPiSessionTitles(prompt), {
+		sessionName: "Fix login redirect", tabTitle: "Fix login redirect",
+	});
+	assert.equal(normalizePiTabTitle(path, path), undefined);
+	assert.equal(fallbackPiSessionTitles(path), undefined);
+	assert.deepEqual(parsePiSessionTitles(JSON.stringify({
+		sessionName: `${path} Fix login redirect`, tabTitle: path,
+	}), prompt), { sessionName: "Fix login redirect", tabTitle: "Fix login redirect" });
+	assert.equal(clipPiRenamePrompt(`/private${path} Fix login`), "Fix login");
+	assert.equal(clipPiRenamePrompt("Review /tmp/example.png"), "Review /tmp/example.png");
+});
+
+test("20-character cap covers model output, fallback, restored topics and long ticket IDs", () => {
+	assert.equal(PI_TAB_TITLE_MAX_CHARS, 20);
+	assert.match(PI_RENAME_SYSTEM_PROMPT, /at most 20 characters including spaces/);
+	assert.equal(normalizePiTabTitle("12345678901234567890", ""), "12345678901234567890");
+	assert.equal(normalizePiTabTitle("123456789012345678901", ""), "12345678901234567890");
+	assert.equal(normalizePiTabTitle("😀".repeat(21), ""), "😀".repeat(20));
+	assert.equal(normalizePiTabTitle("ignore me", "ABCDEFGHIJ-1234567890"), "ABCDEFGHIJ-123456789");
+	const sessionName = "Fix authentication middleware";
+	assert.deepEqual(parsePiSessionTitles(JSON.stringify({ sessionName, tabTitle: "Authentication middleware" }), "fix auth"), {
+		sessionName, tabTitle: "Authentication middl",
+	});
+	assert.deepEqual(restorePiSessionTitles([{
+		type: "custom", customType: PI_RENAME_TITLES_ENTRY,
+		data: { sessionName, tabTitle: "Authentication middleware" },
+	}], sessionName), { sessionName, tabTitle: "Authentication middl" });
 });
 
 test("ticket in the full prompt overrides the model topic, even beyond the model input cap", () => {

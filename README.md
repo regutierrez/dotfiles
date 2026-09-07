@@ -66,9 +66,9 @@ Apply the Pi changes before starting Auto Title: `pi-rename` reports a descripti
 
 Auto Title starts on the next Herdr server startup, not on install or client reattach. Restart only when it is safe to stop the session and its pane processes. Reload Pi after applying its extension changes.
 
-Defaults poll every 500 ms and keep the window position prefix. Optional settings live in `~/.config/herdr-auto-title/config.env` on Linux or `~/Library/Application Support/herdr-auto-title/config.env` on macOS, **not** the config directory printed by `herdr plugin install`. Keep `HERDR_AUTO_TITLE_POSITION=true`. Set `HERDR_AUTO_TITLE_AGENT_NAME=false` to omit the agent name if desired.
+Auto Title polls every 500 ms by default. Managed settings keep `HERDR_AUTO_TITLE_POSITION=true` and set `HERDR_AUTO_TITLE_AGENT_NAME=false`: show the window number, but omit the agent name. Settings live in `~/.config/herdr-auto-title/config.env` on Linux or `~/Library/Application Support/herdr-auto-title/config.env` on macOS, **not** the config directory printed by `herdr plugin install`. Config changes take effect when the plugin process restarts; Herdr has no plugin-restart CLI command.
 
-Pi's first unnamed session prompt generates two names in one Luna call. The short title becomes just `TRI-1234` when the prompt contains that ticket or its Linear URL; the full Pi session/sidebar name remains descriptive. Auto Title may still add directory, branch, agent and number context around the short topic. For split tabs, its selected pane determines the topic.
+Pi's first unnamed session prompt generates two names in one Luna call. The short title becomes just `TRI-1234` when the prompt contains that ticket or its Linear URL; the full Pi session/sidebar name remains descriptive. Pi topics are capped at 20 characters and omit harness-name prefixes. Auto Title may still add directory, branch and number context around the short topic. For split tabs, its selected pane determines the topic.
 
 Upstream caveats: manually renamed tabs stop auto-updating, including their numbers. Clearing the tab name restores automatic naming. On first startup, existing custom names without a saved Auto Title lock can be overwritten. Generated titles retain numbers; this is not the old plugin's guarantee for manually named tabs.
 
