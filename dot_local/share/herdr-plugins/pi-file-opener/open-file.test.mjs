@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 
 import { fnv1a, parseRequest, selectionExpression, shellQuote } from "./open-file.mjs";
 
@@ -31,6 +32,19 @@ test("parses an encoded file URL and line range", () => {
 	}
 });
 
+test("opens a file without a line selection", () => {
+	const fixture = fixtureLink("");
+	try {
+		assert.deepEqual(parseRequest(fixture.url), {
+			filePath: fixture.filePath,
+			startLine: undefined,
+			endLine: undefined,
+		});
+	} finally {
+		rmSync(fixture.directory, { recursive: true });
+	}
+});
+
 test("rejects a reversed range", () => {
 	const fixture = fixtureLink("L97-L75");
 	try {
@@ -43,9 +57,40 @@ test("rejects a reversed range", () => {
 test("builds the Nvim visual selection without interpolating input", () => {
 	assert.equal(
 		selectionExpression({ startLine: 75, endLine: 97 }),
-		"execute('call cursor(75, 1) | normal! V22jzz')",
+		'execute(["execute \\"normal! \\\\<Esc>\\"","call cursor(75, 1)","normal! zvV97Gzz"])',
 	);
 	assert.equal(shellQuote("a'b"), "'a'\"'\"'b'");
+});
+
+test("Nvim selects successive ranges and clears selection for a plain file link", () => {
+	const script = [
+		"call setline(1, range(1, 120))",
+		`call ${selectionExpression({ startLine: 75, endLine: 97 })}`,
+		"call assert_equal('V', mode())",
+		"call assert_equal(75, line('v'))",
+		"call assert_equal(97, line('.'))",
+		`call ${selectionExpression({ startLine: 3, endLine: 3 })}`,
+		"call assert_equal('V', mode())",
+		"call assert_equal(3, line('v'))",
+		"call assert_equal(3, line('.'))",
+		`call ${selectionExpression({})}`,
+		"call assert_equal('n', mode())",
+		"if len(v:errors) | echo join(v:errors, '\\n') | cquit | endif",
+		"qa!",
+	].join("\n");
+	const directory = mkdtempSync(join(tmpdir(), "pi-file-selection-test-"));
+	try {
+		const scriptPath = join(directory, "selection.vim");
+		writeFileSync(scriptPath, script);
+		const result = spawnSync("nvim", ["--headless", "-u", "NONE", "-i", "NONE", "-S", scriptPath], {
+			encoding: "utf8",
+			timeout: 10000,
+		});
+		assert.ifError(result.error);
+		assert.equal(result.status, 0, result.stderr);
+	} finally {
+		rmSync(directory, { recursive: true });
+	}
 });
 
 test("keeps the legacy socket identity stable for the active editor tab", () => {

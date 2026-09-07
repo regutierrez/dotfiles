@@ -128,6 +128,11 @@ export PATH=/opt/homebrew/opt/libpq/bin:"$PATH"
 
 export EDITOR=nvim
 
+# Herdr supports OSC 8 links but Pi does not detect it from TERM_PROGRAM.
+if [[ "${HERDR_ENV:-}" == 1 && -z "${TMUX:-}" && "$TERM" != (screen*|tmux*) ]]; then
+  export PI_HYPERLINKS="${PI_HYPERLINKS-1}"
+fi
+
 # Local secrets; keep this file untracked or chezmoi age-encrypted.
 [ -f "$HOME/.config/secrets/kagi.env" ] && source "$HOME/.config/secrets/kagi.env"
 

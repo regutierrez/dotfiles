@@ -62,6 +62,14 @@ If Luna is unavailable or returns invalid JSON, the session name falls back to t
 
 The retired `linear-window-rename` extension is removed on apply. See the repository README for installing Auto Title and unlinking the retired window-number plugin.
 
+## Click file links in Nvim
+
+In Herdr, `extensions/open-file-links.ts` routes file URLs to the Pi File Opener plugin. Click `[source](file:///absolute/path/file.ts#L10-L20)` to open the file and select lines 10–20. Use `#L10` for one line, or omit the fragment to open without a selection. Escape clears the selection. The plugin reuses the workspace's `pi-files` Nvim tab.
+
+Links work in completed and restored messages. Inline code and fenced code examples stay unchanged. Use an absolute `file://` URL as the Markdown destination; plain relative paths are not converted. Encode spaces as `%20`.
+
+The managed zsh configuration enables Pi hyperlinks inside Herdr, except under tmux/screen. An explicit `PI_HYPERLINKS` value takes priority. After applying changes to `~/.zshrc`, `~/.pi/agent/extensions/open-file-links.ts`, and `~/.local/share/herdr-plugins/pi-file-opener/open-file.mjs`, start Pi from a new shell. For an existing shell, use `PI_HYPERLINKS=1 pi` and resume the session. Herdr must have the Pi File Opener plugin enabled.
+
 ## Secret masking (`pi-cloak`)
 
 `extensions/pi-cloak/` redacts matching values from `read` tool results before they reach the model. Patterns live in `cloak.json` (applied to `~/.pi/agent/cloak.json`). Check with `/cloak-status` in pi, then `/reload` after edits.

@@ -20,10 +20,13 @@ export function parseRequest(clickedUrl) {
 	if (fileUrl.protocol !== "file:") throw new Error("source link must contain a file URL");
 
 	const match = LINE_RANGE.exec(decodeURIComponent(fileUrl.hash.slice(1)));
-	if (!match) throw new Error("source link must end in #L<start>-L<end>");
+	if (fileUrl.hash && !match) throw new Error("source line range must be #L<start>-L<end>");
 
-	const startLine = Number(match[1]);
-	const endLine = Number(match[2] ?? match[1]);
+	const startLine = match ? Number(match[1]) : undefined;
+	const endLine = match ? Number(match[2] ?? match[1]) : undefined;
+	if (match && (!Number.isSafeInteger(startLine) || !Number.isSafeInteger(endLine))) {
+		throw new Error("source line range exceeds safe integer limits");
+	}
 	if (endLine < startLine) throw new Error("source line range is reversed");
 
 	const filePath = fileURLToPath(fileUrl);
@@ -51,9 +54,13 @@ export function shellQuote(value) {
 	return `'${value.replaceAll("'", `'"'"'`)}'`;
 }
 
+/** Reset the previous visual selection before selecting the clicked file's line range. */
 export function selectionExpression({ startLine, endLine }) {
-	const movement = endLine > startLine ? `${endLine - startLine}j` : "";
-	return `execute('call cursor(${startLine}, 1) | normal! V${movement}zz')`;
+	const commands = ['execute "normal! \\<Esc>"'];
+	if (startLine !== undefined) {
+		commands.push(`call cursor(${startLine}, 1)`, `normal! zvV${endLine}Gzz`);
+	}
+	return `execute(${JSON.stringify(commands)})`;
 }
 
 function executable(name) {

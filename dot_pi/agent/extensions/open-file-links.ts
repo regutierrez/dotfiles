@@ -1,38 +1,32 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-const FILE_URL_WITH_LINES = /file:\/\/\/[^\s<>"'`()\]#]+#L\d+(?:-L?\d+)?/g;
+// Match code first so examples are not rewritten as nested Markdown.
+const FILE_URL_OR_CODE = /(^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\2[ \t]*(?=\n|$)|(`+)[\s\S]*?\3)|file:\/\/\/[^\s<>"'`()\]]+/gm;
 
+/** Route file URLs through Herdr without changing code examples or existing link labels. */
 export function linkifyFileUrls(text: string): string {
-	return text.replace(FILE_URL_WITH_LINES, (fileUrl, offset: number, source: string) => {
+	return text.replace(FILE_URL_OR_CODE, (match, code, _fence, _ticks, offset: number, source: string) => {
+		if (code) return match;
 		const previous = offset > 0 ? source[offset - 1] : undefined;
-		// Do not nest a link when the URL is already its label or inline code.
-		if (previous === "[" || previous === "`") return fileUrl;
+		if (previous === "[") return match;
 
+		const isDestination = previous === "(" || previous === "<";
+		const fileUrl = isDestination ? match : match.replace(/[.,;:!?]+$/, "");
+		const suffix = match.slice(fileUrl.length);
 		const destination = new URL("pi-file://open");
 		destination.searchParams.set("url", fileUrl);
 
-		// Preserve existing Markdown links and autolinks, replacing only their target.
-		if (previous === "(" || previous === "<") return destination.href;
-		return `[${fileUrl}](${destination.href})`;
+		if (isDestination) return destination.href;
+		return `[${fileUrl}](${destination.href})${suffix}`;
 	});
 }
 
-export default function (pi: ExtensionAPI) {
+/** File links are display-only and require the Herdr Pi File Opener plugin. */
+export default function openFileLinks(pi: ExtensionAPI) {
 	if (process.env.HERDR_ENV !== "1" || !["darwin", "linux"].includes(process.platform)) return;
 
-	pi.on("message_end", (event) => {
-		if (event.message.role !== "assistant") return;
-
-		let changed = false;
-		const content = event.message.content.map((part) => {
-			if (part.type !== "text") return part;
-			const text = linkifyFileUrls(part.text);
-			if (text === part.text) return part;
-			changed = true;
-			return { ...part, text };
-		});
-
-		if (!changed) return;
-		return { message: { ...event.message, content } };
+	pi.registerMarkdownTransformer((markdown, { messageType, isStreaming }) => {
+		if (messageType === "assistant-thinking" || isStreaming) return markdown;
+		return linkifyFileUrls(markdown);
 	});
 }
