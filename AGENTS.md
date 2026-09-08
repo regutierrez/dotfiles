@@ -32,6 +32,8 @@ Important locations:
 - `bootstrap` and `scripts/`: source-only package and one-time setup; never applied into `$HOME`.
 - `scripts/install-terminal-browser.sh`: curl installer for terminal-browser plus the Herdr plugin; not a brew or RPM package.
 - `scripts/install-herdr-annotate.sh`: idempotent installer for the full Herdr Annotate plugin; standalone Plannotator TUI installation stays in the platform package flow.
+- `scripts/install-herdr-auto-title.sh`: idempotent installer for the pinned Auto Title plugin; unlinks retired `dotfiles.window-numbers`.
+- `run_after_50-install-herdr-plugins.sh.tmpl`: during `chezmoi apply`, install GitHub Herdr plugins and relink local plugins that are missing.
 - `dot_agents/skills/`: managed `~/.agents/skills`.
 - `dot_pi/agent/`: managed Pi agents, extensions, and configuration.
 - `private_dot_ssh/private_config`: managed personal macOS SSH client configuration, not a private key.
@@ -52,7 +54,7 @@ Skill directories are allow-listed from groups in `.chezmoidata.toml`. Unclassif
 
 ## Packages and secrets
 
-System package installation is never part of `chezmoi apply`. On Fedora, the source bootstrap installs Node and Pi before applying managed Pi extension hooks. Render and run it with:
+System package installation is never part of `chezmoi apply`. Herdr plugins and Pi packages are. On Fedora, the source bootstrap installs Node and Pi before applying managed Pi extension hooks. Render and run it with:
 
 ```bash
 bash "$(chezmoi source-path)/bootstrap"

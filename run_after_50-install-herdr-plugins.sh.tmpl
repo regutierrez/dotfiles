@@ -1,0 +1,43 @@
+{{- if or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux") -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Keep GitHub and local Herdr plugins present after every apply. Rebuilds of
+# managed local plugins stay in the run_onchange_after_50-link-herdr-* hooks.
+
+export PATH="$HOME/.local/bin:$PATH"
+
+source_dir="${CHEZMOI_SOURCE_DIR:-$(chezmoi source-path)}"
+
+bash "$source_dir/scripts/install-herdr-auto-title.sh"
+bash "$source_dir/scripts/install-herdr-annotate.sh"
+
+if ! command -v herdr >/dev/null 2>&1; then
+  echo "install-herdr-plugins: herdr not found; skipping local plugin links" >&2
+  exit 0
+fi
+
+ensure_local_herdr_plugin() {
+  local plugin_id="$1"
+  local plugin_dir="$2"
+  if [[ ! -f "$plugin_dir/herdr-plugin.toml" ]]; then
+    return 0
+  fi
+  if herdr plugin list 2>/dev/null | grep -Fq "$plugin_id"; then
+    return 0
+  fi
+  echo "install-herdr-plugins: linking ${plugin_id}"
+  herdr plugin link "$plugin_dir" --enabled
+}
+
+ensure_local_herdr_plugin \
+  "dotfiles.pi-file-opener" \
+  "$HOME/.local/share/herdr-plugins/pi-file-opener"
+
+if [[ -x "$HOME/.local/share/herdr-plugins/workspace-mru/workspace-mru" ]]; then
+  ensure_local_herdr_plugin \
+    "dotfiles.workspace-mru" \
+    "$HOME/.local/share/herdr-plugins/workspace-mru"
+fi
+{{- end -}}
+

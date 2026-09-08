@@ -61,7 +61,7 @@ cd ~/.pi/agent && npm install
 
 If Luna is unavailable or returns invalid JSON, the session name falls back to the clipped prompt and the tab topic to its first four words or ticket ID. Herdr clipboard-image paths are removed before naming and ticket extraction, so filenames such as `client-4-clipboard-….png` cannot become topics or false ticket IDs. Ticket extraction checks the full prompt, even when model input is clipped. An issue URL wins over the first bare `TEAM-123` match. Bare matches are a naming heuristic, not a Linear API lookup.
 
-The retired `linear-window-rename` extension is removed on apply. See the repository README for installing Auto Title and unlinking the retired window-number plugin.
+The retired `linear-window-rename` extension is removed on apply. `chezmoi apply` installs Auto Title and unlinks the retired window-number plugin.
 
 ## Click file links in Nvim
 

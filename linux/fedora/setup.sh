@@ -61,6 +61,9 @@ install_user_tools() {
   info "installing Herdr Annotate"
   bash "$(chezmoi source-path)/scripts/install-herdr-annotate.sh"
 
+  info "installing Herdr Auto Title"
+  bash "$(chezmoi source-path)/scripts/install-herdr-auto-title.sh"
+
   if ! command -v plannotator-tui >/dev/null 2>&1; then
     info "installing Plannotator TUI"
     cargo install plannotator-tui --locked --root "$HOME/.local"

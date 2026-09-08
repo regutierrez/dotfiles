@@ -40,7 +40,7 @@ chezmoi apply               # apply all configuration
 
 Both workstation profiles install [terminal-browser](https://github.com/zenbu-labs/terminal-browser) with the official curl installer (`scripts/install-terminal-browser.sh`), not Homebrew or DNF. When Herdr is present, that script also installs the `zenbu-labs.terminal-browser` plugin. In Herdr, `prefix+shift+b` opens a browser split. `prefix+b` stays the sidebar toggle. Upgrade with `terminal-browser upgrade`. Do not `brew install terminal-browser`; that would fight the curl install.
 
-The bootstrap also installs [Herdr Annotate](https://github.com/plannotator/herdr-annotate) and the standalone [Plannotator TUI](https://github.com/plannotator/plannotator-tui). macOS uses the trusted `plannotator/tap` Homebrew formula. Fedora installs the Rust crate. Managed settings open document reviews as a full-tab Herdr overlay. Use `prefix+o` to review a file or folder and `prefix+shift+o` to review the agent's last reply.
+`chezmoi apply` installs [Herdr Annotate](https://github.com/plannotator/herdr-annotate) and [Auto Title](https://github.com/kryptamine/herdr-auto-title) when Herdr is present. Bootstrap runs the same installers. The standalone [Plannotator TUI](https://github.com/plannotator/plannotator-tui) stays in the platform package flow: macOS uses the trusted `plannotator/tap` Homebrew formula, and Fedora installs the Rust crate. Managed settings open document reviews as a full-tab Herdr overlay. Use `prefix+o` to review a file or folder and `prefix+shift+o` to review the agent's last reply.
 
 After changing [`.chezmoidata/packages.toml`](.chezmoidata/packages.toml), install newly listed packages explicitly:
 
@@ -55,16 +55,17 @@ personal or work configuration; Karabiner is ignored on other operating systems.
 
 On Fedora, the bootstrap installs Node and Pi before `chezmoi apply`, so the
 `[packages.pi]` hooks install Plannotator and `@tintinweb/pi-subagents` on the first run.
+The same apply also installs GitHub Herdr plugins and relinks missing local Herdr plugins.
 
 ## Herdr tab titles
 
-[Auto Title](https://github.com/kryptamine/herdr-auto-title) owns generated tab names and workspace-local window numbers. Install the reviewed version on each machine (requires Herdr 0.8.2+ and Go 1.24+):
+[Auto Title](https://github.com/kryptamine/herdr-auto-title) owns generated tab names and workspace-local window numbers. `chezmoi apply` installs the reviewed plugin (Herdr 0.8.2+ and Go 1.24+) and unlinks retired `dotfiles.window-numbers`:
 
 ```bash
 herdr plugin install kryptamine/herdr-auto-title --ref a34f22d1fc8a6037d171789cfda17289088527e0 --yes
 ```
 
-Apply the Pi changes before starting Auto Title: `pi-rename` reports a descriptive sidebar name and a separate terse title, and chezmoi removes the competing `linear-window-rename` extension. The old window-number plugin and its install hook are retired. On other machines, run `herdr plugin unlink dotfiles.window-numbers` before starting Auto Title; apply removes its managed files. Do not run both title writers together.
+Apply the Pi changes before starting Auto Title: `pi-rename` reports a descriptive sidebar name and a separate terse title, and chezmoi removes the competing `linear-window-rename` extension. The old window-number plugin and its install hook are retired. Do not run both title writers together.
 
 Auto Title starts on the next Herdr server startup, not on install or client reattach. Restart only when it is safe to stop the session and its pane processes. Reload Pi after applying its extension changes.
 
