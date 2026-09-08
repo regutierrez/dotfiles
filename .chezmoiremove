@@ -19,6 +19,8 @@
 .agents/skills/daily-agent-session-recap
 .agents/skills/recapping-weekly-agent-sessions
 .agents/skills/effect-service-design
+.agents/skills/reviewing-python
+.agents/skills/reviewing-typescript-vue
 .agents/skills/coding-standards/ASYNC_AND_WORKFLOWS.md
 .agents/skills/coding-standards/BOUNDARIES_AND_PARSING.md
 .agents/skills/coding-standards/CLOUDFLARE_ARCHITECTURE.md

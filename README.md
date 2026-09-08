@@ -105,6 +105,12 @@ Pi subagent prompts are shared across profiles, but their model and reasoning se
 
 Unclassified skill directories are not installed. Pi-specific files and development notes live under [`dot_pi/agent/`](dot_pi/agent/README.md).
 
+### Shared coding workflow
+
+[`pragmatic-code`](dot_agents/skills/pragmatic-code/SKILL.md) replaces `reviewing-python` and `reviewing-typescript-vue` in both profiles. In Pi, use `/skill:pragmatic-code plan ...`, `/skill:pragmatic-code implement ...`, or `/skill:pragmatic-code review ...`; `@pragmatic-code` also works. It stays user-invoked and loads Python, TypeScript, and Vue references only for the affected code. Shared-gate changes have a separate conditional audit. Other stacks use repository guidance and official documentation, with specialized coverage gaps stated explicitly.
+
+Repository `AGENTS.md` files own work or personal project policy; the machine profile selects installation, not coding rules. This merge leaves Effect guidance, Go-specific guidance, and the separate `code-review` skill unchanged. A future apply retires the two old managed skill directories. Preview the new entry point with `chezmoi cat ~/.agents/skills/pragmatic-code/SKILL.md` before applying.
+
 To change profiles, edit `~/.config/chezmoi/chezmoi.toml`:
 
 ```toml

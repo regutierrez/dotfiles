@@ -59,6 +59,10 @@ Library/Application Support/herdr-auto-title/
 {{- end }}
 {{- end }}
 
+# Keep retired review skills visible so .chezmoiremove can remove them.
+!.agents/skills/reviewing-python
+!.agents/skills/reviewing-typescript-vue
+
 # Mirror repo-local .gitignore entries so chezmoi never syncs them.
 .config/raycast/
 .config/btop/

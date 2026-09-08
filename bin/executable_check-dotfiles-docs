@@ -19,7 +19,32 @@ renders() {
     ok "$message"
   else
     bad "$message"
+    return
   fi
+
+  local profile_managed profile_ignore target
+  if ! profile_managed="$(chezmoi managed --override-data "$data")"; then
+    bad "$message: cannot list managed skills"
+    return
+  fi
+  if grep -Fxq '.agents/skills/pragmatic-code/SKILL.md' <<< "$profile_managed"; then
+    ok "$message: manages .agents/skills/pragmatic-code/SKILL.md"
+  else
+    bad "$message: missing .agents/skills/pragmatic-code/SKILL.md"
+  fi
+
+  if ! profile_ignore="$(chezmoi execute-template --override-data "$data" < .chezmoiignore)"; then
+    bad "$message: cannot render ignore rules"
+    return
+  fi
+  # Retired targets must remain visible to .chezmoiremove despite the allow-list.
+  for target in reviewing-python reviewing-typescript-vue; do
+    if grep -Fxq "!.agents/skills/$target" <<< "$profile_ignore"; then
+      ok "$message: un-ignores retired $target"
+    else
+      bad "$message: still ignores retired $target"
+    fi
+  done
 }
 
 rejects() {
@@ -59,6 +84,15 @@ for source_only in PLAN.md bootstrap scripts plans archive macos linux; do
     bad "source-only path would leak into HOME: $source_only"
   else
     ok "source-only path is not managed: $source_only"
+  fi
+done
+
+for retired in reviewing-python reviewing-typescript-vue; do
+  absent "dot_agents/skills/$retired" "retired review skill source is absent: $retired"
+  if grep -Fxq ".agents/skills/$retired" .chezmoiremove; then
+    ok "retired review skill has a removal entry: $retired"
+  else
+    bad "retired review skill has no removal entry: $retired"
   fi
 done
 
