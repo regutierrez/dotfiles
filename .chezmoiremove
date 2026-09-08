@@ -18,6 +18,7 @@
 .agents/skills/implement
 .agents/skills/daily-agent-session-recap
 .agents/skills/recapping-weekly-agent-sessions
+.agents/skills/weekly-agents-sessions-recap
 .agents/skills/effect-service-design
 .agents/skills/reviewing-python
 .agents/skills/reviewing-typescript-vue

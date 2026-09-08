@@ -17,6 +17,7 @@ cd ~/.pi/agent && npm install
 | `btw.json` | Optional BTW model/thinking overrides |
 | `cloak.json` | Secret-masking patterns for `pi-cloak` |
 | `mcp.json` | MCP server wiring for `dmmulroy/pi-mcp` |
+| `models.json` | Caps xAI Grok `contextWindow` at 200k so prompts stay in the cheap tier |
 | `subagents.json` | Lean global settings for `@tintinweb/pi-subagents` |
 | `package.json` | Shared deps for extensions |
 | `agents/` | Custom Tintinweb subagent definitions; prompts are shared and model/reasoning settings render by profile |
@@ -41,7 +42,7 @@ cd ~/.pi/agent && npm install
 ## Edit often vs leave alone
 
 **Edit often (hot):**
-- `APPEND_SYSTEM.md`, `agent-tool-description.md`, `keybindings.json`, `btw.json`, `cloak.json`, `subagents.json`, `extensions/pi-autoresearch.json`
+- `APPEND_SYSTEM.md`, `agent-tool-description.md`, `keybindings.json`, `btw.json`, `cloak.json`, `models.json`, `subagents.json`, `extensions/pi-autoresearch.json`
 - `extensions/btw/`
 - `extensions/pi-rename/`
 - `extensions/subagents-lazy-tools.ts`
@@ -87,6 +88,7 @@ export KAGI_API_KEY=…
 
 ## Notes
 
+- `models.json` overrides built-in xAI Grok `contextWindow` to 200000. xAI bills the whole request at 2x once the prompt reaches 200k tokens. Add a new `modelOverrides` id when Pi ships another Grok model.
 - `node_modules/` and lockfiles under `~/.pi/agent` are ignored by chezmoi.
 - Orphan extensions and retired skill files removed from source are listed in repo `.chezmoiremove` so apply deletes them from the target.
 - `~/.pi/agent/extensions/herdr-agent-state.ts` is owned by herdr (not chezmoi); leave it on the target.

@@ -38,7 +38,7 @@ renders() {
     return
   fi
   # Retired targets must remain visible to .chezmoiremove despite the allow-list.
-  for target in reviewing-python reviewing-typescript-vue; do
+  for target in reviewing-python reviewing-typescript-vue weekly-agents-sessions-recap; do
     if grep -Fxq "!.agents/skills/$target" <<< "$profile_ignore"; then
       ok "$message: un-ignores retired $target"
     else
@@ -87,7 +87,7 @@ for source_only in PLAN.md bootstrap scripts plans archive macos linux; do
   fi
 done
 
-for retired in reviewing-python reviewing-typescript-vue; do
+for retired in reviewing-python reviewing-typescript-vue weekly-agents-sessions-recap; do
   absent "dot_agents/skills/$retired" "retired review skill source is absent: $retired"
   if grep -Fxq ".agents/skills/$retired" .chezmoiremove; then
     ok "retired review skill has a removal entry: $retired"

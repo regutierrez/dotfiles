@@ -47,7 +47,6 @@ work = [
   "batch-rca",
   "locating-request-origin",
   "query-hz",
-  "weekly-agents-sessions-recap",
   "rca",
   "use-computer-mcp",
 ]

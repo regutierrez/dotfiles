@@ -1,0 +1,17 @@
+{
+  "providers": {
+    "xai": {
+      "modelOverrides": {
+        "grok-4.3": {
+          "contextWindow": 200000
+        },
+        "grok-4.5": {
+          "contextWindow": 200000
+        },
+        "grok-4.6": {
+          "contextWindow": 200000
+        }
+      }
+    }
+  }
+}
