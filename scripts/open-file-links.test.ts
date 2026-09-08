@@ -18,6 +18,27 @@ for (const url of ["file:///tmp/a.ts", "file:///tmp/a%20file.ts#L3", "file:///tm
 	});
 }
 
+test("routes the HANDOFF.md absolute-path link without changing its label", () => {
+	const path = "/tmp/non-code-skill-debloat.DR3V32/HANDOFF.md";
+	assert.equal(linkifyFileUrls(`Created [HANDOFF.md](${path}).`),
+		`Created [HANDOFF.md](${destination(`file://${path}`)}).`);
+});
+
+for (const path of ["/tmp/a.ts#L3-L8", "/tmp/a%20file.ts", "/tmp/a.ts"]) {
+	test(`routes an absolute Markdown destination: ${path}`, () => {
+		const markdown = `[source](${path})`;
+		const linked = `[source](${destination(`file://${path}`)})`;
+		assert.equal(linkifyFileUrls(markdown), linked);
+		assert.equal(linkifyFileUrls(linked), linked);
+		assert.equal(linkifyFileUrls(`\`${markdown}\``), `\`${markdown}\``);
+	});
+}
+
+test("does not rewrite plain paths, relative paths, or protocol-relative web URLs", () => {
+	const markdown = "/tmp/a.ts [source](src/a.ts) [web](//example.com/a.ts)";
+	assert.equal(linkifyFileUrls(markdown), markdown);
+});
+
 test("preserves autolinks, punctuation, and web links", () => {
 	const url = "file:///tmp/a.ts#L3";
 	assert.equal(linkifyFileUrls(`<${url}>`), `<${destination(url)}>`);

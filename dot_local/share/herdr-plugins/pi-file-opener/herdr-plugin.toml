@@ -1,8 +1,8 @@
 id = "dotfiles.pi-file-opener"
 name = "Pi File Opener"
-version = "0.1.0"
-min_herdr_version = "0.7.5"
-description = "Open Pi source links in a persistent Nvim tab"
+version = "0.2.0"
+min_herdr_version = "0.9.0"
+description = "Open Pi source links in an automatically zoomed Nvim pane"
 platforms = ["linux", "macos"]
 
 [[actions]]
@@ -11,8 +11,26 @@ title = "Open source link in Nvim"
 contexts = ["workspace"]
 command = ["node", "open-file.mjs"]
 
+[[panes]]
+id = "editor"
+title = "Pi file preview"
+placement = "overlay"
+command = ["node", "open-file.mjs", "--editor"]
+
 [[link_handlers]]
 id = "pi-file"
 title = "Open Pi source link"
 pattern = "^pi-file://open\\?.+$"
+action = "open"
+
+[[link_handlers]]
+id = "absolute-file"
+title = "Open absolute file path"
+pattern = "^/[^/]"
+action = "open"
+
+[[link_handlers]]
+id = "file-url"
+title = "Open file URL"
+pattern = "^file:///"
 action = "open"
