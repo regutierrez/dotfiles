@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: "Control Herdr panes, tabs, workspaces, commands, dev servers, other background processes, and agents. Use for subagents when the user or another skill explicitly asks for or requires them. Requires HERDR_ENV=1."
+description: "Control Herdr panes, tabs, workspaces, commands, dev servers, other background processes, and agents. Use for subagents when the user explicitly requests them or another loaded skill explicitly calls for delegation. Requires HERDR_ENV=1."
 ---
 
 # Herdr
@@ -88,6 +88,8 @@ herdr agent list
 Creation responses expose the IDs to use next. `workspace create` returns `.result.workspace`, `.result.tab`, and `.result.root_pane`. `tab create` returns `.result.tab` and `.result.root_pane`. `pane split` returns the new pane as `.result.pane`.
 
 ## Start and coordinate an agent
+
+Start or delegate work to an agent only when the user explicitly requests it in this conversation or another loaded skill explicitly calls for delegation. This skill explains how to coordinate agents; loading it alone does not authorize delegation. A task's size or an unloaded skill does not grant permission. Otherwise, do the work yourself.
 
 Default to a sibling pane in the current tab and the current working directory. Do not create a workspace, tab, worktree, or different cwd unless the user explicitly requests that topology or location.
 
