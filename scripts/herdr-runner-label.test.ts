@@ -1,14 +1,15 @@
-import { describe, expect, test } from 'bun:test'
-import { parseAmpRunnerThreadCount } from '../dot_config/private_amp/plugins/herdr-runner-label'
+import assert from 'node:assert/strict'
+import { describe, test } from 'node:test'
+import { parseAmpRunnerThreadCount } from '../dot_config/private_amp/plugins/herdr-runner-label.ts'
 
 describe('parseAmpRunnerThreadCount', () => {
 	test('reads singular and plural Amp runner thread counts', () => {
-		expect(parseAmpRunnerThreadCount('~/repo (1 thread) - amp runner')).toBe(1)
-		expect(parseAmpRunnerThreadCount('/tmp/project (12 threads) - amp runner')).toBe(12)
+		assert.equal(parseAmpRunnerThreadCount('~/repo (1 thread) - amp runner'), 1)
+		assert.equal(parseAmpRunnerThreadCount('/tmp/project (12 threads) - amp runner'), 12)
 	})
 
 	test('ignores non-runner terminal titles', () => {
-		expect(parseAmpRunnerThreadCount('~/repo - amp')).toBeUndefined()
-		expect(parseAmpRunnerThreadCount('Plugin confirmation needed')).toBeUndefined()
+		assert.equal(parseAmpRunnerThreadCount('~/repo - amp'), undefined)
+		assert.equal(parseAmpRunnerThreadCount('Plugin confirmation needed'), undefined)
 	})
 })

@@ -205,14 +205,7 @@ if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi
 
-# bun completions
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Always prefer the canonical global pi install over fnm/mise/bun shims.
+# Always prefer the canonical global pi install over fnm/mise shims.
 # fnm re-prepends its multishell bin on directory changes, so enforce this once
 # at startup and again after every chpwd hook run.
 __prefer_npm_global_pi() {

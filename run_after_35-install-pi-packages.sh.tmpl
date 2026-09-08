@@ -2,13 +2,29 @@
 #!/bin/bash
 set -euo pipefail
 
-if ! command -v pi >/dev/null 2>&1; then
-  echo "install-pi-packages: pi not found, skipping" >&2
+if ! command -v node >/dev/null 2>&1; then
+  echo "install-pi-packages: node not found, skipping" >&2
   exit 0
 fi
 
-if ! command -v node >/dev/null 2>&1; then
-  echo "install-pi-packages: node not found, skipping" >&2
+if ! command -v npm >/dev/null 2>&1; then
+  echo "install-pi-packages: npm not found, skipping" >&2
+  exit 0
+fi
+
+npm_prefix="${NPM_CONFIG_PREFIX:-${HOME}/.npm-global}"
+mkdir -p "${npm_prefix}"
+export PATH="${npm_prefix}/bin:${PATH}"
+
+if [[ ! -x "${npm_prefix}/bin/pi" ]]; then
+  echo "install-pi-packages: installing Pi into ${npm_prefix}"
+  npm install --global --ignore-scripts \
+    --prefix "${npm_prefix}" \
+    @earendil-works/pi-coding-agent
+fi
+
+if ! command -v pi >/dev/null 2>&1; then
+  echo "install-pi-packages: pi not found, skipping" >&2
   exit 0
 fi
 
@@ -98,10 +114,6 @@ NODE
     pi install "$source"
   fi
 done
-
-npm_prefix="${NPM_CONFIG_PREFIX:-${HOME}/.npm-global}"
-mkdir -p "${npm_prefix}"
-export PATH="${npm_prefix}/bin:${PATH}"
 
 {{- $osid := index .chezmoi.osRelease "id" | default "" -}}
 {{- $variant := index .chezmoi.osRelease "variantID" | default "" -}}

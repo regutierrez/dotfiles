@@ -208,4 +208,4 @@ echo "targetInstallRan=${TARGET_INSTALL_RAN}"
 - This skill is idempotent: if already up to date, it should do no-op work and report skips clearly.
 - npm is the package manager. Keep `--ignore-scripts`: Pi's own installation guidance uses it, and the shared runtime does not require dependency lifecycle scripts.
 - Agent-root lockfiles stay untracked. The vendored `extensions/web-tools` package intentionally keeps its own npm lockfile and install script.
-- Install the global CLI into `~/.npm-global` so it matches `dot_zshrc.tmpl`. Do not use Bun for Pi.
+- Install the global CLI into `~/.npm-global` so it matches `dot_zshrc.tmpl`.
