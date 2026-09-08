@@ -34,7 +34,7 @@ cd ~/.pi/agent && npm install
 | `extensions/continue-after-compaction.ts` | Resume after compaction |
 | `extensions/loop.ts` | Loop / iteration helper |
 | `extensions/review.ts` | Review UI extension |
-| `extensions/subagents-lazy-tools.ts` | Defers Agent/SubagentWorkflow tools until the user asks for subagents or runs `/subagents` |
+| `extensions/subagents-lazy-tools.ts` | Keeps ordinary Agent tools available; defers only the SubagentWorkflow schema until subagent/workflow mentions or `/subagents` (not a permission gate) |
 | `extensions/inline-skill-mentions/` | Prefix `@skill-name` as `/skill:name` while keeping the original prompt, extra mentions as `skill-context`, and `@` skill autocomplete |
 | `extensions/pi-rename/` | First unnamed Herdr TUI prompt + `/pi-rename`: one Luna low call produces a descriptive Pi session name and a tab topic capped at 20 characters. A Linear issue ID/URL overrides the topic with the ticket ID in either profile. The full name mirrors to the Agents panel (`$name2` wraps); the topic goes to `--title` metadata for Auto Title. Names persist across reloads/resumes. No LLM tool or direct tab renames. The command works anywhere; auto-naming and metadata are Herdr-only. |
 | `extensions/uv.ts` | Prefers `uv` via intercepted-commands |

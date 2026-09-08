@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: "Control Herdr panes, tabs, workspaces, commands, dev servers, other background processes, and agents. Use for subagents when the user explicitly requests them or another loaded skill explicitly calls for delegation. Requires HERDR_ENV=1."
+description: "Control Herdr panes, tabs, workspaces, commands, dev servers, and other background processes. Herdr agent delegation requires an explicit user request to use Herdr for that task; general subagent requests and skills do not authorize it. Requires HERDR_ENV=1."
 ---
 
 # Herdr
@@ -89,7 +89,13 @@ Creation responses expose the IDs to use next. `workspace create` returns `.resu
 
 ## Start and coordinate an agent
 
-Start or delegate work to an agent only when the user explicitly requests it in this conversation or another loaded skill explicitly calls for delegation. This skill explains how to coordinate agents; loading it alone does not authorize delegation. A task's size or an unloaded skill does not grant permission. Otherwise, do the work yourself.
+Never launch agents or send delegated work through Herdr unless the user explicitly requests Herdr-based delegation for the current task. A general request to use subagents is not a request to use Herdr. No skill can grant Herdr delegation permission, including this skill. Task size and running inside a Herdr pane do not grant permission either.
+
+In Pi, use the pi-subagents extension's Agent tool when delegation is useful or a loaded skill requests it. If pi-subagents is unavailable, work locally; never fall back to Herdr. Outside Pi, use the host's authorized delegation tools or work locally.
+
+The Herdr restriction covers herdr agent commands, pane commands, terminal input, and indirect shell launches. Do not launch pi, codex, or another coding agent through a pane command to avoid this rule. Running ordinary commands such as tests or dev servers is not agent delegation.
+
+The remaining instructions in this section apply only after the user explicitly requests Herdr-based delegation.
 
 Default to a sibling pane in the current tab and the current working directory. Do not create a workspace, tab, worktree, or different cwd unless the user explicitly requests that topology or location.
 

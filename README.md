@@ -104,6 +104,10 @@ Profile behavior lives in [`.chezmoiignore`](.chezmoiignore). Skill membership l
 
 Pi subagent prompts are shared across profiles, but their model and reasoning settings are rendered per profile from `dot_pi/agent/agents/*.md.tmpl`. Personal uses the OpenCode Go selections; work keeps the original xAI and OpenAI Codex selections.
 
+Pi uses `@tintinweb/pi-subagents` when delegation is useful or a loaded skill requests it. `Agent`, `get_subagent_result`, and `steer_subagent` stay available by default. `SubagentWorkflow` still requires explicit user opt-in to workflows or multi-agent orchestration. Its schema loads on subagent/workflow mentions or `/subagents`; schema visibility alone does not grant permission.
+
+Herdr-based agent delegation requires an explicit user request to use Herdr for the current task. General subagent requests and skills cannot authorize it. This includes agent commands, pane commands, terminal input, and indirect shell launches. If pi-subagents is unavailable, Pi must work locally, not fall back to Herdr. Ordinary Herdr test and dev-server commands remain separate. These are prompt rules, not a shell execution guard. Apply the changed source targets, then run `/reload` in Pi to load the new rules.
+
 Unclassified skill directories are not installed. Pi-specific files and development notes live under [`dot_pi/agent/`](dot_pi/agent/README.md).
 
 ### Shared coding workflow

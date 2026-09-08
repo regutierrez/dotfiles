@@ -1,4 +1,6 @@
-Delegate only after an explicit user request in this conversation or an explicit delegation instruction in a loaded skill. Task size, tool descriptions, and unloaded skills grant no permission. Otherwise, work yourself rather than asking to delegate by default.
+Use this pi-subagents Agent tool when delegation is useful or a loaded skill requests it. Ordinary Pi subagents do not require a separate user request. SubagentWorkflow still requires explicit user opt-in to workflows or multi-agent orchestration.
+
+Never launch agents or send delegated work through Herdr unless the user explicitly requests Herdr-based delegation for the current task. General subagent requests and loaded skills do not authorize Herdr delegation. This includes herdr agent commands, pane commands, terminal input, and indirect shell launches. If pi-subagents is unavailable, work locally; never fall back to Herdr.
 
 Agent types:
 {{compactTypeList}}

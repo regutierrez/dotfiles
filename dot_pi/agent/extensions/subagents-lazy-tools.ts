@@ -1,17 +1,12 @@
 /**
- * Keep pi-subagents tool schemas inactive until the user asks for subagents.
- * The package still loads (`/agents`, widget, fleet view). Only LLM context
- * is deferred: Agent, SubagentWorkflow, get_subagent_result, steer_subagent.
+ * Keep only the pi-subagents workflow schema deferred until subagents are mentioned.
+ * Agent, get_subagent_result, and steer_subagent remain available by default.
+ * Schema activation is not permission to run a workflow or delegate through Herdr.
  */
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
-/** Tool names registered by `@tintinweb/pi-subagents` that carry the large schemas. */
-export const SUBAGENT_LAZY_TOOL_NAMES = [
-	"Agent",
-	"SubagentWorkflow",
-	"get_subagent_result",
-	"steer_subagent",
-] as const;
+/** Only the workflow schema is lazy; ordinary Pi subagents need no user opt-in. */
+export const SUBAGENT_LAZY_TOOL_NAMES = ["SubagentWorkflow"] as const;
 
 const SUBAGENT_LAZY_TOOL_NAME_SET = new Set<string>(SUBAGENT_LAZY_TOOL_NAMES);
 const SUBAGENTS_ENABLE_COMMAND = "/subagents";
@@ -31,8 +26,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null;
 }
 
-/** True when the user (or a loaded skill) explicitly asked to spawn or orchestrate subagents. */
-export function userAskedForSubagents(text: string): boolean {
+/** Detect subagent mentions for schema loading, not delegation permission. */
+export function mentionsSubagentTools(text: string): boolean {
 	const command = text.trimStart();
 	if (command === SUBAGENTS_ENABLE_COMMAND || command.startsWith(`${SUBAGENTS_ENABLE_COMMAND} `)) {
 		return true;
@@ -48,18 +43,18 @@ export function userAskedForSubagents(text: string): boolean {
 	);
 }
 
-/** True when an expanded `/skill:...` body asks for pi-subagents. */
-export function expandedSkillAskedForSubagents(text: string): boolean {
+/** Detect subagent mentions in an expanded skill without granting workflow permission. */
+export function expandedSkillMentionsSubagents(text: string): boolean {
 	if (!text.trimStart().startsWith(EXPANDED_SKILL_PROMPT_PREFIX)) return false;
-	return userAskedForSubagents(text);
+	return mentionsSubagentTools(text);
 }
 
 function isSubagentLazyToolName(name: string): boolean {
 	return SUBAGENT_LAZY_TOOL_NAME_SET.has(name);
 }
 
-/** True when this session already called a pi-subagents tool. */
-export function sessionBranchUsedSubagentTools(branch: readonly unknown[]): boolean {
+/** Restore workflow schema availability from prior workflow calls or expanded skills. */
+export function sessionBranchNeedsWorkflowSchema(branch: readonly unknown[]): boolean {
 	for (const entry of branch) {
 		if (!isRecord(entry) || entry.type !== "message") continue;
 		const message = entry.message;
@@ -70,7 +65,7 @@ export function sessionBranchUsedSubagentTools(branch: readonly unknown[]): bool
 		if (!Array.isArray(message.content)) continue;
 		for (const part of message.content) {
 			if (!isRecord(part)) continue;
-			if (part.type === "text" && typeof part.text === "string" && expandedSkillAskedForSubagents(part.text)) {
+			if (part.type === "text" && typeof part.text === "string" && expandedSkillMentionsSubagents(part.text)) {
 				return true;
 			}
 			if (part.type === "toolCall" && typeof part.name === "string" && isSubagentLazyToolName(part.name)) {
@@ -86,7 +81,7 @@ function registeredSubagentLazyToolNames(pi: ExtensionAPI): string[] {
 	return SUBAGENT_LAZY_TOOL_NAMES.filter((name) => registered.has(name));
 }
 
-/** Hide every pi-subagents tool schema from the first-turn active set. */
+/** Hide the workflow schema without changing ordinary Pi subagent availability. */
 function deactivateSubagentLazyTools(pi: ExtensionAPI): void {
 	const subagentTools = new Set(registeredSubagentLazyToolNames(pi));
 	if (subagentTools.size === 0) return;
@@ -97,7 +92,7 @@ function deactivateSubagentLazyTools(pi: ExtensionAPI): void {
 	}
 }
 
-/** Add registered pi-subagents tools without removing other active tools. */
+/** Add the registered workflow schema without removing other active tools. */
 function activateSubagentLazyTools(pi: ExtensionAPI): void {
 	const active = pi.getActiveTools();
 	const missing = registeredSubagentLazyToolNames(pi).filter((name) => !active.includes(name));
@@ -105,10 +100,10 @@ function activateSubagentLazyTools(pi: ExtensionAPI): void {
 	pi.setActiveTools([...active, ...missing]);
 }
 
-/** Defer every pi-subagents tool schema until the user asks for subagents. */
+/** Defer the workflow schema only; this is not a delegation permission gate. */
 export default function subagentsLazyTools(pi: ExtensionAPI): void {
 	pi.on("session_start", (_event, ctx: ExtensionContext) => {
-		if (sessionBranchUsedSubagentTools(ctx.sessionManager.getBranch())) {
+		if (sessionBranchNeedsWorkflowSchema(ctx.sessionManager.getBranch())) {
 			activateSubagentLazyTools(pi);
 			return;
 		}
@@ -116,22 +111,22 @@ export default function subagentsLazyTools(pi: ExtensionAPI): void {
 	});
 
 	pi.on("input", (event) => {
-		if (userAskedForSubagents(event.text)) {
+		if (mentionsSubagentTools(event.text)) {
 			activateSubagentLazyTools(pi);
 		}
 		return { action: "continue" };
 	});
 
 	pi.on("before_agent_start", (event) => {
-		if (!expandedSkillAskedForSubagents(event.prompt) && !userAskedForSubagents(event.prompt)) return;
+		if (!expandedSkillMentionsSubagents(event.prompt) && !mentionsSubagentTools(event.prompt)) return;
 		activateSubagentLazyTools(pi);
 	});
 
 	pi.registerCommand("subagents", {
-		description: "Enable Agent and SubagentWorkflow tools for this session",
+		description: "Enable the SubagentWorkflow tool for this session; Agent is already available",
 		handler: async (_args, ctx) => {
 			activateSubagentLazyTools(pi);
-			if (ctx.hasUI) ctx.ui.notify("Subagent tools enabled for this session", "info");
+			if (ctx.hasUI) ctx.ui.notify("SubagentWorkflow tool enabled for this session", "info");
 		},
 	});
 }
