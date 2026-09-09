@@ -95,6 +95,12 @@ This is command history, not a complete audit log. It does not capture Amp's non
 
 Atuin applies its configured history and secret filters. Even so, do not put secrets directly in command arguments: any command that passes those filters is stored in the local Atuin database and may be synced by Atuin.
 
+## Claude Code
+
+User settings at `~/.claude/settings.json` are partially managed. Apply keeps [Matt Pocock's](https://www.aihero.dev/how-to-kill-the-bloat-in-claude-codes-system-prompt) disable flags and bare tool-deny list, and turns auto-memory off. Model, theme, effort, and other keys stay machine-local. Sessions, credentials, and history under `~/.claude/` stay unmanaged.
+
+Preview with `chezmoi cat ~/.claude/settings.json`. Apply that one target when you want the live file updated.
+
 ## Profiles and skills
 
 Profile behavior lives in [`.chezmoiignore`](.chezmoiignore). Skill membership lives in [`.chezmoidata.toml`](.chezmoidata.toml):

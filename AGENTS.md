@@ -35,6 +35,7 @@ Important locations:
 - `run_after_50-install-herdr-plugins.sh.tmpl`: during `chezmoi apply`, install GitHub Herdr plugins and relink local plugins that are missing.
 - `run_after_60-remove-retired-herdr-plugins.sh.tmpl`: during `chezmoi apply`, uninstall retired Herdr plugins (`cloudmanic.herdr-plus`, `zenbu-labs.terminal-browser`) and remove leftover config dirs.
 - `dot_agents/skills/`: managed `~/.agents/skills`.
+- `dot_claude/modify_settings.json`: managed Claude Code token-trim keys in `~/.claude/settings.json`. Matt Pocock's disable flags and bare tool denies, plus Theo's `autoMemoryEnabled: false`. Model, theme, effort, and other keys stay machine-local.
 - `dot_pi/agent/`: managed Pi agents, extensions, and configuration.
 - `private_dot_ssh/private_config`: managed personal macOS SSH client configuration, not a private key.
 - `macos/` and `linux/`: source-only machine setup.
@@ -65,6 +66,7 @@ SSH private keys are machine-local and must never be added to this repository. S
 
 ```bash
 chezmoi cat ~/.zshrc
+chezmoi cat ~/.claude/settings.json
 chezmoi diff
 chezmoi apply -n -v
 chezmoi apply ~/.zshrc   # only when asked

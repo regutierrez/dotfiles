@@ -1,0 +1,46 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /* Keep ~/.claude/settings.json machine-local except Matt Pocock's
+     token-trim flags/denies and Theo's auto-memory off. */ -}}
+{{- $data := dict -}}
+{{- if and (hasKey .chezmoi "stdin") .chezmoi.stdin -}}
+{{-   $data = fromJson .chezmoi.stdin -}}
+{{- end -}}
+{{- $data = $data | setValueAtPath "autoMemoryEnabled" false -}}
+{{- $data = $data | setValueAtPath "disableArtifact" true -}}
+{{- $data = $data | setValueAtPath "disableBundledSkills" true -}}
+{{- $data = $data | setValueAtPath "disableClaudeAiConnectors" true -}}
+{{- $data = $data | setValueAtPath "disableRemoteControl" true -}}
+{{- $data = $data | setValueAtPath "disableWorkflows" true -}}
+{{- $mattDeny := list
+      "EnterPlanMode"
+      "ExitPlanMode"
+      "DesignSync"
+      "NotebookEdit"
+      "SendMessage"
+      "PushNotification"
+      "RemoteTrigger"
+      "ReportFindings"
+      "ScheduleWakeup"
+      "AskUserQuestion"
+      "CronCreate"
+      "CronDelete"
+      "CronList"
+-}}
+{{- $deny := list -}}
+{{- $seen := dict -}}
+{{- range $mattDeny -}}
+{{-   $deny = append $deny . -}}
+{{-   $seen = merge $seen (dict . true) -}}
+{{- end -}}
+{{- $existingDeny := list -}}
+{{- if and (hasKey $data "permissions") (hasKey (index $data "permissions") "deny") -}}
+{{-   $existingDeny = index $data "permissions" "deny" -}}
+{{- end -}}
+{{- range $existingDeny -}}
+{{-   if not (hasKey $seen .) -}}
+{{-     $deny = append $deny . -}}
+{{-     $seen = merge $seen (dict . true) -}}
+{{-   end -}}
+{{- end -}}
+{{- $data = $data | setValueAtPath "permissions.deny" $deny -}}
+{{ $data | toPrettyJson }}
