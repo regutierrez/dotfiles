@@ -60,7 +60,7 @@ System package installation is never part of `chezmoi apply`. Herdr plugins and 
 bash "$(chezmoi source-path)/bootstrap"
 ```
 
-SSH private keys are machine-local and must never be added to this repository. Shell tokens belong in untracked `~/.config/secrets/*.env` files sourced by `dot_zshrc.tmpl`.
+SSH private keys are machine-local and must never be added to this repository. Shell tokens belong in untracked `~/.config/secrets/*.env` files sourced by `dot_zshrc.tmpl` (`kagi.env`, `executor.env`).
 
 ## Validation
 

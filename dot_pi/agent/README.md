@@ -82,9 +82,12 @@ Tokens stay in untracked files under `~/.config/secrets/`, sourced by zshrc:
 ```bash
 # ~/.config/secrets/kagi.env
 export KAGI_API_KEY=…
+
+# ~/.config/secrets/executor.env
+export EXECUTOR_API_KEY=…
 ```
 
-`dot_zshrc.tmpl` already sources this file when present. Do not commit those files; mode `0600`.
+`dot_zshrc.tmpl` sources those files when present. Do not commit them; mode `0600`.
 
 ## Notes
 
