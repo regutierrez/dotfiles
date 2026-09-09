@@ -1,1 +1,21 @@
 worktree-path = "~/.wt/{{ (repo_path | split('/') | reverse)[1] }}/{{ repo }}/{{ branch | sanitize }}"
+
+# Sibling worktrees beside the primary checkout (`<repo>/main`, `<repo>/<branch>`).
+# Dotfiles stay at the chezmoi default (`~/.local/share/chezmoi`); extra trees would
+# otherwise land in `~/.local/share/<branch>`.
+[projects."github.com/regutierrez/henry"]
+worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
+
+[projects."github.com/akkio-inc/Akkio"]
+worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
+
+[projects."github.com/pael-akkio/akkio-dev-stacks"]
+worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
+
+# Open the checkout as a Herdr Space when `wt` runs inside Herdr (`HERDR_ENV=1`).
+# Does not steal focus. No-op outside Herdr. `herdr worktree open` is idempotent.
+[post-start]
+herdr-worktree-open = 'test "${HERDR_ENV:-}" = 1 && "${HERDR_BIN_PATH:-herdr}" worktree open --path {{ worktree_path }} --cwd {{ repo_path }} --no-focus'
+
+[post-switch]
+herdr-worktree-open = 'test "${HERDR_ENV:-}" = 1 && "${HERDR_BIN_PATH:-herdr}" worktree open --path {{ worktree_path }} --cwd {{ repo_path }} --no-focus'

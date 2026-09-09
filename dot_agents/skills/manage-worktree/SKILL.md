@@ -4,9 +4,11 @@ description: Use whenever creating, switching, listing, removing, merging, or cl
 disable-model-invocation: false
 ---
 
-Use Worktrunk for all worktree operations. Run from inside the repo, or pass `-C "$HOME/<parent>/<repo>"`.
+Use Worktrunk for all worktree operations. Run from inside the repo, or pass `-C` at a checkout of that repo.
 
-- `wt switch --create <name>` — new worktree at `~/.wt/<parent>/<repo>/<name>`.
+Resolve the checkout first. Prefer the worktree on the default branch: `wt list --format json` (`.is_main` / `main_state == "is_main"`), or `git worktree list` matching `git symbolic-ref refs/remotes/origin/HEAD`. Layouts differ by repo; the path is whatever that lookup returns. Already inside a worktree of that repo: omit `-C` or use `-C .`.
+
+- `wt switch --create <name>` — new worktree. Path comes from Worktrunk config (`wt config show`); default template is `~/.wt/<parent>/<repo>/<name>`. Some repos override to sibling folders beside the default-branch checkout.
 - `wt switch <name>` — switch (omit `<name>` for picker; shortcuts: `^` default, `-` previous, `pr:N` GitHub PR).
 - `wt list` — show worktrees (`--full` adds CI / diffstat / summaries).
 - `wt remove [branch]` — remove worktree; deletes branch if merged. Defaults to current.
@@ -14,6 +16,7 @@ Use Worktrunk for all worktree operations. Run from inside the repo, or pass `-C
 - `wt merge` — squash + rebase + ff into default + remove worktree.
 - Use `$HOME`/`~`; never hard-coded `/Users/...` paths.
 - Don't use `git worktree` directly — go through `wt`.
+- Inside Herdr (`HERDR_ENV=1`), user Worktrunk hooks run `herdr worktree open --no-focus` after create/switch so the checkout appears as a Space. Do not also run `herdr worktree create`. The new Space does not change this agent's cwd — still `cd` to the JSON `.path`.
 
 ## Agents and non-interactive shells
 
@@ -47,8 +50,8 @@ wt switch --create <branch> -C <repo> [--base <base>] --format json
 
 Stop on first failure; capture stderr/stdout. Report branch, path, and which bootstrap steps completed.
 
-## Akkio (`~/Akkio`)
+## Akkio
 
-**Only when creating a worktree for the Akkio repo:** read and follow [akkio-create-worktree.md](akkio-create-worktree.md) in full. It adds branch naming, stack-profile selection (`ui-only` / `web-only` / `full-web-ml`), bootstrap (`worktree:setup`, `wt-stack`, VPN), and agent overrides — not the generic `wt` steps above.
+**Only when creating a worktree for the Akkio repo:** resolve the default-branch checkout as above, then read and follow [akkio-create-worktree.md](akkio-create-worktree.md) in full. It adds branch naming, stack-profile selection (`ui-only` / `web-only` / `full-web-ml`), bootstrap (`worktree:setup`, `wt-stack`, VPN), and agent overrides — not the generic `wt` steps above.
 
 Do not load that file for switch/list/remove/merge/prune on Akkio or for worktrees in other repos.

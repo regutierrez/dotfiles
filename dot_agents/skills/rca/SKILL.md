@@ -8,14 +8,15 @@ disable-model-invocation: true
 
 Global skill for writing evidence-backed investigation MDX. Target repo is always `/Users/pakkio/playground/investigatr`; use absolute paths or `cd` there before file edits, tests, or content creation.
 
-**Application code — env-matched worktree.** Grab the environment from the Linear issue description, then find the worktree whose branch tracks the env's release branch — `origin/release/horizon-production` for production, `origin/release/horizon-staging` for staging:
+**Application code — env-matched worktree.** Grab the environment from the Linear issue description, then find the Akkio worktree whose branch tracks the env's release branch — `origin/release/horizon-production` for production, `origin/release/horizon-staging` for staging:
 
 ```sh
-git -C ~/Akkio worktree list
+# default-branch checkout: wt list --format json (.is_main) or git worktree list vs origin/HEAD
+git -C <akkio-default> worktree list
 git -C <worktree> branch -vv   # confirm the tracked upstream
 ```
 
-Run `git pull` in that worktree before reading anything there. Never read code from `~/Akkio` itself (it sits on an unrelated branch); if no worktree tracks the env branch, say so instead of substituting another checkout. Everywhere this skill says `~/Akkio`, it means this env-matched worktree — code references, `file:line` citations, and schema checks all come from it.
+Run `git pull` in that worktree before reading anything there. The default-branch checkout is usually on an unrelated branch — read application code from the env-matched worktree. If none tracks the env branch, say so instead of substituting another checkout. Code references, `file:line` citations, and schema checks all come from that env-matched worktree.
 
 ## Required CLIs
 
@@ -48,7 +49,7 @@ Run validation queries yourself via the `/query-hz` skill, selecting its Postgre
 Every query — run by you or handed to the user — must be:
 
 1. **Store-labeled** — "run in Snowflake" or "run in Postgres", and why the data lives there. When unsure, check the code path that reads/writes it; don't guess.
-2. **Schema-verified** — confirm every table/column against ORM models/migrations in `~/Akkio`, a logged query that actually ran, or `information_schema`. Never invent names. For Postgres JSON columns, confirm `json` vs `jsonb` before using `?`/`->>`/`jsonb_*`.
+2. **Schema-verified** — confirm every table/column against ORM models/migrations in the env-matched Akkio worktree, a logged query that actually ran, or `information_schema`. Never invent names. For Postgres JSON columns, confirm `json` vs `jsonb` before using `?`/`->>`/`jsonb_*`.
 3. **Cheap** — scope by ID and time range, add `LIMIT`, no full scans.
 4. **In the doc** — validation queries and the full original problematic SQL stay in the MDX permanently.
 5. **Explained up front** — "if X → confirms A; if Y → disproves A". When results contradict you, update your conclusion or take it back; never repeat the same claim.
@@ -210,7 +211,7 @@ After `## Summary`, include:
   1. Lead with the key log line(s) — the ones that prove the cause — as a fenced code block, with the `pup` query that found them and (when possible) a scoped Datadog URL.
   2. Either a field-by-field table (`Field in the log` → `What it tells us` → `What it rules out`) or inline annotations that show how each piece of the log supports each step of the inference.
   3. Any cross-query that establishes scope/blast-radius (e.g. "same error on N other entities") shown with the exact `pup` command and a count.
-  4. Any code path referenced as part of the mechanism cited by `file:line` from `~/Akkio`.
+  4. Any code path referenced as part of the mechanism cited by `file:line` from the env-matched Akkio worktree.
   5. The "why now" trigger: what changed (commit/PR + author + deploy time, flag, migration, or first qualifying input) with before/after evidence — or an explicit statement that the trigger is unknown.
   6. Data issues are a valid root cause: bad/missing/stale/mistagged rows in Postgres/Snowflake or an upstream feed. Prove it with the query result showing the bad data (not just the code that read it), and say where the data came from.
   7. If the root cause is `Unknown`, say so and list the specific log/trace/metric/state the next person needs to capture to close the gap.
@@ -255,7 +256,7 @@ After `## Summary`, include:
   4. **User behavioral change** — prompt workaround or alternate flow usable today.
   5. **Not a bug** — training/enablement; say why the behavior is correct.
 
-  Rank by simplicity + correctness; smallest fix wins; cite real `file:line` only. Fixes implemented in `~/Akkio` require tests (TDD) in a fresh worktree off `release/horizon-staging`.
+  Rank by simplicity + correctness; smallest fix wins; cite real `file:line` only. Fixes implemented in Akkio require tests (TDD) in a fresh worktree off `release/horizon-staging`.
 - `## Shareable comment` — terse non-technical paragraph pasteable into Slack/Linear: what broke, why, who's affected, fix direction. Keep key IDs for traceability.
 
 Optional when useful:

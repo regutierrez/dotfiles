@@ -7,7 +7,7 @@
 | production | `horizon-production-transactional-db.cluster-*.us-east-1.rds.amazonaws.com` | `horizon-production` | `production/common/env` |
 | staging | `horizon-staging-transactional-db.cluster-*...` | `horizon-staging` | `staging/common/env` |
 | dev | `horizon-dev-transactional-db.cluster-*...` | `horizon-dev` | `dev/common/env` |
-| local | `localhost:5431` from `~/Akkio/ml/.env` | — | — |
+| local | `localhost:5431` from `$AKKIO_REPO/ml/.env` or the first Akkio default-branch checkout | — | — |
 
 Database is `postgres`; the connection var inside each secret is `BACKEND_DB_URL`. If a secret ID differs from the default pattern, override with `HORIZON_PG_SECRET_ID`.
 

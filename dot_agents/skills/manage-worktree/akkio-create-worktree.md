@@ -1,6 +1,6 @@
 # Akkio — create worktree
 
-Akkio-specific rules on top of the parent skill's create flow. Repo root: `~/Akkio`. Create with `-C ~/Akkio`; use `--base` for release branches (e.g. `release/horizon-staging`).
+Akkio-specific rules on top of the parent skill's create flow. Resolve the Akkio default-branch checkout (parent skill), then create with `-C` at that path. Use `--base` for release branches (e.g. `release/horizon-staging`). New trees land wherever Worktrunk's path template for this repo says (`wt config show`).
 
 **Agents:** parent skill's [Agents and non-interactive shells](SKILL.md#agents-and-non-interactive-shells) — `wt switch` does not cd in Pi; always `cd` to the JSON `.path` before `mise`, `wt-stack`, etc.
 
@@ -9,15 +9,15 @@ Akkio-specific rules on top of the parent skill's create flow. Repo root: `~/Akk
 1. **Docker infra** — `wt-stack` (never `mise run docker:services`).
 2. **App processes** — `mise run services:<name> -- up` (never bare `mise run services -- up` on isolated stacks).
 
-Docs: `$HOME/repos/akkio-dev-stacks/README.md`, `wt-stack/README.md`, `vpn-sidecar/README.md`.
+Docs live in the akkio-dev-stacks default-branch checkout (`README.md`, `wt-stack/README.md`, `vpn-sidecar/README.md`). Resolve that checkout the same way as Akkio.
 
 ## Prerequisites (one-time per machine)
 
 ```sh
-command -v wt-stack    # cd ~/repos/akkio-dev-stacks/wt-stack && go install .
+command -v wt-stack    # from akkio-dev-stacks default-branch checkout: cd wt-stack && go install .
 ```
 
-`~/.akkio/wt-stack/config.json` — absolute `vpn_dir` pointing at `akkio-dev-stacks/vpn-sidecar`.
+`~/.akkio/wt-stack/config.json` — absolute `vpn_dir` pointing at that checkout's `vpn-sidecar`.
 
 VPN sidecar (Horizon remote Postgres): `brew install socat`, run `vpn-sidecar/setup.sh`, keep `auth-watch.sh` running when sidecars are up. Loopback ports: dev `15432`, staging `25432`, production `35432`.
 

@@ -52,7 +52,7 @@ Work through each lens against the changed code:
 
 Pick exactly one standards tier, most specific match first:
 
-1. Akkio: if reviewing the Akkio monorepo (`~/Akkio`), read `$HOME/.agents/skills/akkio-coding-standards/SKILL.md`, then only the topic files matching the changed code (e.g. `PYTHON.md`, `TYPESCRIPT.md`, `TESTING.md`, `COMMENTS.md`, `DEPTH.md`, `SEAMS.md`). Run one pass per loaded topic.
+1. Akkio: if reviewing an Akkio checkout, read `$HOME/.agents/skills/akkio-coding-standards/SKILL.md`, then only the topic files matching the changed code (e.g. `PYTHON.md`, `TYPESCRIPT.md`, `TESTING.md`, `COMMENTS.md`, `DEPTH.md`, `SEAMS.md`). Run one pass per loaded topic.
 2. Fullstack TypeScript: else if the repo is a TypeScript project, read the consolidated `$HOME/.agents/skills/coding-standards/SKILL.md`. Run dedicated passes only for the sections relevant to the diff, including its comments/JSDoc rules when comments or exported contracts changed.
 3. General: otherwise, read `$HOME/.agents/skills/codebase-design/SKILL.md` when the diff changes interfaces, seams, modules, or tests; use the general review lenses above for other changes.
 

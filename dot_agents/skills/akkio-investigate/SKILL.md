@@ -25,7 +25,7 @@ Collect the strongest identifiers before querying anything: user email/uid, org 
 
 ## Store decision
 
-Name the store before writing SQL — see the data-topology table in `akkio-base`. Postgres = app entities (charts, projects, tenants). Snowflake = the customer data layer. When unsure which store holds a fact, check the code path that reads it in the env-matched `~/Akkio` worktree; don't guess.
+Name the store before writing SQL — see the data-topology table in `akkio-base`. Postgres = app entities (charts, projects, tenants). Snowflake = the customer data layer. When unsure which store holds a fact, check the code path that reads it in the env-matched Akkio worktree (`git -C <akkio-default> worktree list`); don't guess.
 
 ## Discipline
 

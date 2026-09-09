@@ -36,7 +36,8 @@ DB URL resolution per env (first match wins; no AWS unless --from-secrets):
   2. ~/.config/horizon-pg/<env>.url
   3. ~/.cache/horizon-pg/horizon-<env>.url   (stale cache still used, with a warning)
   4. AWS Secrets Manager (--from-secrets only)
-  --env local reads BACKEND_DB_URL from $AKKIO_REPO/ml/.env (default ~/Akkio/ml/.env).
+  --env local reads BACKEND_DB_URL from $AKKIO_REPO/ml/.env, else the first
+  Akkio default-branch checkout found (~/repos/Akkio/master, ~/Akkio, ~/repos/Akkio).
 
 Every query prints "env=... host=..." on stderr. All SQL is validated read-only
 before connecting; the target host is TCP-checked first (UNREACHABLE fails fast).
@@ -335,8 +336,14 @@ def local_candidates() -> list[Path]:
     env_file = os.environ.get("HORIZON_PG_ENV_FILE")
     if env_file:
         paths.append(Path(env_file).expanduser())
-    akkio_repo = Path(os.environ.get("AKKIO_REPO", str(Path.home() / "Akkio"))).expanduser()
-    paths.append(akkio_repo / "ml" / ".env")
+    override = os.environ.get("AKKIO_REPO")
+    roots = [Path(override)] if override else [
+        Path.home() / "repos" / "Akkio" / "master",
+        Path.home() / "Akkio",
+        Path.home() / "repos" / "Akkio",
+    ]
+    for root in roots:
+        paths.append(root.expanduser() / "ml" / ".env")
     return paths
 
 

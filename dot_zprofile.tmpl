@@ -14,7 +14,17 @@ if command -v mise >/dev/null 2>&1; then
   eval "$(mise activate zsh)"
 fi
 {{- if eq .profile "work" }}
-# helper scripts for Akkio
-. ~/Akkio/scripts/akkio_aliases.sh
+# helper scripts for Akkio (first existing default-branch checkout)
+for _akkio in \
+  "$HOME/repos/Akkio/master" \
+  "$HOME/Akkio" \
+  "$HOME/repos/Akkio"
+do
+  if [ -f "$_akkio/scripts/akkio_aliases.sh" ]; then
+    . "$_akkio/scripts/akkio_aliases.sh"
+    break
+  fi
+done
+unset _akkio
 {{- end }}
 

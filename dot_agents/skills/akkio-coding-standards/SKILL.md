@@ -1,14 +1,14 @@
 ---
 name: akkio-coding-standards
-description: Akkio monorepo (~/Akkio) coding standards and design taste for Python (ml/, packages/) and TypeScript/Vue (src/, apps/web-backend-api). Use when writing, reviewing, or designing code in the Akkio monorepo.
+description: Akkio monorepo coding standards and design taste for Python (ml/, packages/) and TypeScript/Vue (src/, apps/web-backend-api). Use when writing, reviewing, or designing code in the Akkio monorepo.
 disable-model-invocation: true
 ---
 
 # Akkio Coding Standards
 
-Follow these standards when writing, reviewing, or designing code in `~/Akkio`. The short version: every piece of data that crosses a boundary gets a real type; every rule the system must always follow lives in exactly one place; logic goes in plain functions with side effects kept at the edges; tests go through the same entry points real callers use; comments explain why, never what.
+Follow these standards when writing, reviewing, or designing code in an Akkio checkout. The short version: every piece of data that crosses a boundary gets a real type; every rule the system must always follow lives in exactly one place; logic goes in plain functions with side effects kept at the edges; tests go through the same entry points real callers use; comments explain why, never what.
 
-This skill covers how to write good code, not how to run the repo. For build/test commands, task authoring, and per-area conventions, read the repo's own agent docs (`~/Akkio/CLAUDE.md` / `AGENTS.md`, `MISE.md`, and the nearest child `AGENTS.md`). Pair it with the `codebase-design` skill for the design vocabulary (interface, seam, depth, adapter).
+This skill covers how to write good code, not how to run the repo. For build/test commands, task authoring, and per-area conventions, read that checkout's own agent docs (`CLAUDE.md` / `AGENTS.md`, `MISE.md`, and the nearest child `AGENTS.md`). Pair it with the `codebase-design` skill for the design vocabulary (interface, seam, depth, adapter).
 
 ## Core rules
 

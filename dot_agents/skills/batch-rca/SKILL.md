@@ -78,7 +78,7 @@ Ticket: <TICKET-ID>
 
 Mandatory:
 1. Read and follow /Users/pakkio/.agents/skills/rca/SKILL.md.
-2. Work in /Users/pakkio/playground/investigatr. Application code: grab the environment from the Linear issue description, then find the worktree (git -C ~/Akkio worktree list) whose branch tracks origin/release/horizon-production (production) or origin/release/horizon-staging (staging); confirm with git branch -vv. Run git pull there before reading code. Never read from ~/Akkio itself; if no worktree tracks the env branch, report it instead of substituting another checkout.
+2. Work in /Users/pakkio/playground/investigatr. Application code: grab the environment from the Linear issue description, then find the Akkio worktree (resolve the default-branch checkout, then git worktree list) whose branch tracks origin/release/horizon-production (production) or origin/release/horizon-staging (staging); confirm with git branch -vv. Run git pull there before reading code. Read from that env-matched worktree, not the default-branch checkout; if none tracks the env branch, report it instead of substituting another checkout.
 3. Use linear-cli for Linear and pup for Datadog. Do not start auth flows.
 4. Check whether this ticket already has an investigation or is a Linear duplicate. If duplicate/existing, skip and report it.
 5. If not skipped, create only src/content/investigations/<TICKET-ID>/index.mdx and optional assets under that folder.
