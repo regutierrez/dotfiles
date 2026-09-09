@@ -35,8 +35,7 @@ shared = [
   "web-browser",
   "terminal-browser",
   "write-discoverable-code",
-  "writing-great-skills",
-  "zoom-out",
+  "writing-for-agents",
 ]
 work = [
   "akkio-coding-standards",
