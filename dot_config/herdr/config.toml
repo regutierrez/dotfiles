@@ -68,7 +68,7 @@ focus_pane_right = ["prefix+l", "alt+l"]
 focus_agent = "prefix+alt+1..9"
 
 # Workspace picker
-workspace_picker = ["prefix+s", "prefix+w"]
+workspace_picker = "prefix+s"
 
 # Splits and new tabs (windows)
 split_vertical = "prefix+\\"
@@ -94,6 +94,12 @@ command = "cd \"${HERDR_ACTIVE_PANE_CWD:-.}\" && exec \"${SHELL:-sh}\""
 description = "open scratch terminal"
 width = "80%"
 height = "80%"
+
+[[keys.command]]
+key = "prefix+w"
+type = "plugin_action"
+command = "hseh.spaces"
+description = "switch space with hseh"
 
 [[keys.command]]
 key = "prefix+tab"

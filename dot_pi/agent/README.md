@@ -92,5 +92,5 @@ export KAGI_API_KEY=…
 - `node_modules/` and lockfiles under `~/.pi/agent` are ignored by chezmoi.
 - Orphan extensions and retired skill files removed from source are listed in repo `.chezmoiremove` so apply deletes them from the target.
 - `~/.pi/agent/extensions/herdr-agent-state.ts` is owned by herdr (not chezmoi); leave it on the target.
-- `~/.pi/agent/claude-bridge.json` is machine-local (not chezmoi); leave it on the target.
-- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction`, removal of `npmCommand`, and removal of retired `git:github.com/regutierrez/pi-herdr-subagents` and `npm:sideshow`. `modify_settings.json` keeps those so Pi uses npm.
+- `~/.pi/agent/claude-bridge.json` is leftover from retired `npm:pi-claude-bridge` (not chezmoi); ignore it or delete it locally.
+- `~/.pi/agent/settings.json` is machine-local except `doubleEscapeAction`, removal of `npmCommand`, removal of retired `git:github.com/regutierrez/pi-herdr-subagents`, `npm:sideshow`, and `npm:pi-claude-bridge`, and removal of `claude-bridge/*` from `enabledModels`. `modify_settings.json` keeps those so Pi uses npm.

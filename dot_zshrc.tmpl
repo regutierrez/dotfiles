@@ -118,7 +118,6 @@ export PATH=$PATH:$HOME/.local/bin/
 export PATH=$PATH:$HOME/bin/
 export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/.cargo/bin/
-export PATH=$PATH:$HOME/.opencode/bin
 export PATH=$HOME/.npm-global/bin:$PATH # allows me to run node pkg globally installed
 {{- if eq .chezmoi.os "darwin" }}
 export PATH=$PATH:$HOME/Library/Android/sdk/platform-tools/
@@ -140,11 +139,6 @@ fi
 export PLANNOTATOR_REMOTE=1
 export PLANNOTATOR_AGENT_TERMINAL_REMOTE=1 
 export PLANNOTATOR_PORT=19432
-{{- if eq .profile "work" }}
-
-# Akkio stuff
-export PROC_COMP_CONFIG="$HOME/.config/process-compose"
-{{- end }}
 
 CLAUDE_CODE_NO_FLICKER=1
 
@@ -156,11 +150,9 @@ alias ls='eza'
 alias lg='lazygit'
 alias ld='lazydocker'
 alias v='nvim'
-alias o='opencode'
 alias amp='PLUGINS=all command amp'
 alias ff='fastfetch'
 alias c='claude --dangerously-skip-permissions'
-alias co='commando'
 alias ca='chezmoi apply'
 alias maelle='herdr --remote pael@maelle --remote-keybindings server'
 alias pael-akkio='herdr --remote pakkio@pael-akkio --remote-keybindings server'

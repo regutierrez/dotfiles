@@ -14,10 +14,23 @@
 {{-     else if and (kindIs "map" $entry) (eq (index $entry "source") "git:github.com/regutierrez/pi-herdr-subagents") -}}
 {{-     else if and (kindIs "string" $entry) (eq $entry "npm:sideshow") -}}
 {{-     else if and (kindIs "map" $entry) (eq (index $entry "source") "npm:sideshow") -}}
+{{-     else if and (kindIs "string" $entry) (eq $entry "npm:pi-claude-bridge") -}}
+{{-     else if and (kindIs "map" $entry) (eq (index $entry "source") "npm:pi-claude-bridge") -}}
 {{-     else -}}
 {{-       $packages = append $packages $entry -}}
 {{-     end -}}
 {{-   end -}}
 {{-   $data = $data | setValueAtPath "packages" $packages -}}
+{{- end -}}
+{{- /* Drop models from retired npm:pi-claude-bridge. */ -}}
+{{- if hasKey $data "enabledModels" -}}
+{{-   $models := list -}}
+{{-   range $entry := index $data "enabledModels" -}}
+{{-     if hasPrefix "claude-bridge/" $entry -}}
+{{-     else -}}
+{{-       $models = append $models $entry -}}
+{{-     end -}}
+{{-   end -}}
+{{-   $data = $data | setValueAtPath "enabledModels" $models -}}
 {{- end -}}
 {{ $data | toPrettyJson }}

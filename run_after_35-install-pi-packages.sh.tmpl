@@ -33,9 +33,8 @@ settings="${agent_dir}/settings.json"
 
 # Uninstall packages retired from [packages.pi]. Settings may already have
 # dropped them via modify_settings.json; still delete leftover checkouts.
-retired_herdr_subagents="git:github.com/regutierrez/pi-herdr-subagents"
-retired_herdr_checkout="${agent_dir}/git/github.com/regutierrez/pi-herdr-subagents"
-if node - "$settings" "$retired_herdr_subagents" <<'NODE'
+package_configured() {
+  node - "$settings" "$1" <<'NODE'
 const fs = require("node:fs");
 const [, , settingsPath, source] = process.argv;
 try {
@@ -48,13 +47,26 @@ try {
   process.exit(1);
 }
 NODE
-then
-  echo "install-pi-packages: removing retired ${retired_herdr_subagents}..."
-  pi remove "$retired_herdr_subagents"
-elif [ -e "$retired_herdr_checkout" ]; then
-  echo "install-pi-packages: removing leftover ${retired_herdr_checkout}"
-  rm -rf "$retired_herdr_checkout"
-fi
+}
+
+remove_retired_package() {
+  local source="$1"
+  local leftover="$2"
+  if package_configured "$source"; then
+    echo "install-pi-packages: removing retired ${source}..."
+    pi remove "$source"
+  elif [ -e "$leftover" ]; then
+    echo "install-pi-packages: removing leftover ${leftover}"
+    rm -rf "$leftover"
+  fi
+}
+
+remove_retired_package \
+  "git:github.com/regutierrez/pi-herdr-subagents" \
+  "${agent_dir}/git/github.com/regutierrez/pi-herdr-subagents"
+remove_retired_package \
+  "npm:pi-claude-bridge" \
+  "${agent_dir}/npm/node_modules/pi-claude-bridge"
 
 packages=(
 {{- range .packages.pi.extensions }}
