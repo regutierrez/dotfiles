@@ -1,0 +1,36 @@
+{{- if or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux") -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Remove retired Herdr plugins on every apply so their plugin state and
+# leftover config directories do not linger. Idempotent: skips plugins that
+# are already gone, and repeats nothing if herdr is unavailable.
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if ! command -v herdr >/dev/null 2>&1; then
+  echo "remove-retired-herdr-plugins: herdr not found; nothing to do" >&2
+  exit 0
+fi
+
+uninstall_plugin() {
+  local plugin_id="$1"
+  if herdr plugin list 2>/dev/null | grep -Fq "$plugin_id"; then
+    echo "remove-retired-herdr-plugins: uninstalling ${plugin_id}"
+    yes | herdr plugin uninstall "$plugin_id"
+  else
+    echo "remove-retired-herdr-plugins: ${plugin_id} not installed" >&2
+  fi
+}
+
+# herdr-plus (cloudmanic.herdr-plus) — retired.
+uninstall_plugin "cloudmanic.herdr-plus"
+
+# Terminal Browser Herdr plugin — retired.
+uninstall_plugin "zenbu-labs.terminal-browser"
+
+# Config directories can survive a plugin uninstall; clear any leftovers.
+rm -rf \
+  "$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus" \
+  "$HOME/.config/herdr/plugins/config/zenbu-labs.terminal-browser"
+{{- end -}}

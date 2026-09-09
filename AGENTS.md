@@ -30,9 +30,10 @@ Important locations:
 - `.chezmoidata.toml`: skill-group membership only.
 - `.chezmoidata/packages.toml`: package source of truth.
 - `bootstrap` and `scripts/`: source-only package and one-time setup; never applied into `$HOME`.
-- `scripts/install-terminal-browser.sh`: curl installer for terminal-browser plus the Herdr plugin; not a brew or RPM package.
+- `scripts/install-terminal-browser.sh`: curl installer for the terminal-browser binary; not a brew or RPM package.
 - `scripts/install-herdr-plugins.sh`: idempotent GitHub Herdr plugin installer used by apply and bootstrap. Auto Title is pinned and unlinks retired `dotfiles.window-numbers`. Standalone Plannotator TUI stays in the platform package flow.
 - `run_after_50-install-herdr-plugins.sh.tmpl`: during `chezmoi apply`, install GitHub Herdr plugins and relink local plugins that are missing.
+- `run_after_60-remove-retired-herdr-plugins.sh.tmpl`: during `chezmoi apply`, uninstall retired Herdr plugins (`cloudmanic.herdr-plus`, `zenbu-labs.terminal-browser`) and remove leftover config dirs.
 - `dot_agents/skills/`: managed `~/.agents/skills`.
 - `dot_pi/agent/`: managed Pi agents, extensions, and configuration.
 - `private_dot_ssh/private_config`: managed personal macOS SSH client configuration, not a private key.
