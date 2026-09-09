@@ -1,6 +1,7 @@
 {{- /* chezmoi:modify-template */ -}}
 {{- /* Keep ~/.claude/settings.json machine-local except Matt Pocock's
-     token-trim flags/denies and Theo's auto-memory off. */ -}}
+     token-trim flags/denies, extra unused-tool denies, and Theo's
+     auto-memory off. */ -}}
 {{- $data := dict -}}
 {{- if and (hasKey .chezmoi "stdin") .chezmoi.stdin -}}
 {{-   $data = fromJson .chezmoi.stdin -}}
@@ -26,9 +27,21 @@
       "CronDelete"
       "CronList"
 -}}
+{{- $extraDeny := list
+      "Monitor"
+      "EnterWorktree"
+      "ExitWorktree"
+      "ListAgents"
+      "SendUserFile"
+      "ShareOnboardingGuide"
+-}}
 {{- $deny := list -}}
 {{- $seen := dict -}}
 {{- range $mattDeny -}}
+{{-   $deny = append $deny . -}}
+{{-   $seen = merge $seen (dict . true) -}}
+{{- end -}}
+{{- range $extraDeny -}}
 {{-   $deny = append $deny . -}}
 {{-   $seen = merge $seen (dict . true) -}}
 {{- end -}}

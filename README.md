@@ -97,7 +97,7 @@ Atuin applies its configured history and secret filters. Even so, do not put sec
 
 ## Claude Code
 
-User settings at `~/.claude/settings.json` are partially managed. Apply keeps [Matt Pocock's](https://www.aihero.dev/how-to-kill-the-bloat-in-claude-codes-system-prompt) disable flags and bare tool-deny list, and turns auto-memory off. Model, theme, effort, and other keys stay machine-local. Sessions, credentials, and history under `~/.claude/` stay unmanaged.
+User settings at `~/.claude/settings.json` are partially managed. Apply keeps [Matt Pocock's](https://www.aihero.dev/how-to-kill-the-bloat-in-claude-codes-system-prompt) disable flags and bare tool-deny list, extra unused-tool denies (`Monitor`, worktrees, `ListAgents`, `SendUserFile`, `ShareOnboardingGuide`), and turns auto-memory off. Model, theme, effort, and other keys stay machine-local. Sessions, credentials, and history under `~/.claude/` stay unmanaged.
 
 Interactive `claude` / `c` sessions replace the default system prompt with `~/.claude/system-prompt-fable.md` when that file exists. The prompt is Amp Fable adapted for Claude Code tools. `claude update`, `claude mcp`, and other subcommands skip the flag.
 
