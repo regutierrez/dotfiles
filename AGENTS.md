@@ -31,8 +31,8 @@ Important locations:
 - `.chezmoidata/packages.toml`: package source of truth.
 - `bootstrap` and `scripts/`: source-only package and one-time setup; never applied into `$HOME`.
 - `scripts/install-terminal-browser.sh`: curl installer for the terminal-browser binary; not a brew or RPM package.
-- `scripts/install-herdr-plugins.sh`: idempotent GitHub Herdr plugin installer used by apply and bootstrap. Auto Title is pinned and unlinks retired `dotfiles.window-numbers`. Standalone Plannotator TUI stays in the platform package flow.
-- `run_after_50-install-herdr-plugins.sh.tmpl`: during `chezmoi apply`, install GitHub Herdr plugins and relink local plugins that are missing.
+- `scripts/install-herdr-plugins.sh`: GitHub Herdr plugin installer used by apply and bootstrap. Unpinned plugins are reinstalled on every run so they track their default branch (Herdr has no `plugin update`); Auto Title is pinned to a commit, skipped once at that commit, and unlinks retired `dotfiles.window-numbers`. Standalone Plannotator TUI stays in the platform package flow.
+- `run_after_50-install-herdr-plugins.sh.tmpl`: during `chezmoi apply`, install or update GitHub Herdr plugins and relink local plugins that are missing.
 - `run_after_60-remove-retired-herdr-plugins.sh.tmpl`: during `chezmoi apply`, uninstall retired Herdr plugins (`cloudmanic.herdr-plus`, `zenbu-labs.terminal-browser`) and remove leftover config dirs.
 - `dot_agents/skills/`: managed `~/.agents/skills`.
 - `dot_claude/modify_settings.json`: managed Claude Code token-trim keys in `~/.claude/settings.json`. Matt Pocock's disable flags and bare tool denies, plus Theo's `autoMemoryEnabled: false`. Model, theme, effort, and other keys stay machine-local.

@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Keep GitHub Herdr plugins present. Local plugin links stay in the chezmoi
-# run_after hook. Standalone plannotator-tui stays in the platform package flow.
+# Keep GitHub Herdr plugins present and current. Herdr 0.9 has no separate
+# `plugin update`; reinstalling a GitHub plugin replaces its managed checkout,
+# so unpinned plugins are reinstalled on every run to pick up new commits.
+# Pinned plugins (--ref) are left alone once they are at the wanted commit.
+# Local plugin links stay in the chezmoi run_after hook. Standalone
+# plannotator-tui stays in the platform package flow.
 
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -57,16 +61,12 @@ ensure_github_herdr_plugin() {
     herdr plugin unlink "$retired_plugin_id" >/dev/null 2>&1 || true
   fi
 
-  local wanted="github:${plugin_spec}@"
-  if [[ -n "$plugin_ref" ]]; then
-    wanted="github:${plugin_spec}@${plugin_ref}"
+  local installed=0
+  if grep -Fq "github:${plugin_spec}@" <<<"$plugin_list"; then
+    installed=1
   fi
-  if grep -Fq "$wanted" <<<"$plugin_list"; then
-    if [[ -n "$plugin_ref" ]]; then
-      info "Herdr plugin ${plugin_id} already installed at ${plugin_ref}"
-    else
-      info "Herdr plugin ${plugin_id} already installed"
-    fi
+  if [[ -n "$plugin_ref" ]] && grep -Fq "github:${plugin_spec}@${plugin_ref}" <<<"$plugin_list"; then
+    info "Herdr plugin ${plugin_id} already installed at ${plugin_ref}"
     return 0
   fi
 
@@ -85,11 +85,15 @@ ensure_github_herdr_plugin() {
     herdr plugin uninstall "$plugin_id"
   fi
 
+  local verb="installing"
+  if ((installed)); then
+    verb="updating"
+  fi
   if [[ -n "$plugin_ref" ]]; then
-    info "installing Herdr plugin ${plugin_spec}@${plugin_ref}"
+    info "${verb} Herdr plugin ${plugin_spec}@${plugin_ref}"
     herdr plugin install "$plugin_spec" --ref "$plugin_ref" -y
   else
-    info "installing Herdr plugin ${plugin_spec}"
+    info "${verb} Herdr plugin ${plugin_spec}"
     herdr plugin install "$plugin_spec" -y
   fi
 
