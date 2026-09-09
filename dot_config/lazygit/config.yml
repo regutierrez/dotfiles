@@ -5,10 +5,10 @@ gui:
   sidePanelWidth: 0.3333
   showBottomLine: true
 git:
-  pagers:
+  diffRenderers:
     - colorArg: always
       # Hunk detects LazyGit's captured pager host and renders static colored diffs.
-      pager: hunk pager
+      command: hunk pager
 os:
   editPreset: nvim
 promptToReturnFromSubprocess: false
