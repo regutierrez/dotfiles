@@ -97,7 +97,6 @@ packages = [
   "gh",
   "ghostty",
   "gnome-shell-extension-appindicator",
-  "golang",
   "jq",
   "mokutil",
   "neovim",

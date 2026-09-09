@@ -77,6 +77,12 @@ install_user_tools() {
       --install-dir "$HOME/.local/share/fnm" --skip-shell
   fi
 
+  if [[ ! -x "$HOME/.local/opt/go/bin/go" ]]; then
+    info "installing Go with webi"
+    curl -sS https://webi.sh/golang | sh
+  fi
+  export PATH="$HOME/.local/opt/go/bin:$PATH"
+
   if ! command -v lazygit >/dev/null 2>&1; then
     info "installing lazygit from its upstream Go module"
     GOBIN="$local_bin" go install github.com/jesseduffield/lazygit@latest
