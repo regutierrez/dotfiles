@@ -9,8 +9,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 source_dir="${CHEZMOI_SOURCE_DIR:-$(chezmoi source-path)}"
 
-bash "$source_dir/scripts/install-herdr-auto-title.sh"
-bash "$source_dir/scripts/install-herdr-annotate.sh"
+bash "$source_dir/scripts/install-herdr-plugins.sh"
 
 if ! command -v herdr >/dev/null 2>&1; then
   echo "install-herdr-plugins: herdr not found; skipping local plugin links" >&2

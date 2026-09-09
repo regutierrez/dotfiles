@@ -31,8 +31,7 @@ else
 fi
 
 bash "$(chezmoi source-path)/scripts/install-terminal-browser.sh"
-bash "$(chezmoi source-path)/scripts/install-herdr-annotate.sh"
-bash "$(chezmoi source-path)/scripts/install-herdr-auto-title.sh"
+bash "$(chezmoi source-path)/scripts/install-herdr-plugins.sh"
 {{ else if eq .chezmoi.os "linux" -}}
 {{- $osid := index .chezmoi.osRelease "id" | default "" -}}
 #!/bin/bash

@@ -31,8 +31,7 @@ Important locations:
 - `.chezmoidata/packages.toml`: package source of truth.
 - `bootstrap` and `scripts/`: source-only package and one-time setup; never applied into `$HOME`.
 - `scripts/install-terminal-browser.sh`: curl installer for terminal-browser plus the Herdr plugin; not a brew or RPM package.
-- `scripts/install-herdr-annotate.sh`: idempotent installer for the full Herdr Annotate plugin; standalone Plannotator TUI installation stays in the platform package flow.
-- `scripts/install-herdr-auto-title.sh`: idempotent installer for the pinned Auto Title plugin; unlinks retired `dotfiles.window-numbers`.
+- `scripts/install-herdr-plugins.sh`: idempotent GitHub Herdr plugin installer used by apply and bootstrap. Auto Title is pinned and unlinks retired `dotfiles.window-numbers`. Standalone Plannotator TUI stays in the platform package flow.
 - `run_after_50-install-herdr-plugins.sh.tmpl`: during `chezmoi apply`, install GitHub Herdr plugins and relink local plugins that are missing.
 - `dot_agents/skills/`: managed `~/.agents/skills`.
 - `dot_pi/agent/`: managed Pi agents, extensions, and configuration.

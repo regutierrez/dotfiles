@@ -58,11 +58,8 @@ install_user_tools() {
   info "installing terminal-browser"
   bash "$(chezmoi source-path)/scripts/install-terminal-browser.sh"
 
-  info "installing Herdr Annotate"
-  bash "$(chezmoi source-path)/scripts/install-herdr-annotate.sh"
-
-  info "installing Herdr Auto Title"
-  bash "$(chezmoi source-path)/scripts/install-herdr-auto-title.sh"
+  info "installing Herdr plugins"
+  bash "$(chezmoi source-path)/scripts/install-herdr-plugins.sh"
 
   if ! command -v plannotator-tui >/dev/null 2>&1; then
     info "installing Plannotator TUI"
