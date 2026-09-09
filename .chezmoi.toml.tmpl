@@ -12,12 +12,9 @@
 {{-   fail (printf "unsupported default GitHub account %q" $githubDefaultAccount) -}}
 {{- end }}
 {{- $osid := index .chezmoi.osRelease "id" | default "" -}}
-{{- if and (eq $profile "work") (ne .chezmoi.os "darwin") -}}
-{{-   fail "the work profile supports macOS only" -}}
-{{- end -}}
-{{- $personalOS := or (eq .chezmoi.os "darwin") (and (eq .chezmoi.os "linux") (eq $osid "fedora")) -}}
-{{- if and (eq $profile "personal") (not $personalOS) -}}
-{{-   fail "the personal profile supports macOS and Fedora only" -}}
+{{- $supportedOS := or (eq .chezmoi.os "darwin") (and (eq .chezmoi.os "linux") (eq $osid "fedora")) -}}
+{{- if not $supportedOS -}}
+{{-   fail "supported machines are macOS and Fedora" -}}
 {{- end }}
 [edit]
     apply = true

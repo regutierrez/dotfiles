@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 profile="${CHEZMOI_PROFILE:-personal}"
-if [[ "$profile" != "personal" ]]; then
-  printf 'fedora-setup: Fedora supports the personal profile only\n' >&2
+if [[ "$profile" != "personal" && "$profile" != "work" ]]; then
+  printf 'fedora-setup: unsupported profile %s; expected personal or work\n' "$profile" >&2
   exit 1
 fi
 local_bin="$HOME/.local/bin"

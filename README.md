@@ -9,7 +9,7 @@ Two values decide what gets applied:
 - **Profile:** `personal` or `work`; selected during `chezmoi init`.
 - **OS:** detected automatically by chezmoi.
 
-Both profiles are full workstations. `personal` is used on macOS and on the Fedora gaming workstation; `work` is used on macOS. Personal Fedora also receives the gaming configuration.
+Both profiles are full workstations on macOS and Fedora. `personal` Fedora is the gaming workstation and receives gaming plus GNOME/xremap setup; `work` Fedora does not.
 
 There are two separate operations:
 

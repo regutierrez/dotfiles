@@ -43,10 +43,9 @@ Important locations:
 
 The supported profiles are `personal` and `work`. The selected value is stored under `[data].profile` in `~/.config/chezmoi/chezmoi.toml`.
 
-- Both profiles are for workstations.
-- Personal is used on macOS and on the Fedora gaming workstation.
-- Personal Fedora receives gaming packages.
-- Work is used on macOS.
+- Both profiles are for workstations on macOS and Fedora.
+- Personal Fedora is the gaming workstation and receives gaming packages plus GNOME/xremap setup.
+- Work Fedora does not receive gaming or GNOME workstation setup.
 - Work alone receives the `work` skill group and `akkio-helpers/`.
 - Both profiles use `pi-rename` for session names and Linear-aware Herdr title metadata. Auto Title owns tab names; the old window-number plugin is retired.
 

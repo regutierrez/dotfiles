@@ -62,15 +62,17 @@ renders '{"profile":"work","chezmoi":{"os":"darwin","osRelease":{"id":""}}}' \
   'supported machine renders: work macOS'
 renders '{"profile":"personal","chezmoi":{"os":"linux","osRelease":{"id":"fedora"}}}' \
   'supported machine renders: personal Fedora'
+renders '{"profile":"work","chezmoi":{"os":"linux","osRelease":{"id":"fedora"}}}' \
+  'supported machine renders: work Fedora'
 
 rejects '{"profile":"server","chezmoi":{"os":"linux","osRelease":{"id":"debian"}}}' \
   'removed profile is rejected: server'
 rejects '{"profile":"cachygaming","chezmoi":{"os":"linux","osRelease":{"id":"fedora"}}}' \
   'removed profile is rejected: cachygaming'
-rejects '{"profile":"work","chezmoi":{"os":"linux","osRelease":{"id":"fedora"}}}' \
-  'unsupported machine is rejected: work Fedora'
 rejects '{"profile":"personal","chezmoi":{"os":"linux","osRelease":{"id":"arch"}}}' \
   'unsupported machine is rejected: personal Arch'
+rejects '{"profile":"work","chezmoi":{"os":"linux","osRelease":{"id":"arch"}}}' \
+  'unsupported machine is rejected: work Arch'
 
 if [[ -f bootstrap && -f scripts/install-packages.sh.tmpl ]]; then
   ok 'explicit bootstrap files exist'

@@ -76,7 +76,7 @@ globals = [
 ]
 
 [packages.fedora]
-# Personal Fedora gaming workstation packages.
+# Shared Fedora workstation packages. Gaming and NVIDIA lists stay personal-only.
 packages = [
   "asciinema",
   "atuin",
