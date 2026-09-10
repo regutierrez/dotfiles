@@ -1,6 +1,7 @@
 ---
 name: installing-anti-slop-ts
 description: "Installs, configures, updates, or upgrades Dillon Mulroy's vendored anti-slop Oxlint plugins for TypeScript and JavaScript. Use for explicit anti-slop tooling adoption or migration."
+disable-model-invocation: true
 ---
 
 # Install or update TypeScript anti-slop

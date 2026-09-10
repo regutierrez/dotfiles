@@ -2,6 +2,7 @@
 name: installing-anti-slop-py
 description: "Audits, installs, and migrates Python lint and type-checking policy with Ruff and the repository's existing checker or Basedpyright. Use only for explicit Python anti-slop tooling adoption or migration."
 argument-hint: "[audit|install|migrate] [paths...]"
+disable-model-invocation: true
 ---
 
 # Install Python anti-slop tooling
