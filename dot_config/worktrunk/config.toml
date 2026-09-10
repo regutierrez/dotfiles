@@ -1,8 +1,10 @@
+worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
+
+# Keep all branches beside each other (`<repo>/main`, `<repo>/<branch>`). This
+# supports bare repositories cloned into `<repo>/.bare` by `git wt-clone`.
+[projects."github.com/regutierrez/dotfiles"]
 worktree-path = "~/.wt/{{ (repo_path | split('/') | reverse)[1] }}/{{ repo }}/{{ branch | sanitize }}"
 
-# Sibling worktrees beside the primary checkout (`<repo>/main`, `<repo>/<branch>`).
-# Dotfiles stay at the chezmoi default (`~/.local/share/chezmoi`); extra trees would
-# otherwise land in `~/.local/share/<branch>`.
 [projects."github.com/regutierrez/henry"]
 worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
 
@@ -10,6 +12,12 @@ worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
 worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
 
 [projects."github.com/pael-akkio/akkio-dev-stacks"]
+worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
+
+[projects."github.com/pael-akkio/personal-helper-scripts"]
+worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
+
+[projects."github.com/regutierrez/rawdog-nvim-conf"]
 worktree-path = "{{ repo_path }}/../{{ branch | sanitize }}"
 
 # Open the checkout as a Herdr Space when `wt` runs inside Herdr (`HERDR_ENV=1`).

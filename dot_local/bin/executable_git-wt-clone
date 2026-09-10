@@ -1,0 +1,64 @@
+#!/bin/sh
+set -eu
+
+usage() {
+  printf 'usage: git wt-clone <repository> [directory]\n' >&2
+  exit 2
+}
+
+[ "$#" -ge 1 ] && [ "$#" -le 2 ] || usage
+
+repository=$1
+if [ "$#" -eq 2 ]; then
+  destination=$2
+else
+  destination=${repository%/}
+  destination=${destination##*/}
+  destination=${destination##*:}
+  destination=${destination%.git}
+  [ -n "$destination" ] || usage
+fi
+
+case "$destination" in
+  /*) project=$destination ;;
+  *) project=$PWD/$destination ;;
+esac
+
+parent=$(dirname "$project")
+name=$(basename "$project")
+mkdir -p "$parent"
+parent=$(cd "$parent" && pwd -P)
+project=$parent/$name
+
+if [ -e "$project" ]; then
+  printf 'git wt-clone: destination already exists: %s\n' "$project" >&2
+  exit 1
+fi
+
+mkdir "$project"
+trap 'rmdir "$project" 2>/dev/null || true' EXIT HUP INT TERM
+
+git clone --bare "$repository" "$project/.bare"
+printf 'gitdir: ./.bare\n' > "$project/.git"
+
+git --git-dir="$project/.bare" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+git --git-dir="$project/.bare" fetch origin
+
+default_branch=$(git --git-dir="$project/.bare" symbolic-ref --quiet --short HEAD) || {
+  printf 'git wt-clone: cloned repository has no default branch\n' >&2
+  exit 1
+}
+
+git --git-dir="$project/.bare" for-each-ref --format='%(refname:strip=2)' refs/heads |
+  while IFS= read -r branch; do
+    if git --git-dir="$project/.bare" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+      git --git-dir="$project/.bare" config "branch.$branch.remote" origin
+      git --git-dir="$project/.bare" config "branch.$branch.merge" "refs/heads/$branch"
+    fi
+  done
+
+wt switch "$default_branch" -C "$project" --no-cd
+
+trap - EXIT HUP INT TERM
+printf '\nCreated Worktrunk repository at %s\n' "$project"
+printf 'Default worktree: %s/%s\n' "$project" "$default_branch"

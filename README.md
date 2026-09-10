@@ -38,6 +38,23 @@ chezmoi apply ~/.zshrc      # apply one target
 chezmoi apply               # apply all configuration
 ```
 
+Clone development repositories with `git wt-clone` so the default branch and
+future Worktrunk branches are peers under one project directory:
+
+```bash
+cd ~/repos
+git wt-clone https://github.com/owner/project.git
+
+# ~/repos/project/
+# ├── .bare/      shared bare repository metadata
+# ├── .git        pointer to .bare
+# └── main/       default branch worktree
+```
+
+An optional second argument sets the project directory. Ordinary `git clone`
+keeps its standard behavior for tools and workflows that need a conventional
+checkout.
+
 Both workstation profiles install [terminal-browser](https://github.com/zenbu-labs/terminal-browser) with the official curl installer (`scripts/install-terminal-browser.sh`), not Homebrew or DNF. Upgrade with `terminal-browser upgrade`. Do not `brew install terminal-browser`; that would fight the curl install.
 
 `chezmoi apply` installs [Herdr Annotate](https://github.com/plannotator/herdr-annotate), [Auto Title](https://github.com/kryptamine/herdr-auto-title), and [hseh](https://github.com/regutierrez/hseh) when Herdr is present, and reinstalls the unpinned ones (Annotate, hseh) on every apply so they track their latest commit. Bootstrap runs the same installers. `prefix+w` opens the hseh space picker. The standalone [Plannotator TUI](https://github.com/plannotator/plannotator-tui) stays in the platform package flow: macOS uses the trusted `plannotator/tap` Homebrew formula, and Fedora installs the Rust crate. Managed settings open document reviews as a full-tab Herdr overlay. Use `prefix+o` to review a file or folder and `prefix+shift+o` to review the agent's last reply.
