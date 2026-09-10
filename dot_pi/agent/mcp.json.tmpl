@@ -25,6 +25,14 @@
         "headers": {
           "Authorization": "Bearer ${EXECUTOR_API_KEY}"
         }
+      },
+      "executor-personal": {
+        "type": "remote",
+        "url": "https://executor.esquie.pael.dev/mcp",
+        "enabled": true,
+        "headers": {
+          "Authorization": "Bearer ${EXECUTOR_PERSONAL_API_KEY}"
+        }
       }
     }
   }
