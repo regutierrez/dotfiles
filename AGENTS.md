@@ -36,6 +36,7 @@ Important locations:
 - `run_after_60-remove-retired-herdr-plugins.sh.tmpl`: during `chezmoi apply`, uninstall retired Herdr plugins (`cloudmanic.herdr-plus`, `zenbu-labs.terminal-browser`, `dotfiles.workspace-mru`) and remove leftover config dirs.
 - `dot_agents/skills/`: managed `~/.agents/skills`.
 - `dot_claude/modify_settings.json`: managed Claude Code token-trim keys in `~/.claude/settings.json`. Matt Pocock's disable flags and bare tool denies, extra unused-tool denies (`Monitor`, worktrees, `ListAgents`, `SendUserFile`, `ShareOnboardingGuide`), plus Theo's `autoMemoryEnabled: false`. Model, theme, effort, and other keys stay machine-local.
+- `modify_private_dot_claude.json`: merges the `executor` MCP server into machine-local `~/.claude.json`, mirroring the endpoint Pi and Amp use. Everything else in that file (sign-in, project state, history) stays machine-local, and the merge rewrites key order, so do not apply this target while Claude Code is running.
 - `dot_claude/system-prompt-fable.md`: Amp Fable prompt adapted for Claude Code tools. `dot_zshrc.tmpl` wraps `claude` with `--system-prompt-file` when that file exists; subcommands skip the flag.
 - `dot_pi/agent/`: managed Pi agents, extensions, and configuration.
 - `private_dot_ssh/private_config`: managed personal macOS SSH client configuration, not a private key.

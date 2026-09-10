@@ -104,4 +104,4 @@ Find the real user launch point, not only the backend endpoint or feature name. 
 
 ## RCA Integration
 
-When this lookup is part of `/rca`, put the confirmed UI origin in the Summary and use it as the start of `## Reproduction steps`. Preserve the request payload IDs and the direct Postgres result in the MDX. If the origin is unresolved, write `Unknown` and name the exact dashboard/chart query needed; never substitute a backend feature name for a UI tab.
+When this lookup is part of `/rca`, put the confirmed UI origin in `## Issue and scope` and use it as the start of `## Reproduction and validation`. Preserve the request payload IDs and the direct Postgres result in the MDX. If the origin is unresolved, write `Unknown` and name the exact dashboard/chart query needed; never substitute a backend feature name for a UI tab.

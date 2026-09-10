@@ -2,12 +2,12 @@
 name: batch-rca
 description: Batch-create Investigatr MDX docs for filtered Linear tickets using one subagent per ticket. Use when explicitly asked to batch missing Investigatr investigations, fan out Linear tickets, or run investigation subagents.
 disable-model-invocation: true
-compatibility: Requires linear-cli, pup, jq, npm, and @tintinweb/pi-subagents.
+compatibility: Requires jq, npm, @tintinweb/pi-subagents, and the evidence tools listed in the rca skill's reference/evidence-access.md.
 ---
 
 # RCA Batch Authoring
 
-Target repo is always `/Users/pakkio/playground/investigatr`. Per-ticket investigation writing must follow `/Users/pakkio/.agents/skills/rca/SKILL.md`.
+Target repo is the local Investigatr checkout (`~/repos/investigatr/main` on this workstation; discover it rather than assuming). Per-ticket investigation writing must follow `~/.agents/skills/rca/SKILL.md`.
 
 ## Defaults
 
@@ -41,23 +41,20 @@ User overrides may change any part of this filter: teams, labels, states, projec
 ## Inventory procedure
 
 1. Read the requested timeframe/filter and restate it.
-2. Use `linear-cli` for Linear reads. Do not use Linear MCP unless `linear-cli` is unavailable.
-3. Fetch candidates with paginated GraphQL or `linear-cli` issue commands. Keep machine-readable JSON.
+2. Read Linear through the path the rca skill's `reference/evidence-access.md` names for this harness.
+3. Fetch candidates with paginated queries. Keep machine-readable JSON.
 4. Build an inventory with: `identifier`, `title`, `url`, `createdAt`, `state.name`, `team.key`, `project.name`, label names, duplicate/relations summary, and `has_investigation`.
 5. Remove existing investigations and duplicates unless overridden.
 6. Save inventory and launch metadata under `/tmp/investigatr-batch-<YYYYMMDD-HHMMSS>/`.
 
 Useful duplicate checks:
 
-```sh
-linear-cli relations list <TICKET-ID> --output json --compact --all
-# If needed, use GraphQL for parent/children/relations/state.
-```
+Read each candidate's relations, parent, children, and state; a ticket marked duplicate of another is skipped.
 
 Useful existing-doc check:
 
 ```sh
-test -d /Users/pakkio/playground/investigatr/src/content/investigations/<TICKET-ID>
+test -d <investigatr>/src/content/investigations/<TICKET-ID>
 ```
 
 ## Worker orchestration
@@ -66,7 +63,7 @@ Use `@tintinweb/pi-subagents` and launch one background `impl` agent per ticket 
 
 Start at most the configured concurrency. Before launching, verify that `impl` appears in the `Agent` tool's available type list. If `impl` is unavailable, stop and report that blocker instead of substituting another orchestration path.
 
-If `linear-cli` or `pup` fails only because the subagent environment lacks keychain/network access, rerun that ticket with the narrowest stronger environment available and record that reason in the aggregate. Do not start auth flows unless the user explicitly asks.
+If an evidence tool fails only because the subagent environment lacks keychain or network access, rerun that ticket with the narrowest stronger environment available and record that reason in the aggregate. Do not start auth flows unless the user explicitly asks.
 
 ## Per-ticket worker prompt contract
 
@@ -77,13 +74,13 @@ You are a subagent for Investigatr batch authoring.
 Ticket: <TICKET-ID>
 
 Mandatory:
-1. Read and follow /Users/pakkio/.agents/skills/rca/SKILL.md.
-2. Work in /Users/pakkio/playground/investigatr. Application code: grab the environment from the Linear issue description, then find the Akkio worktree (resolve the default-branch checkout, then git worktree list) whose branch tracks origin/release/horizon-production (production) or origin/release/horizon-staging (staging); confirm with git branch -vv. Run git pull there before reading code. Read from that env-matched worktree, not the default-branch checkout; if none tracks the env branch, report it instead of substituting another checkout.
-3. Use linear-cli for Linear and pup for Datadog. Do not start auth flows.
+1. Read and follow ~/.agents/skills/rca/SKILL.md, including its reference files.
+2. Work in the local Investigatr checkout. Application code: grab the environment from the Linear issue description, then find the Akkio worktree (resolve the default-branch checkout, then git worktree list) whose branch tracks origin/release/horizon-production (production) or origin/release/horizon-staging (staging); confirm with git branch -vv. Fetch there and read the incident revision with git show <sha>:<path>; do not pull or switch a worktree you do not own. If no worktree tracks the env branch, report it instead of substituting another checkout.
+3. Read Linear and Datadog through the paths in the rca skill's reference/evidence-access.md. Do not start auth flows.
 4. Check whether this ticket already has an investigation or is a Linear duplicate. If duplicate/existing, skip and report it.
 5. If not skipped, create only src/content/investigations/<TICKET-ID>/index.mdx and optional assets under that folder.
 6. Back every root-cause claim with Linear, Datadog, code, or data evidence. Show the key logs inline in the MDX Root cause section.
-7. Include every required section from the rca skill (frontmatter, Summary, TLDR, Timeline (ET), Root cause, Root cause confidence, How it broke — call stack & flow, ELI5 walkthrough, Reproduction steps, Manual validation required, Possible fixes, Shareable comment).
+7. Include every required section from the rca skill: frontmatter, TLDR, Issue and scope, Timeline (ET), Root cause, How it broke — call path and failure flow, Reproduction and validation, Resolution handoff, Residual gaps / next evidence. Do not propose a fix.
 8. Run npm run build if feasible. If it fails on an unrelated pre-existing MDX issue, report the exact error and do not fix unrelated files.
 9. Final response must end with a section titled exactly "## TLDR" with bullets for: created/skipped path, duplicate/canonical status, root cause or unknown, strongest evidence, build/validation status, blockers/next query.
 ```

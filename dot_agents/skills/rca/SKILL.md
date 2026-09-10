@@ -1,290 +1,174 @@
 ---
 name: rca
-description: Author deep investigation writeups for the Investigatr Astro site. Use when given a Linear ticket/URL/ID and asked to investigate, document findings, add screenshots/videos, or update investigation MDX; always writes into /Users/pakkio/playground/investigatr, even when invoked from another repository or global skill location.
+description: Investigate an Akkio issue report against deployed code and runtime evidence, then write the Investigatr MDX writeup.
+compatibility: Needs a local Akkio worktree and git; Linear/Datadog through executor MCP or pup; SQL through query-hz; MDX output needs the local investigatr checkout and npm.
 disable-model-invocation: true
 ---
 
-# Investigatr Authoring
+# RCA
 
-Global skill for writing evidence-backed investigation MDX. Target repo is always `/Users/pakkio/playground/investigatr`; use absolute paths or `cd` there before file edits, tests, or content creation.
+Deliver an evidence-backed cause or an explicit unknown, then a resolution handoff — not a speculative fix. Separate observations, reported-but-unverified claims, inferences, and unknowns. Never manufacture certainty.
 
-**Application code — env-matched worktree.** Grab the environment from the Linear issue description, then find the Akkio worktree whose branch tracks the env's release branch — `origin/release/horizon-production` for production, `origin/release/horizon-staging` for staging:
+Investigate autonomously and persist until an honest conclusion state is supported or a specific blocker stops discrimination. Optimize for a trustworthy causal explanation, not for filling the document template or finding a merely plausible bug. Never invent evidence, identifiers, queries, code behavior, deploy state, or validation results.
+
+## Access and scope
+
+Inventory the evidence and tools actually mounted on this run before planning checks. The checks below are conditional, not a checklist. Never imply an unavailable check was performed. Retry a failed check only with a concrete reason; otherwise use an alternative or record the blocker.
+
+The surface on this workstation:
+
+- **Code** — the Akkio checkout at `~/repos/Akkio` (bare repo plus worktrees), read at a pinned revision through the shell. Cite repository + revision + `file:line`, never a branch name.
+- **Linear and Datadog** — executor MCP Code Mode when it is mounted, `pup` for Datadog otherwise. Read [evidence-access.md](reference/evidence-access.md) before the first call.
+- **SQL** — `/query-hz`, environment-matched. Read [data-layer.md](reference/data-layer.md) before writing a query.
+- **UI reproduction** — `/web-browser`, and `/locating-request-origin` to resolve the real user surface.
+- **Writeup** — Investigatr MDX in `~/repos/investigatr/main`, only when a writeup was asked for. Read [authoring.md](reference/authoring.md) before writing it.
+
+Record the issue report's expected and actual behavior, user action, environment, services, timezone, user/tenant/resource/request/trace ids, raw error, and observed versus potential impact. Test the reporter's diagnosis rather than adopting it; first establish whether the behavior violates a real requirement.
+
+Mark each evidence class available, partial, missing, or unknown. Missing access blocks dependent checks only — it does not block completion. The investigation is read-only: it authorizes no code changes, data writes, deployments, Linear edits, PRs, or fix implementation. The MDX writeup is the only write, and only on request. Investigation questions get chat answers.
+
+## 1. Pin what ran
+
+Recover the deployed revision **per relevant service** from request logs, deployment records, or build metadata; frontend, API, and worker versions can differ. Today's release is not incident evidence.
+
+Application code lives in `~/repos/Akkio`: a bare repo plus one worktree per branch, with `~/repos/Akkio/master` on the default branch and `~/repos/Akkio/release-horizon-production` tracking `origin/release/horizon-production`. Take the environment from the issue report and read from the worktree tracking that environment's release branch:
 
 ```sh
-# default-branch checkout: wt list --format json (.is_main) or git worktree list vs origin/HEAD
-git -C <akkio-default> worktree list
-git -C <worktree> branch -vv   # confirm the tracked upstream
+wt list --format json                     # or: git -C ~/repos/Akkio worktree list
+git -C <worktree> branch -vv              # confirm the tracked upstream
+git -C <worktree> fetch --quiet
+git -C <worktree> show <sha>:<path> | nl -ba
 ```
 
-Run `git pull` in that worktree before reading anything there. The default-branch checkout is usually on an unrelated branch — read application code from the env-matched worktree. If none tracks the env branch, say so instead of substituting another checkout. Code references, `file:line` citations, and schema checks all come from that env-matched worktree.
+Confirm the upstream rather than trusting the directory name, and re-resolve the layout instead of assuming these paths persist. When no worktree tracks the environment's release branch — a staging worktree often does not exist — say so and either create one with `/manage-worktree` or fetch and read `origin/release/horizon-staging` directly (`git -C ~/repos/Akkio/master show origin/release/horizon-staging:<path>`). Never substitute a worktree on an unrelated branch.
 
-## Required CLIs
+Read the incident revision with `git show <sha>:<path>`, not the working tree: a checkout is a branch tip, and a branch tip is not evidence about the incident. Never pull, reset, or switch a worktree you do not own; fetch instead. If the incident revision cannot be resolved, name the exact revision you inspected and scope every conclusion to it. Fetch history before claiming a commit is absent.
 
-- Use `linear-cli` for all Linear reads. ONLY use Linear MCP if `linear-cli` is not available.
-- Use `pup` for all Datadog reads. ONLY use Datadog MCP tools when `pup` is not available.
-- Prefer `--output json --compact --fields ...` for `linear-cli` and `--output=json --limit=N` for `pup`; parse with `jq`.
-- If either CLI returns an auth/config error, stop and report the missing access. Do not start interactive auth flows (`linear-cli auth`, `pup auth login`) unless the user explicitly asks.
+## 2. Isolate the request and the attempts
 
-## Goal / Success Criteria
+Start from exact anchors — request id, trace id, session id, tenant — and widen only for a specific question. Resolve the real UI route and launch context from frontend evidence or persisted ids, not from backend names; `/locating-request-origin` owns that lookup. Fetch referenced payloads and stored artifacts yourself when authorized; a path does not establish its contents.
 
-A successful investigation lets an engineer understand what happened, why it happened or what remains unknown, who/what was affected, how to reproduce or validate it, and where to inspect or fix next.
+Build a timeline in UTC plus America/New_York (EST/EDT), and distinguish event time from ingestion time. For each retry, model, or job, record **attempt, input, execution result, render/persistence result, error, next action**. Never transfer evidence from a fallback attempt to an earlier one. Keep model output, backend error, and user-visible copy separate.
 
-**Honesty over confidence.** "Medium confidence — here are the 3 manual checks to confirm" is a success. Asserting a cause the evidence doesn't support is a failure even if it turns out right. Never present a root cause as confirmed while validation is pending.
+For multi-turn chat issues, find the first turn where bad state appeared; the reported or downvoted turn is often later. Classify suspicious values as user-supplied, context-supplied, carried from an earlier turn, or model-generated before calling anything a hallucination.
 
-## Evidence Discipline
+For any absence or count claim, retain the query, environment, window, searched fields, pagination state, and sampling or retention limits. Message-only searches miss attribute ids; zero matches do not prove absence. For frequency, aggregate before sampling.
 
-- Every claim needs a link, query, command, file path, or trace ID. No claim, no statement.
-- Every code reference carries `file:line`. No exceptions.
-- Unverified reporter/user claims: tag `reported-unverified`. Never restate as fact.
-- Reporter's suspected cause is input, not conclusion. Hunt for symptoms that break their framing.
-- No evidence against ≠ evidence for. A hypothesis only survives if something observed supports it.
-- Root cause needs a repro, a before/after deploy comparison, or a trace/code path that only this cause can explain.
-- **Show the log, not just the conclusion.** The proof goes inline in `## Root cause` (exact shape under Required MDX Structure). Reasoning without quoted proof is not allowed there — delete the sentence or label it an unproven hypothesis.
-- Evidence that convinced you in chat goes in the doc. Never delete generated SQL, request IDs, or trace IDs during a refactor.
+## 3. Trace triggers and failure sites
 
-## Running validation SQL
+Search error text, constants, exception constructors, and error-field assignments; follow wrappers and mappings. Separate **causal trigger → failure assignment → propagation → display**. Different triggers can reach the same assignment and emit an identical error, so a matching string is not an identification. Fill this in before concluding:
 
-Run validation queries yourself via the `/query-hz` skill, selecting its Postgres or Snowflake backend. **Environment match is mandatory:** the query must run in the same environment where the issue was reported (production issue → production DB, staging issue → staging DB). If the skill's connection points at a different environment, do not run it — tell the user about the disconnect and that they may need to run the query themselves.
+| Incident-revision site | Exact triggering condition | Evidence the condition held / didn't | Supported / rejected / unresolved |
+| --- | --- | --- | --- |
 
-Every query — run by you or handed to the user — must be:
+Inspect `break`, `continue`, `return`, loop `else`, exception handlers, `finally`, awaited results, and state resets. Success at computation need not mean successful completion. Python `for/else` runs on exhaustion without `break`, not on an exception. Do not infer "the last item satisfies the predicate" from "some item does," and do not eliminate a site because it *ought* to require an exception.
 
-1. **Store-labeled** — "run in Snowflake" or "run in Postgres", and why the data lives there. When unsure, check the code path that reads/writes it; don't guess.
-2. **Schema-verified** — confirm every table/column against ORM models/migrations in the env-matched Akkio worktree, a logged query that actually ran, or `information_schema`. Never invent names. For Postgres JSON columns, confirm `json` vs `jsonb` before using `?`/`->>`/`jsonb_*`.
-3. **Cheap** — scope by ID and time range, add `LIMIT`, no full scans.
-4. **In the doc** — validation queries and the full original problematic SQL stay in the MDX permanently.
-5. **Explained up front** — "if X → confirms A; if Y → disproves A". When results contradict you, update your conclusion or take it back; never repeat the same claim.
+Trace the active runtime path only after evidence localizes the layer.
 
-## When to look in ~/blu-platform-transformations (dbt → Snowflake)
+## 4. Discriminate, then conclude
 
-`~/blu-platform-transformations` is the dbt repo that builds every `BLUSHIFT_HMI_PROD` table: shared models in schema `BLUSHIFT_COMMON`, per-client views in `<CLIENT>_CLIENTDATA` (generated from `models/blushift_common/` templates; hand-written overrides start with `-- akkio: client-logic`). Its YAML descriptions/tags become Snowflake COMMENTs/TAGs, which the platform scrapes into "supplemental info" and injects into LLM prompts for SQL generation.
+Write this compact check before establishing any cause:
 
-A "data issue" can live in four layers — isolate which one before blaming any of them:
+**Hypothesis → supporting observations → necessary condition and the evidence it held → strongest viable competitor → distinguishing check with the predicted result under each → actual result → remaining unknowns.**
 
-1. **Upstream source feed** (TransUnion, Mastercard, Inscape, ...) — bad data arrived.
-2. **dbt model in `~/blu-platform-transformations`** — wrong SQL/YAML, lookback window (`DBT_HISTORY_DAYS`), client mirror drifted from template.
-3. **Snowflake table contents** — model is right but the dbt Cloud run failed or is stale (cadence tags `daily`/`weekly`/`monthly`).
-4. **Platform supplemental-info cache** — Snowflake is right, cached metadata is stale until `ml/scripts/refresh_supplemental_info.py` runs.
+Choose the cheapest decisive check — payload, state, SQL, code, or reproduction. Relevant citations alone do not prove an inference. Seriously test attractive alternatives: model hallucination, bad source data, a recent deploy, malformed SQL, frontend payload loss, transient infrastructure.
 
-Checks, in order: query the table via `/query-hz`; `DESCRIBE TABLE` for live COMMENTs; compare with the supplemental info the LLM actually received (Datadog logs); read the model SQL/YAML in `~/blu-platform-transformations/models/`.
+Cross-check decisive claims with an independent evidence class — distinct provenance, or a different boundary in the causal chain. Multiple views, summaries, or copies derived from one event count as **one** class, not two.
 
-Look in blu-platform-transformations when: LLM SQL uses the wrong value format (case, hyphen vs underscore — column descriptions carry `:lower`/`:upper`/`:space-to-hyphen`/`:space-to-underscore` tags that promise a format); table/column descriptions in the LLM context are wrong or missing; a table exists for one client but not another; rows or partition dates are stale/missing; `data_type`/`use_for_audience_gen` tagging is wrong.
+For any check you claim to have executed, retain the command or query, the tested revision, the decisive assertion, and the output. Distinguish a check against application code from a simplified model that merely illustrates a hypothesis. Claim boundary coverage only when the input actually reached that boundary. Label isolated, integration, and live checks accurately.
 
-House rules: `git pull` `~/blu-platform-transformations` before reading. Origin is Bitbucket — no `gh`. Deploys are dbt Cloud only, so "what changed" means blu-platform-transformations git log + dbt Cloud run history, not Horizon deploys. Shared client-view bugs are fixed in `models/blushift_common/`, never in one client dir. For dbt change mechanics, read `~/blu-platform-transformations/AGENTS.md`.
+On pushback, reopen the disputed inference: deployed code for branch or revision disputes, runtime inputs for state disputes. Do not re-read the same function — pull the actual runtime input. Results pasted by a human carry the same environment, time, and completeness limits as your own. Contradictions change the conclusion, not the framing.
 
-Key platform files: `ml/src/dataset_parsing/datasource_info/` (metadata builder), `ml/scripts/refresh_supplemental_info.py` + `ml/scripts/SYNC_COMMON_TABLES.md` (refresh/sync), `apps/docs/docs/by-role/backend/architecture/blushift-dbt-pipeline.md` (architecture).
+## 5. Explain timing and impact
 
-## Investigation Workflow
+Inspect the introducing diff, not just blame on the line: old failure handling can become newly reachable without being touched. Separate merge time from deploy time, and inspect flags, config, data, and upstream changes when code alone does not explain onset. The same historical error text does not prove the same mechanism; before/after counts alone do not isolate causation. Accept a latent condition first being exercised — do not force every issue into a recent-deploy narrative.
 
-1. **Frame.** Before pulling Linear/Datadog, jot down:
-   - Scope: systems, tenants, routes, jobs, time range, user actions in. What's out.
-   - Access map: for each source (logs, traces, dashboards, code, DB, queue, flag, deploy), mark `available`, `partial`, `missing`, `unknown`. Declare gaps now, not at writeup.
-   - Timebox: 20 min per hypothesis check unless user says otherwise.
-   - Agent session: record the current agent type (`pi`, `claude`, `opencode`, etc.) and session ID before evidence collection starts. If the harness exposes a session UUID/path, use that exact value. If it does not, write `Unknown — <where checked>` in notes and resolve it before finalizing the MDX.
-2. **Check duplicates.** `rg -il '<error text|symptom|entity id>' src/content/investigations/`. Same root cause elsewhere → link or flag, don't re-author.
-3. **Grab Linear ticket info with `linear-cli`.** Use machine-readable output and narrow fields when possible:
-   - `linear-cli issues get <TICKET-ID> --output json --compact` for title, body, metadata, labels, team/project, dates, URL, assignee, creator/reporter.
-   - `linear-cli comments list <TICKET-ID> --output json --compact --all` for discussion, updates, logs, repro notes, impact, links, screenshots, attachments.
-   - `linear-cli attachments list <TICKET-ID> --output json --compact --all` and `linear-cli uploads ...` for linked docs/images/attachments when useful.
-   - `linear-cli api --output json` only when typed subcommands do not expose a needed field.
-4. **Extract anchors.** Collect searchable IDs/terms: user email/ID, org/customer, project/resource/deployment IDs, trace IDs, request paths, service/env, timestamps, error text, feature names, affected entity IDs.
-5. **Investigate Datadog deeply with `pup`.** Search logs/spans around the reported time, then widen. Start with aggregates, then fetch small representative samples:
-   - `pup logs aggregate --query='<scoped query>' --from=<range> --compute=count --group-by=<field> --limit=20 --output=json`
-   - `pup logs search --query='<scoped query>' --from=<range> --to=<range> --limit=20 --output=json`
-   - `pup traces search --query='trace_id:<trace_id>' --from=<range> --output=json`
-   - Add `pup rum`, `pup events`, `pup metrics`, `pup monitors`, or `pup incidents` queries when relevant.
-   If no trace ID exists, discover candidates from strongest anchors and inspect only traces connected to the reported action/resource. Capture scoped Datadog URLs.
-6. **Locate the real user surface.** When the request came from chat, a dashboard, or an existing artifact—or the user asks where to reproduce it—read and follow `~/.agents/skills/locating-request-origin/SKILL.md`. Resolve `dashboardId`/chart IDs in environment-matched Postgres before falling back to log-order inference. Record the visible route, tab, sub-tab, launch action, and IDs. Backend names such as `AudienceExplore` are not UI-tab evidence.
-7. **Connect the evidence.** Build an ET timeline from Linear + Datadog + code/data. Mark `Unknown`, assumptions, and hypotheses explicitly.
-8. **Check the triaged description.** Compare its central explanation of what broke, why, and impact against the runtime/code/data evidence—not against the ticket title or reporter's guess. Set `matches_triaged_description` in frontmatter: `true` only when the central mechanism and outcome materially match; `false` when the stated cause is contradicted or misses the actual failure mechanism; `null` only when no triaged description exists or evidence is insufficient to judge. Never leave it `null` because the check was skipped. State the mismatch or confirming evidence in `## TLDR` or `## Root cause` so the boolean is reviewable.
-9. **Answer "why now".** For behavior with a start date, find the trigger before writing Root cause: commit/PR (author, merge + deploy time), flag/config/migration, or first qualifying input — verified with before/after evidence (error counts by day, deployed versions around first-seen). Map SHAs to commits/PRs and compare the relevant code; decide whether code, data, upstream behavior, branch/release, or migration context changed. No trigger found → say so in the doc and cap confidence at `medium`.
-10. **Verify root cause before claiming it.** Confirm production entity IDs, persisted fields/state, user-authored input/config, read/write code paths, start time, frequency, blast radius, recurrence, and ruled-out hypotheses. Do not say `likely bad data` unless the data was directly inspected.
-11. **Reproduce or document limits.** Every investigation needs `## Reproduction steps`, on the real end-user surface (never `review-chat`/`rating-chat`). Use exact browser/API/CLI steps, prerequisites, expected visible result/error, and screenshots/video when the user asks to reproduce. Screenshots must visibly show the symptom (annotated + captioned). If unsafe or impossible, provide the closest safe partial repro and explain exactly what prevents full reproduction. Use `web-browser` when asked to reproduce; Chrome MCP is fallback.
-12. **Explain for newcomers.** Define codebase-specific services, queues, cron jobs, integrations, tables, features, and acronyms in plain language.
-13. **Write and validate MDX.** Keep prose under 200 lines when possible (diagrams and SQL blocks exempt). Run `npm run build` after content changes when feasible. If access to Linear/Datadog/data/code is missing, state exactly what is unavailable instead of guessing.
+Search the default and release branches for an existing fix or test. Verify inclusion in an affected release by ancestry **and** by reading the code, because cherry-picks diverge. Merged is not deployed.
 
-## Extra Depth Requirements
+Report scope on separate lines: observed instances, aggregate-query frequency, code-implied exposure, and unmeasured blast radius. Do not convert reachability into customer impact. Bound every count by its query, window, grouping, and retention; say earliest observed, never first ever. Rate mechanism, activation trigger, and impact separately — an unknown onset does not invalidate a proven mechanism, and it does not justify a fleet-wide impact claim.
 
-For production incidents:
+## 6. Conclude, then hand off
 
-- Find first-seen time and count occurrences by hour/day.
-- Compare before/after suspected deploys.
-- Capture representative logs containing the actual problematic fields.
-- Avoid unrelated request traces as representative evidence.
+Lead with the strongest proof: a reproduction, a revision diff, a query or state result, or quoted logs. Every causal claim needs both evidence and a valid inference; logs can prove a sequence without proving which branch failed.
 
-For audience/customer-match issues:
+Use the strongest honest stop state:
 
-- Distinguish project name, audience name, audience ID, and distribution group ID.
-- Recover actual `audienceSql`; do not rely on `Audiences SQL:` logs if they are materialization/cache SQL.
-- Inspect `audience.sources`, `distribution_invalidity`, and source table metadata.
-- For `dv360_only_1p`, inspect `ml/src/audience/distribution/validators/dv360_only_1p.py`, `ml/src/audience/tasks.py`, and frontend invalidity copy.
-- Determine whether non-client tables are used for membership/filtering, projection/labeling, or identity resolution/key translation.
-- Do not recommend retagging a table as `client` unless the table is truly first-party.
+- **confirmed** — the exact artifact or a faithful reproduction, a demonstrated mechanism connecting cause to symptom, two agreeing evidence classes, and a deterministic reproduction, comparator, direct causal trace, or controlled intervention;
+- **probable** — the mechanism is strongly supported but one report-specific link is unavailable; name the missing proof;
+- **localized failure boundary** — where behavior diverges is proven, why is not; name the next discriminating check;
+- **inconclusive** — required evidence is unavailable or conflicting; state exactly what is missing;
+- **expected behavior / no defect** — prove the expectation mismatch without dismissing user impact;
+- **blocked** — name the exact access, retention, environment, or reproduction blocker.
 
-## Content Location
+Assign confidence separately to symptom reproduction, mechanism, attribution to this reported occurrence, trigger or why-now, and blast radius. A confirmed generic defect does not prove it caused the reported occurrence. Never call a mechanism confirmed while a necessary check is open.
 
-Create one folder per investigation:
+End with the **Resolution handoff**: the broken invariant; the owning revision, function, and condition; an acceptance check that includes a genuine-failure boundary where failures must still fail; verified existing fix, tests, and release status; and the open questions or next discriminating check. Insufficient evidence earns a next check, not a code proposal.
+
+### When an intervention already happened
+
+A fix, refresh, reload, config change, or deploy that already occurred is evidence, and evaluating it is diagnosis — not fix design. Before crediting it, state a falsifiable fix hypothesis: if the mechanism is correct, this intervention should produce a named observable change **while the original trigger remains present**. Replay the original workflow on the same surface, entity, request shape, and environment when safe; removing the trigger proves a workaround, not the mechanism. Treat absence of recurrence as supporting evidence only when the observation window and eligible traffic are known.
+
+Record closure on separate dimensions — Intervention status: not started, implemented, or deployed/active. Mechanism validation: not tested, contradicted, supported, or validated. Original-surface validation: not attempted, blocked, failed, or passed. Overall closure: open, partially closed, closed, or reopened.
+
+A merged pull request, completed deployment, refreshed cache, passing focused test, or Resolved issue status is not by itself proof that the original symptom is fixed. Full procedure: [fix-validation.md](reference/fix-validation.md).
+
+**Do not design or propose a fix.** Diagnosis and fix design are separate requests. Name what is broken and what would prove a fix works; stop there. If the user asks for fix design in a later turn, load [fix-validation.md](reference/fix-validation.md).
+
+## Evidence reduction
+
+Reduce evidence where it is produced, not in your context. Aggregate and filter in the query, the Code Mode snippet, or the shell pipeline; return counts, distributions, chronology, selected fields, identifiers, and a few hypothesis-discriminating samples. Never pull a raw collection, complete API envelope, unbounded SQL result, or full log set into context. Preserve provenance for every reduced result: source, time range, query, total and matched counts, truncation state, and stable ids. Details and Code Mode specifics: [evidence-access.md](reference/evidence-access.md).
+
+## Load only when needed
+
+- Linear, Datadog, and code access: [evidence-access.md](reference/evidence-access.md) — read before the first evidence call.
+- SQL, dbt, Snowflake, supplemental metadata, or audience cases: [data-layer.md](reference/data-layer.md) — read before writing a query.
+- An intervention that already happened, or a separately requested fix design: [fix-validation.md](reference/fix-validation.md).
+- Writing or updating the Investigatr MDX: [authoring.md](reference/authoring.md).
+- Evaluating or changing this skill: [evaluation.md](reference/evaluation.md) — not extra work during an investigation.
+
+## The writeup
+
+Write the document after investigating, in reader-friendly order, and only when a writeup was requested. [authoring.md](reference/authoring.md) owns the repository location, frontmatter schema, and validation. Required sections, each present even when the answer is that an artifact is unavailable and why:
+
+1. **TLDR** — the shortest defensible causal explanation and the conclusion state. This is the lede; do not precede it with a second abstract.
+2. **Issue and scope** — the facts, not a summary: reported versus observed behavior, identifiers (request, trace, session, tenant, resource), environment and per-service revisions, and measured scope. A table reads better than prose. Mark important missing anchors Unknown rather than omitting the row.
+3. **Timeline (ET)** — relevant chronology, including why the issue appeared when it did.
+4. **Root cause** — the evidence-backed mechanism, alternatives ruled out, confidence by claim.
+5. **How it broke — call path and failure flow** — see below.
+6. **Reproduction and validation** — observed reproduction, comparators, and closed-loop checks, or a precise reason they were unavailable.
+7. **Resolution handoff** — broken invariant, owning code and condition, acceptance check with a genuine-failure boundary, existing fix and release status, next discriminating check. Not a patch proposal.
+8. **Residual gaps / next evidence** — unknowns, blockers, and the next discriminating check.
+
+Cite evidence inline, at the claim it supports.
+
+### How it broke — call path and failure flow
+
+Open with a short plain-language paragraph: what the user did, what the system tried, where it broke, and why that produced the symptom. Write it for a junior engineer, define unfamiliar platform concepts, and keep the causal link intact — this replaces a separate ELI5 section, so it must carry that weight rather than being a caption. Then make the chain concrete enough to follow bad state from entry point to symptom:
+
+- One Mermaid sequence diagram or flowchart (the Investigatr site renders them). Mark the first bad boundary with `❌` and label skipped downstream operations `never reached`.
+- A textual call graph using real symbols with `path:line@commit` references.
+- At the responsible boundary, state the input, the expected output, and the actual output.
+- Continue through propagation to the user-visible symptom. Do not stop at the suspicious function.
+- Include the component or state tree only when frontend state or rendering is causal.
+
+```mermaid
+sequenceDiagram
+  participant UI
+  participant API
+  participant Loader
+  UI->>API: request
+  API->>Loader: load(id)
+  Loader--xAPI: ❌ returns stale value
+  Note over API,UI: refresh event — never reached
+  API-->>UI: stale payload
+```
 
 ```text
-/Users/pakkio/playground/investigatr/src/content/investigations/<TICKET-ID>/
-├── index.mdx
-└── assets/
+Page.load → api.get → Loader.load ❌ → response.serialize → Widget.render
 ```
 
-Use the exact Linear ticket ID. Store any supporting assets in `assets/` and reference them as `./assets/file.<file-extension>`.
+For a data-only issue, expected behavior, configuration problem, external dependency failure, or blocked investigation, do not invent a diagram, symbol, or line reference. Show the observed data and control boundaries instead, and say which code artifacts are unavailable and why.
 
-## Frontmatter
+Before submitting, ask: **could a junior engineer point to the first bad boundary, explain how the symptom propagated, and name the file and function that owns the durable fix?** If not, improve the explanation or document why the missing evidence prevents it.
 
-Match `/Users/pakkio/playground/investigatr/src/content.config.ts`:
-
-```yaml
----
-ticket_id: AKKIO-12345
-title: Clear factual title
-tags:
-  - chat review
-  - data_issue
-created_at: 2026-05-01
-updated_at: 2026-05-01
-linear_url: https://linear.app/...
-golden_test: false
-matches_triaged_description: true # true | false | null; use the evidence rules below
----
-```
-
-Tags must include
-
-- one ticket type -- `chat_review` if linear ticket content contains "Chat Review", otherwise `service_now`
-- one or more issue types, such as `test`, `no_description`, `no_bug`, `auth_access_issue`, `loading_rendering_issue`, `incorrect_sql`, `inefficient_sql`, `data_issue`, `infra_error`, `chat_response_issue`, `user_issue`, `chart_visualization_issue`, `ui_ux_issue`, `feature_request`, or `uncategorized`.
-
-`matches_triaged_description` is an evidence verdict, not a similarity check:
-
-- `true` — the triaged description's central failure mechanism and user-visible outcome match the investigation. Minor wording or scope differences are okay.
-- `false` — its central cause is contradicted, or it attributes the symptom to the wrong layer/mechanism. Explain the correction in the doc.
-- `null` — the ticket has no triaged description, or required evidence is unavailable. State which evidence is missing; do not use `null` as "not checked."
-
-## Required MDX Structure
-
-Start with:
-
-```md
-# AKKIO-12345 — Short factual title
-
-> Reporter: Name (email), Customer/Org if known
-> Project: Project/resource URL if known
-> User Feedback (if chat review)
-> Triaged description (if chat review)
-```
-
-Then add `## Summary`. The table below is the required baseline, not a limit: include its rows when evidence supports them, and **add any other rows you judge important** for this specific issue (deploy SHA, flag state, job/queue IDs, upstream feed, affected table, etc.). Treat it as a floor, not a ceiling.
-
-| Field                           | Value                                                   |
-| ------------------------------- | ------------------------------------------------------- |
-| Trace ID (representative)       | `...`                                                   |
-| Other relevant traces           | `...`                                                   |
-| User                            | Name — uid `...` (email)                                |
-| Org / customer                  | `...`                                                   |
-| Project / resource ID           | `...`                                                   |
-| Affected entity IDs             | `...`                                                   |
-| End-user route                  | e.g. Audience → Insights → Spectrum → Chat with chart   |
-| Launch context                  | dashboard/chart/metadata/data/audience IDs              |
-| Service(s)                      | `api`, `worker`, `frontend`                             |
-| Environment                     | `production`, `staging`, etc.                           |
-| Build / version                 | commit SHA or release if known                          |
-| First seen / reproduced at (ET) | timestamp range                                         |
-| Frequency / blast radius        | one user, one org, all deploys matching condition, etc. |
-| User-visible symptom            | exact symptom from ticket/UI                            |
-| Triaged-description match       | `true` / `false` / `null` — one-line evidence reason    |
-| Error / exception               | exact error text                                        |
-| Downstream dependency           | external service/API if relevant                        |
-| App area                        | e.g. Audience builder → Chat                            |
-| Datadog — logs                  | scoped URL                                              |
-| Datadog — trace                 | URL                                                     |
-| Datadog — metrics/RUM/events    | scoped URL                                              |
-| Agent session type(s)           | `pi`, `claude`, `opencode`, etc.                        |
-| Agent session ID(s)             | exact session UUID/path for each agent session used     |
-
-After `## Summary`, include:
-
-- `## TLDR` — 2–5 beginner-friendly bullets that state what the issue is.
-- `## Timeline (ET)` — numbered user action → backend/worker/downstream → symptom.
-- `## Root cause` — short explanation of what caused what. **Every claim must be backed by quoted proof in the doc.** Required shape:
-  1. Lead with the key log line(s) — the ones that prove the cause — as a fenced code block, with the `pup` query that found them and (when possible) a scoped Datadog URL.
-  2. Either a field-by-field table (`Field in the log` → `What it tells us` → `What it rules out`) or inline annotations that show how each piece of the log supports each step of the inference.
-  3. Any cross-query that establishes scope/blast-radius (e.g. "same error on N other entities") shown with the exact `pup` command and a count.
-  4. Any code path referenced as part of the mechanism cited by `file:line` from the env-matched Akkio worktree.
-  5. The "why now" trigger: what changed (commit/PR + author + deploy time, flag, migration, or first qualifying input) with before/after evidence — or an explicit statement that the trigger is unknown.
-  6. Data issues are a valid root cause: bad/missing/stale/mistagged rows in Postgres/Snowflake or an upstream feed. Prove it with the query result showing the bad data (not just the code that read it), and say where the data came from.
-  7. If the root cause is `Unknown`, say so and list the specific log/trace/metric/state the next person needs to capture to close the gap.
-- `## Root cause confidence` — one of:
-  - `confirmed` — repro, before/after deploy comparison, or a trace/code path only this cause can explain — with the proof in this doc.
-  - `high` — strong evidence from several independent sources, no repro; name the one check that would confirm.
-  - `medium` — believable mechanism, but evidence is indirect or the trigger is unknown. "Latent bug, trigger unknown" can never exceed `medium`.
-  - `low` — best-ranked hypothesis; a lead, not a finding.
-
-  State the evidence class behind the level and what would move it up one. Never `confirmed` while `## Manual validation required` has open items bearing on the cause.
-- `## How it broke — call stack & flow` — REQUIRED:
-  1. Sequence/flow diagram of the failing request, as a fenced ```mermaid block (the site renders them): user action → frontend route/component → backend endpoint/worker → downstream (LLM, Snowflake, external API), failure point marked (`❌`).
-  2. Call graph of the failing code path, as a fenced text block: indented arrows, one call per line, real function name + `file:line` on every node, failure point marked and annotated. Use mermaid instead only if branching makes the linear form awkward. Format:
-
-     ```text
-     POST /api/chat handler — api/src/routes/chat.py:41
-       → ChatService.handle_message — api/src/services/chat.py:118
-         → build_sql_context — ml/src/chat/context.py:77
-           → AudienceStore.get_audience — ml/src/audience/store.py:203   ❌ returns row for deleted audience 748
-             → run_snowflake_query — ml/src/query/runner.py:55           ← never reached
-     ```
-
-  3. Component tree of the affected UI when frontend is involved, as a fenced text block: tree branches, real component names + `file:line`, and under each component only the state/props/callbacks relevant to the bug, with the bad one marked. Format:
-
-     ```text
-     <AudienceExplorePage> — frontend/src/pages/AudienceExplore.tsx:30
-     ├── <ChatPanel> — frontend/src/components/chat/ChatPanel.tsx:88
-     │     State: messages, activeChartId          ❌ activeChartId stays stale after audience switch
-     │     Callbacks: onSendMessage → POST /api/chat
-     └── <ChartView chartId={activeChartId}> — frontend/src/components/charts/ChartView.tsx:41
-           Props: chartId                          ← renders the stale chart
-     ```
-
-  Diagrams are for finding the code and evidence, not decoration: real names, real `file:line`, ≤ ~15 nodes each — split rather than cram. Annotate only what's relevant to the bug.
-- `## ELI5 walkthrough` — short narrative a junior dev new to the codebase can follow: what the user did, what the system tried, where it broke, why that produced the symptom. Define platform concepts inline; reference the diagrams.
-- `## Reproduction steps` — exact steps on the real user surface. If full reproduction is impossible, include a safe partial repro and explain exactly what prevents full reproduction. Attach the assets in the .mdx file.
-- `## Manual validation required` — the honesty section. Numbered, copy-pasteable checks that confirm or break the RCA, each following "Running validation SQL" (store-labeled, schema-verified, cheap, explained up front). Run them yourself via `/query-hz` with the matching backend when the environment matches the issue; otherwise flag the disconnect for the user. Include non-SQL checks (UI, Firestore, ask reporter). If nothing manual is needed, say so explicitly — never omit the section.
-- `## Possible fixes` — REQUIRED. Classify each candidate:
-  1. **Code change** — which side (frontend / backend / ml / worker) and service; if both FE and BE angles exist, address both.
-  2. **Data fix** — correct/backfill/re-sync/retag the bad data; name the exact table(s) and rows, where the bad data came from, and who owns that pipeline. Say which layer it is (upstream feed / dbt model in `~/blu-platform-transformations` / stale dbt Cloud run / stale supplemental-info cache) with the evidence. A blu-platform-transformations fix = dbt model/YAML change + client resync (`gen_client_schema.py`) + supplemental info refresh; a refresh-only fix = Snowflake is right and only the cache is stale.
-  3. **Context/config change** — platform-injected prompt/context, Databricks config, flags (not the user's prompt).
-  4. **User behavioral change** — prompt workaround or alternate flow usable today.
-  5. **Not a bug** — training/enablement; say why the behavior is correct.
-
-  Rank by simplicity + correctness; smallest fix wins; cite real `file:line` only. Fixes implemented in Akkio require tests (TDD) in a fresh worktree off `release/horizon-staging`.
-- `## Shareable comment` — terse non-technical paragraph pasteable into Slack/Linear: what broke, why, who's affected, fix direction. Keep key IDs for traceability.
-
-Optional when useful:
-
-- `## Data flow` — extra Mermaid/ASCII diagrams beyond the required ones.
-- `## Relevant files` — code paths and line ranges.
-- `## Glossary` — customer/domain terms.
-
-## Interactive Session Behavior
-
-- **Pre-answer the standard follow-ups.** Every draft gets asked: prove it; what query do I run myself; why now / what changed; where in the code; FE or BE; eli5; what's the fix. If the doc can't answer all of these, it isn't done.
-- **Don't edit the doc unless told.** Questions and brainstorming get chat answers. Write to the MDX only on explicit instruction.
-- **On root-cause pushback, don't re-read the same code.** "Not convinced" usually means right function, wrong mechanism — pull the actual runtime input (real prompt/context/SQL/log payload).
-- **User-pasted results and screenshots are ground truth.** Update your conclusion or take it back.
-- **Self-serve data.** Fetch mentioned S3 paths, logs, and session files yourself.
-- **Answer the question asked.** Don't drift to an adjacent question.
-
-## **MUST DO** Self-Review Before Finalizing
-
-- Could a junior engineer tell where to look next, with all lookup IDs present (user, org, project, resource, trace, job, agent session)?
-- Does the Summary include both `Agent session type(s)` and `Agent session ID(s)`? Do not finalize with either blank; use `Unknown — <where checked>` only when the harness truly does not expose it.
-- Walk each Root cause sentence: every claim points to a quoted log, trace id, `file:line`, SQL result, or Linear comment in the doc — fix or delete any without proof.
-- Is `## Root cause confidence` consistent with open `## Manual validation required` items?
-- Does `matches_triaged_description` follow the evidence rules, and does the TLDR/Root cause explain the verdict? If it is `null`, is the missing description/evidence named?
-- Missing facts labeled `Unknown` with the exact next query/tool needed?
-- No evidence (generated SQL, request/trace IDs) lost during edits?
-- Did `npm run build` pass?
-
-## Writing Standards
-
-USE PLAIN LANGUAGE-- NO CANONICAL,PROVENANCE and the like. Be factual, concise, beginner-friendly, and evidence-backed. Use ET timestamps (`EST`/`EDT` when known). Include exact IDs, trace IDs, service names, URLs, and error strings. Prefer observations over commentary. Preserve uncertainty. Limit customer-sensitive detail to what engineering diagnosis requires. No fluff: every sentence either states evidence, a conclusion, or a next step.
+Before finalizing, verify: incident revisions pinned and honestly qualified; exact trigger and failure assignment separated; the competing check written down; attempts kept separate; negative evidence and impact qualified; confidence consistent with open checks; a handoff that is actionable and proposes no patch. No invented facts.
