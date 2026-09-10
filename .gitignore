@@ -11,5 +11,9 @@ dot_pi/todos/
 **/.pi/todos/
 package-lock.json
 !dot_pi/agent/extensions/web-tools/package-lock.json
+!dot_pi/agent/extensions/pi-mcp/package-lock.json
+dot_pi/agent/extensions/pi-mcp/node_modules/
+dot_pi/agent/extensions/pi-mcp/dist/
+dot_pi/agent/extensions/pi-mcp/conformance/results/
 bun.lock
 .env

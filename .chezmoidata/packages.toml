@@ -59,11 +59,9 @@ work_casks = [
 
 [packages.pi]
 extensions = [
-  "npm:@ff-labs/pi-fff",
   "npm:@ogulcancelik/pi-codex-compaction",
   "npm:@plannotator/pi-extension",
   "npm:@tintinweb/pi-subagents",
-  "git:github.com/dmmulroy/pi-mcp",
 ]
 
 # Global CLIs (installed into ~/.npm-global).

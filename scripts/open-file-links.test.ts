@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { homedir } from "node:os";
 import test from "node:test";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import openFileLinks, { linkifyFileUrls } from "../dot_pi/agent/extensions/open-file-links.ts";
@@ -46,9 +47,51 @@ test("preserves autolinks, punctuation, and web links", () => {
 	assert.equal(linkifyFileUrls("[web](https://example.com/a.ts#L3)"), "[web](https://example.com/a.ts#L3)");
 });
 
-test("keeps code blocks and inline code unchanged", () => {
-	const markdown = "`file:///tmp/a.ts#L3`\n\n```text\nfile:///tmp/a.ts#L3\n```";
+test("keeps fenced code unchanged", () => {
+	const markdown = "```text\nfile:///tmp/a.ts#L3\n~/repos/foo/index.mdx\n```";
 	assert.equal(linkifyFileUrls(markdown), markdown);
+});
+
+test("keeps non-path inline code unchanged", () => {
+	const markdown = "`const x = 1` `/projects/1599969/deployment/audience` `src/foo.ts` `~/bin`";
+	assert.equal(linkifyFileUrls(markdown), markdown);
+});
+
+test("wraps path-like inline code as a clickable file link", () => {
+	const homeFile = `~/repos/investigatr/main/src/content/investigations/AKKIO-16206/index.mdx`;
+	const absFile = "/tmp/a.ts#L3";
+	const fileUrl = "file:///tmp/a.ts#L3";
+	assert.equal(
+		linkifyFileUrls(`\`${homeFile}\``),
+		`[\`${homeFile}\`](${destination(new URL(`file://${homedir()}/${homeFile.slice(2)}`).href)})`,
+	);
+	assert.equal(
+		linkifyFileUrls(`\`${absFile}\``),
+		`[\`${absFile}\`](${destination(new URL(`file://${absFile}`).href)})`,
+	);
+	assert.equal(
+		linkifyFileUrls(`\`${fileUrl}\``),
+		`[\`${fileUrl}\`](${destination(fileUrl)})`,
+	);
+});
+
+test("wraps prose home paths that look like files", () => {
+	const homeFile = "~/repos/foo/index.mdx";
+	const fileUrl = new URL(`file://${homedir()}/${homeFile.slice(2)}`).href;
+	assert.equal(linkifyFileUrls(`See ${homeFile}.`), `See [${homeFile}](${destination(fileUrl)}).`);
+	assert.equal(linkifyFileUrls("See ~/bin."), "See ~/bin.");
+});
+
+test("routes a home-path Markdown destination", () => {
+	const homeFile = "~/repos/foo/index.mdx";
+	const fileUrl = new URL(`file://${homedir()}/${homeFile.slice(2)}`).href;
+	assert.equal(linkifyFileUrls(`[source](${homeFile})`), `[source](${destination(fileUrl)})`);
+});
+
+test("does not double-wrap path-like inline code", () => {
+	const inner = "`/tmp/a.ts`";
+	const linked = linkifyFileUrls(inner);
+	assert.equal(linkifyFileUrls(linked), linked);
 });
 
 test("uses the display transformer for finalized and restored assistant messages", () => {

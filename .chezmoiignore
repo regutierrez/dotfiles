@@ -73,3 +73,7 @@ Library/Application Support/herdr-auto-title/
 .agents/skills/web-browser/scripts/node_modules/
 **/package-lock.json
 !.pi/agent/extensions/web-tools/package-lock.json
+!.pi/agent/extensions/pi-mcp/package-lock.json
+.pi/agent/extensions/pi-mcp/node_modules/
+.pi/agent/extensions/pi-mcp/dist/
+.pi/agent/extensions/pi-mcp/conformance/results/

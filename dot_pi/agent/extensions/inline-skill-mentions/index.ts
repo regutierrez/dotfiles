@@ -222,8 +222,8 @@ export default function (pi: ExtensionAPI) {
 		return new Text(parts.join("\n"), options.outputPad, 0);
 	});
 
-	// After session_start: pi-fff answers `@` with files and does not call
-	// inner providers. Registering here keeps skill names on the outside.
+	// After session_start: later `@` providers can skip inner providers.
+	// Registering here keeps skill names on the outside.
 	pi.on("resources_discover", (_event, ctx) => {
 		if (!ctx.hasUI) return;
 		ctx.ui.addAutocompleteProvider((current) => ({

@@ -67,6 +67,9 @@ remove_retired_package \
 remove_retired_package \
   "npm:pi-claude-bridge" \
   "${agent_dir}/npm/node_modules/pi-claude-bridge"
+remove_retired_package \
+  "npm:@ff-labs/pi-fff" \
+  "${agent_dir}/npm/node_modules/@ff-labs"
 
 packages=(
 {{- range .packages.pi.extensions }}

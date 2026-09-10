@@ -98,6 +98,8 @@ bin/agent-sessions-picker
 .pi/agent/_mcp.json
 .pi/agent/git/github.com/fitchmultz
 .pi/agent/git/github.com/regutierrez/pi-herdr-subagents
+.pi/agent/fff
+.pi/agent/npm/node_modules/@ff-labs
 .config/amp/plugins/git-ai.ts
 .pi/agent/extensions/git-ai.ts
 .pi/agent/extensions/sideshow-lazy-tools.ts
