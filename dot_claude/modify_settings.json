@@ -1,7 +1,7 @@
 {{- /* chezmoi:modify-template */ -}}
 {{- /* Keep ~/.claude/settings.json machine-local except Matt Pocock's
-     token-trim flags/denies, extra unused-tool denies, and Theo's
-     auto-memory off. */ -}}
+     token-trim flags/denies, extra unused-tool denies, Theo's
+     auto-memory off, and no commit/PR attribution. */ -}}
 {{- $data := dict -}}
 {{- if and (hasKey .chezmoi "stdin") .chezmoi.stdin -}}
 {{-   $data = fromJson .chezmoi.stdin -}}
@@ -12,6 +12,10 @@
 {{- $data = $data | setValueAtPath "disableClaudeAiConnectors" true -}}
 {{- $data = $data | setValueAtPath "disableRemoteControl" true -}}
 {{- $data = $data | setValueAtPath "disableWorkflows" true -}}
+{{- /* No Co-Authored-By trailer, no PR byline, no claude.ai session link. */ -}}
+{{- $data = $data | setValueAtPath "attribution.commit" "" -}}
+{{- $data = $data | setValueAtPath "attribution.pr" "" -}}
+{{- $data = $data | setValueAtPath "attribution.sessionUrl" false -}}
 {{- $mattDeny := list
       "EnterPlanMode"
       "ExitPlanMode"
