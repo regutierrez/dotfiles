@@ -101,12 +101,6 @@ type = "plugin_action"
 command = "hseh.spaces"
 description = "switch space with hseh"
 
-[[keys.command]]
-key = "prefix+tab"
-type = "plugin_action"
-command = "dotfiles.workspace-mru.switch"
-description = "switch workspace by recent use"
-
 # Annotate
 [[keys.command]]
 key = "prefix+o"

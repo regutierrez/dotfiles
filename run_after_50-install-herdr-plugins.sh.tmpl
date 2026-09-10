@@ -32,11 +32,5 @@ ensure_local_herdr_plugin() {
 ensure_local_herdr_plugin \
   "dotfiles.pi-file-opener" \
   "$HOME/.local/share/herdr-plugins/pi-file-opener"
-
-if [[ -x "$HOME/.local/share/herdr-plugins/workspace-mru/workspace-mru" ]]; then
-  ensure_local_herdr_plugin \
-    "dotfiles.workspace-mru" \
-    "$HOME/.local/share/herdr-plugins/workspace-mru"
-fi
 {{- end -}}
 
