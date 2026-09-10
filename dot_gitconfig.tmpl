@@ -33,6 +33,12 @@
 	insteadOf = git@github.com-pael:akkio-inc/
 	insteadOf = ssh://git@github.com-pael/akkio-inc/
 
+[url "https://github.com/pael-akkio/"]
+	insteadOf = git@github.com:pael-akkio/
+	insteadOf = ssh://git@github.com/pael-akkio/
+	insteadOf = git@github.com-pael:pael-akkio/
+	insteadOf = ssh://git@github.com-pael/pael-akkio/
+
 [includeIf "hasconfig:remote.*.url:**:regutierrez/**"]
 	path = ~/.gitconfig-personal
 [includeIf "hasconfig:remote.*.url:**/regutierrez/**"]
@@ -44,4 +50,8 @@
 [includeIf "hasconfig:remote.*.url:**:akkio-inc/**"]
 	path = ~/.gitconfig-akkio
 [includeIf "hasconfig:remote.*.url:**/akkio-inc/**"]
+	path = ~/.gitconfig-akkio
+[includeIf "hasconfig:remote.*.url:**:pael-akkio/**"]
+	path = ~/.gitconfig-akkio
+[includeIf "hasconfig:remote.*.url:**/pael-akkio/**"]
 	path = ~/.gitconfig-akkio
