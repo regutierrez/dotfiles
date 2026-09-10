@@ -57,9 +57,17 @@ Library/Application Support/herdr-auto-title/
 {{- end }}
 
 # Keep retired skills visible so .chezmoiremove can remove them.
+!.agents/skills/akkio-coding-standards
+!.agents/skills/coding-standards
+!.agents/skills/effect-service-design
+!.agents/skills/install-anti-slop
+!.agents/skills/pragmatic-code
+!.agents/skills/preventing-py-slop
 !.agents/skills/reviewing-python
 !.agents/skills/reviewing-typescript-vue
+!.agents/skills/ubiquitous-language
 !.agents/skills/weekly-agents-sessions-recap
+!.agents/skills/writing-great-skills
 
 # Mirror repo-local .gitignore entries so chezmoi never syncs them.
 .config/raycast/

@@ -17,7 +17,7 @@ Cloudflare entrypoint
   → protocol projection
 ```
 
-Apply `../coding-standards/SKILL.md` for TypeScript contracts, parsing, errors, side effects, and tests. When implementation shape is unclear, consult [EXAMPLES.md](EXAMPLES.md) for Hono, WorkerEntrypoint, adapter, and refactor templates.
+Apply `../pragmatic-engineering/SKILL.md` and its selected TypeScript references for contracts, parsing, errors, side effects, and tests. When implementation shape is unclear, consult [EXAMPLES.md](EXAMPLES.md) for Hono, WorkerEntrypoint, adapter, and refactor templates.
 
 ## Ownership
 

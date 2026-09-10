@@ -1,0 +1,8 @@
+id: python-dict-key
+# Literal keys are findings; dynamic names are not.
+valid:
+  - '{dynamic_key: value}'
+  - 'mapping = dict(key=value)'
+invalid:
+  - '{"region": value}'
+  - 'mapping = {"region": value, "channel": other}'

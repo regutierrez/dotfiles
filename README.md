@@ -137,9 +137,9 @@ Unclassified skill directories are not installed. Pi-specific files and developm
 
 ### Shared coding workflow
 
-[`pragmatic-code`](dot_agents/skills/pragmatic-code/SKILL.md) replaces `reviewing-python` and `reviewing-typescript-vue` in both profiles. In Pi, use `/skill:pragmatic-code plan ...`, `/skill:pragmatic-code implement ...`, or `/skill:pragmatic-code review ...`; `@pragmatic-code` also works. It stays user-invoked and loads Python, TypeScript, and Vue references only for the affected code. Shared-gate changes have a separate conditional audit. Other stacks use repository guidance and official documentation, with specialized coverage gaps stated explicitly.
+[`implementing-code-pragmatically`](dot_agents/skills/implementing-code-pragmatically/SKILL.md) owns planning and implementation, while [`code-review`](dot_agents/skills/code-review/SKILL.md) owns review verdicts. Both load shared language and architecture guidance from [`pragmatic-engineering`](dot_agents/skills/pragmatic-engineering/SKILL.md) only as needed. Normal behavior changes require red-first proof; [`tdd`](dot_agents/skills/tdd/SKILL.md) remains the explicit repeated vertical-slice workflow.
 
-Repository `AGENTS.md` files own work or personal project policy; the machine profile selects installation, not coding rules. This merge leaves Effect guidance, Go-specific guidance, and the separate `code-review` skill unchanged. A future apply retires the two old managed skill directories. Preview the new entry point with `chezmoi cat ~/.agents/skills/pragmatic-code/SKILL.md` before applying.
+Repository `AGENTS.md` files own project policy; the machine profile selects installation, not coding rules. TypeScript/Oxlint tooling lives in [`installing-anti-slop-ts`](dot_agents/skills/installing-anti-slop-ts/SKILL.md), and Python lint/type-checker adoption lives in [`installing-anti-slop-py`](dot_agents/skills/installing-anti-slop-py/SKILL.md). Preview a managed skill with `chezmoi cat ~/.agents/skills/<name>/SKILL.md` before applying.
 
 To change profiles, edit `~/.config/chezmoi/chezmoi.toml`:
 

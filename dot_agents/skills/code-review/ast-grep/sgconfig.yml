@@ -1,0 +1,5 @@
+# Python structural inventory rules used by the shared-gate audit.
+ruleDirs:
+  - rules
+testConfigs:
+  - testDir: rule-tests

@@ -27,18 +27,20 @@ renders() {
     bad "$message: cannot list managed skills"
     return
   fi
-  if grep -Fxq '.agents/skills/pragmatic-code/SKILL.md' <<< "$profile_managed"; then
-    ok "$message: manages .agents/skills/pragmatic-code/SKILL.md"
-  else
-    bad "$message: missing .agents/skills/pragmatic-code/SKILL.md"
-  fi
+  for target in implementing-code-pragmatically pragmatic-engineering code-review tdd installing-anti-slop-ts installing-anti-slop-py; do
+    if grep -Fxq ".agents/skills/$target/SKILL.md" <<< "$profile_managed"; then
+      ok "$message: manages .agents/skills/$target/SKILL.md"
+    else
+      bad "$message: missing .agents/skills/$target/SKILL.md"
+    fi
+  done
 
   if ! profile_ignore="$(chezmoi execute-template --override-data "$data" < .chezmoiignore)"; then
     bad "$message: cannot render ignore rules"
     return
   fi
   # Retired targets must remain visible to .chezmoiremove despite the allow-list.
-  for target in reviewing-python reviewing-typescript-vue weekly-agents-sessions-recap; do
+  for target in akkio-coding-standards coding-standards effect-service-design install-anti-slop pragmatic-code preventing-py-slop reviewing-python reviewing-typescript-vue ubiquitous-language weekly-agents-sessions-recap writing-great-skills; do
     if grep -Fxq "!.agents/skills/$target" <<< "$profile_ignore"; then
       ok "$message: un-ignores retired $target"
     else
@@ -89,12 +91,12 @@ for source_only in PLAN.md bootstrap scripts plans archive macos linux; do
   fi
 done
 
-for retired in reviewing-python reviewing-typescript-vue weekly-agents-sessions-recap; do
-  absent "dot_agents/skills/$retired" "retired review skill source is absent: $retired"
+for retired in akkio-coding-standards coding-standards install-anti-slop pragmatic-code preventing-py-slop reviewing-python reviewing-typescript-vue weekly-agents-sessions-recap; do
+  absent "dot_agents/skills/$retired" "retired skill source is absent: $retired"
   if grep -Fxq ".agents/skills/$retired" .chezmoiremove; then
-    ok "retired review skill has a removal entry: $retired"
+    ok "retired skill has a removal entry: $retired"
   else
-    bad "retired review skill has no removal entry: $retired"
+    bad "retired skill has no removal entry: $retired"
   fi
 done
 

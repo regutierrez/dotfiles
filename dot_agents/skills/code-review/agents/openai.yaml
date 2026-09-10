@@ -1,5 +1,3 @@
 interface:
   display_name: "Code Review"
-  short_description: "Review standards, spec, and runtime correctness"
-policy:
-  allow_implicit_invocation: false
+  short_description: "Review behavior, regressions, and caller impact"

@@ -1,0 +1,9 @@
+id: python-subscript-key-assignment
+# Reads are excluded; literal and generated assignments are findings.
+valid:
+  - 'bindings[name] = value'
+  - 'value = bindings["region"]'
+invalid:
+  - 'bindings["region"] = value'
+  - 'config["channel"] = selected'
+  - 'bindings[f"segment_name_{index}"] = name'

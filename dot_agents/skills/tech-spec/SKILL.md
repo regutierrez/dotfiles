@@ -36,7 +36,7 @@ Completion criterion: the branch is chosen from actual available context; missin
 
 ### 1. Load standards and local context
 
-Select the language profile first. Inspect existing code and docs for local vocabulary, module layout, domain concepts, errors, adapters, observability, runtime patterns, and test style. For TypeScript or mixed work, read `../coding-standards/SKILL.md`. For Python work, inspect the actual FastAPI/Pydantic versions and whether the project uses sync or async I/O before sketching contracts. For every language, read `../tdd/SKILL.md` before producing the test plan.
+Select the language profile first. Inspect existing code and docs for local vocabulary, module layout, domain concepts, errors, adapters, observability, runtime patterns, and test style. For TypeScript or mixed work, read `../pragmatic-engineering/SKILL.md` and its selected TypeScript references. For Python work, inspect the actual FastAPI/Pydantic versions and whether the project uses sync or async I/O before sketching contracts. For every language, read `../tdd/SKILL.md` before producing the test plan.
 
 Completion criterion: the spec uses project vocabulary and language-native contracts, and does not introduce a pattern, library, adapter, schema style, or test strategy before checking local precedent.
 

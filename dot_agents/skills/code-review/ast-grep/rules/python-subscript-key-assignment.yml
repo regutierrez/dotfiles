@@ -1,0 +1,9 @@
+id: python-subscript-key-assignment
+language: Python
+message: Literal subscript key assigned by the reviewed path
+severity: hint
+rule:
+  pattern: $MAP[$KEY] = $VALUE
+constraints:
+  KEY:
+    kind: string

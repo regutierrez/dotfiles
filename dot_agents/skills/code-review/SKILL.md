@@ -1,100 +1,82 @@
 ---
 name: code-review
-description: Review committed changes since a fixed point (commit, branch, tag, or merge-base) along three axes — Standards, Spec, and Runtime Correctness. Runs independent reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, or asks to "review since X".
-disable-model-invocation: true
+description: "Reviews code independently for correctness, regressions, caller impact, and indirect effects. Use for pull requests, branches, diffs, commits, or work-in-progress changes."
+argument-hint: "<fixed-point>"
 ---
 
-Three-axis review of the diff between `HEAD` and a fixed point the user supplies:
+# Code Review
 
-- **Standards** — does the code conform to this repo's documented coding standards?
-- **Spec** — does the code faithfully implement the originating issue / PRD / spec?
-- **Runtime Correctness** — do the affected call paths and runtime assumptions actually preserve the behavior the change relies on?
+Investigate whether the change preserves actual caller-visible contracts. Standards compliance is evidence, not the purpose of the review.
 
-All available axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
+Review is read-only. Do not edit files, install dependencies, rewrite caches, run formatters, or change shared state. If required history is missing, ask before fetching unless the user already authorized it.
 
-Linear is the issue tracker. Use `linear-cli` for reads with machine-readable, compact output; use Linear MCP only when `linear-cli` is unavailable. Do not start an auth flow. If access is unavailable, ask the user for the spec instead of guessing.
+## 1. Pin scope and policy
 
-## Process
+Read repository guidance and worktree state. Resolve the requested base, head, staged, unstaged, and untracked scope. If the comparison is unclear, ask. If it is empty, report that and stop.
 
-### 1. Pin the fixed point
+Repository guidance owns work and personal policy. Do not infer stricter standards from the machine, language, or reviewer preference.
 
-Whatever the user said is the fixed point — a commit SHA, branch name, tag, `main`, `HEAD~5`, etc. If they didn't specify one, ask for it.
+Load `pragmatic-engineering` with every affected language/framework and relevant concern. For mixed stacks, load every affected language reference and trace the cross-runtime contract. Strict TypeScript or Effect guidance applies only when the user or repository explicitly selects it.
 
-Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
+## 2. Establish intended and baseline behavior
 
-Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two parallel sub-agents.
+State intended behavior from the request, tests, documentation, prompts, schemas, and callers. Treat issue reports and proposed diagnoses as claims to verify.
 
-### 2. Identify the spec source
+For every suspected regression, establish the same trigger's behavior and contract at the comparison base. Earlier rejection or a changed error location alone is not a regression. A finding needs previously valid behavior that the diff breaks, or a material caller-visible worsening introduced or exposed by the diff.
 
-Look for the originating spec, in this order:
+## 3. Trace affected behavior
 
-1. Linear identifiers in commit messages or the branch name (for example `HMI-123`), or the issue reported by `linear-cli context --output json --compact` — fetch the issue and comments with `linear-cli issues get <ID> --output json --compact` and `linear-cli comments list <ID> --output json --compact --all`.
-2. A Linear issue or document URL, or a path the user passed as an argument.
-3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
-4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
+Review scope follows affected behavior, not only edited files. Trace relevant callers, consumers, subclasses, registrations, configuration, defaults, state, stored forms, generated artifacts, and deployment order. Keep edit suggestions limited to the smallest safe owner.
 
-### 3. Identify the standards sources
+Follow inputs through decisions, effects, outputs, errors, retries, cancellation, cleanup, concurrency, persistence, and rollback where the changed contract can reach them. Check both successful and failing paths. Inspect enough unchanged code to prove or disprove impact; do not widen into unrelated cleanup.
 
-Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
+When a change gates selection, readiness, status, navigation, or execution, build a compact **producer representation × trigger × state × observable consumer** matrix. Derive representations from real producers and schemas; normalized test values do not cover raw numeric, numeric-string, opaque-ID, null, legacy, or discriminated variants that take different branches. Include meaningful transitional and terminal states and automatic and user-driven triggers. Every row must state expected behavior, base behavior, head behavior, downstream effect, and one disposition: confirmed defect, no defect, missing proof, or decision. An inventory without row dispositions is incomplete.
 
-On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below — a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
+For each relevant status or diagnostic, trace the exact field from producer through storage or transport to the renderer before and after the change. Record the expected visible outcome and disposition for each field. A surface name is not evidence that its renderer consumes the same information. If a gate blocks the selected/detail route, prove that a remaining card, history, or fallback renderer presents equivalent actionable information.
 
-- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
-- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation — and, like any standard here, skip anything tooling already enforces.
+Before claiming that work never retries, never recovers, or permanently loses state, trace every polling source, watcher, rendered child component, emitted event, callback, retry owner, and terminal-state transition. In reactive code, prove the relevant scheduling/interleaving with framework semantics or a focused test. Distinguish temporary loss, terminal loss, and eventual recovery.
 
-Each smell reads *what it is* → *how to fix*; match it against the diff:
+Matrix gaps become findings only when the diff introduces them, newly routes a trigger to them, or removes behavior that previously mitigated them. A broad intended invariant does not turn an unchanged pre-existing hole into a regression. Treat an incomplete migration as a finding only when the diff claims or structurally owns complete migration of that consumer class; otherwise record the residual hole as coverage or missing proof. Keep unrelated pre-existing inconsistencies out of the defect list.
 
-- **Mysterious Name** — a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
-- **Duplicated Code** — the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
-- **Feature Envy** — a method that reaches into another object's data more than its own. → move the method onto the data it envies.
-- **Data Clumps** — the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
-- **Primitive Obsession** — a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
-- **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
-- **Shotgun Surgery** — one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
-- **Divergent Change** — one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
-- **Speculative Generality** — abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
-- **Message Chains** — long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
-- **Middle Man** — a class or function that mostly just delegates onward. → cut it, call the real target direct.
-- **Refused Bequest** — a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
+For every concern, distinguish:
 
-### 4. Spawn the sub-agents in parallel
+- a **confirmed defect** with a reachable trigger and concrete impact;
+- **missing high-risk proof** whose absence limits confidence but does not prove a defect;
+- an **unresolved decision** that code cannot settle.
 
-Send a single message with three `Agent` tool calls. Use the `general-purpose` subagent for each. All tasks are review-only: they inspect the repository and return findings without editing files. If the spec is unavailable, omit only the Spec sub-agent.
+Finding one defect does not end investigation of other affected contracts or the opposite failure direction.
 
-**Standards sub-agent prompt** — include:
+## 4. Audit shared gates
 
-- The full diff command and commit list.
-- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
-- The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+When shared validation, normalization, binding, authorization, transformation, retry, persistence, or execution changes, read [shared-gate audit](reference/shared-gate-audit.md) and complete it before a safety verdict.
 
-**Spec sub-agent prompt** — include:
+For every gate, inventory each caller and the producer state at gate entry—not merely the state eventually written. Record expected outcome, base result, head result, later side effects or retry, and a disposition for every caller row. Symbolic-key analysis is an additional requirement when keys exist, not a replacement for caller-state analysis.
 
-- The diff command and commit list.
-- The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
+Inventory downstream consumers first: binders, replacement maps, allowlists, schemas, and parameter transformers define the keys that must be traced. Only then search upstream producers. For Python literal-key consumers, use the bundled [shared-gate ledger](reference/shared-gate-ledger.md). For other languages, build the same inventory and evidence manually with available repository tools. Automated extraction supplements inspection and never proves dynamic-key completeness.
 
-**Runtime Correctness sub-agent prompt** — include:
+Do not infer one key's phase from a sibling key, shared prefix, or binder family. Every pre-gate or post-gate classification needs evidence for that exact key or generated family. Before a shared-gate safety verdict, require `consumer keys − traced keys = ∅`, or explicitly withhold the verdict.
 
-- The full diff command and commit list.
-- The path or fetched contents of the spec when available, as intent context rather than a review boundary.
-- The brief below verbatim:
+Treat every reachable symbolic occurrence in a prompt, template, example, or generated instruction as a pre-gate producer, even when another instruction forbids that key in a different role. Quote the assembled producer contract and classify the key as required, allowed, forbidden, or conditional. Do not summarize “segment binds,” “filter keys,” or another family until every member's producer requirement is established.
 
-> Report concrete runtime defects and missing proof for realistic high-risk behavior. Read every changed file in full. Trace changed symbols through the callers and callees needed to verify their behavior, including unchanged files outside the diff; do not assume a helper is safe from its name or signature. When correctness depends on asynchronous or event-loop responsiveness, follow each relevant awaited call until you find a genuine suspension point, asynchronous library operation, or executor/thread/process boundary. `async`, `await`, and names such as `*_async` are screening clues, not proof: flag reachable synchronous database, HTTP, filesystem, subprocess, or CPU-heavy work that can block the shared loop. Check whether a behavioral test deliberately blocks downstream work and proves an independent heartbeat, probe, callback, or coroutine still progresses; timing-only assertions are not proof. For ports, sockets, files, locks, queues, and process-global state, consider at least two simultaneous processes, containers, or worktrees and identify isolation assumptions. Report only findings with a specific trigger and consequence, with file and line evidence. Separate confirmed defects from missing high-risk test evidence. Under 500 words.
+Always examine both:
 
-If the spec is missing, skip the Spec sub-agent and note this in the final report.
+- false acceptance: invalid input disappears or passes;
+- false rejection: legitimate deferred or framework-owned input is rejected before its owner handles it.
 
-### 5. Aggregate
+Compare retry feedback with producer requirements. Prove whether regeneration can satisfy both contracts rather than assuming every earlier rejection is new breakage.
 
-Present the reports under `## Standards`, `## Spec`, and `## Runtime Correctness` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the axes are deliberately separate (see _Why separate axes_). If the Spec sub-agent was skipped, say `No spec available` under its heading.
+## 5. Check and challenge
 
-End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
+Run permissible focused tests and configured read-only lint, type, build, schema, or compatibility checks. Diagnostics are leads; inspect their relevance before accepting findings. Do not delegate ownership of the review to another agent.
 
-## Why separate axes
+If a required audit or deterministic evidence tool fails, diagnose it once. If it cannot run without violating review constraints, report the audit as incomplete and withhold the affected safety conclusion. Do not silently replace a failed completeness gate with an informal search and then claim complete coverage.
 
-A change can pass one axis and fail another:
+Track coverage separately from finding quality. Record affected contract classes examined, unresolved paths, unavailable checks, and excluded scope. A complete-looking table does not make a weak finding valid, and one strong finding does not establish complete coverage.
 
-- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
-- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
-- Code that follows the standards and matches the ticket but blocks a shared event loop or collides with another process → **Standards and Spec pass, Runtime Correctness fail.**
+Before the verdict, reconcile every required matrix row to the findings, no-defect evidence, missing proof, or decisions sections. Do not leave contradictory evidence only in coverage tables.
 
-Reporting them separately stops one axis from masking another.
+## 6. Report
+
+Read [finding contract](reference/finding-contract.md). Lead with confirmed findings ordered by severity, each with location, contract, trigger, causal path, impact, owner, smallest safe fix, and proof. Then include only relevant decisions, missing high-risk proof, coverage limits, checks run, and verdict.
+
+If there are no findings, say so without implying complete coverage. Never promise to catch every defect or turn speculative concerns into proven bugs.

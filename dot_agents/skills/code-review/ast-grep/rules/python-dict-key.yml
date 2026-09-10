@@ -1,0 +1,11 @@
+id: python-dict-key
+language: Python
+message: Literal dictionary key consumed by the reviewed path
+severity: hint
+rule:
+  pattern:
+    context: "{$KEY: $VALUE}"
+    selector: pair
+constraints:
+  KEY:
+    kind: string
