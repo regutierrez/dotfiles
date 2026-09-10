@@ -20,7 +20,11 @@ The snapshot includes `src/`, `test/`, `conformance/`, the upstream README, pack
 
 ## Dependencies and checks
 
-`package.json` and `package-lock.json` retain the upstream dependency versions. The chezmoi hook `run_onchange_after_30-install-pi-mcp.sh.tmpl` runs `npm ci --omit=dev` in the target directory when package metadata changes. It does not install development dependencies on workstation targets.
+The direct runtime dependencies, including MCP SDK 2.0.0, retain their upstream version constraints. On 2026-09-10, the development Pi dependency and locked Pi peers were aligned to 0.85.1, the workstation's Pi version. This replaces the vulnerable Undici version pinned by the old development dependency and keeps the TUI types consistent.
+
+The lockfile also updates vulnerable transitive packages within compatible version ranges: `@hono/node-server` 1.19.17, `fast-uri` 3.1.7, `hono` 4.13.7, `ip-address` 10.7.0, `protobufjs` 7.6.6 (7.6.5 in Pi's nested development tree), `qs` 6.16.0, and `brace-expansion` 5.0.9. Pi 0.85.1 pins Undici 8.9.0. No audit overrides or forced updates are used.
+
+The chezmoi hook `run_onchange_after_30-install-pi-mcp.sh.tmpl` runs `npm ci --omit=dev` in the target directory when package metadata changes. It does not install development dependencies on workstation targets.
 
 For development, run from this source directory:
 
