@@ -31,7 +31,7 @@ Load `codebase-design` only when interface depth, seam placement, or module desi
 
 ## 3. Understand before changing
 
-State the intended caller-visible behavior. Verify whether the reported problem should exist by reproducing it or tracing a reachable path. Check whether existing validation, types, schemas, framework guarantees, or caller limits already prevent it. Separate observed facts from reports and hypotheses.
+State the intended caller-visible behavior. Verify whether the reported problem should exist by reproducing it or tracing a reachable path. Check whether existing validation, types, schemas, framework guarantees, or caller limits already prevent it. Separate observed facts from reports and hypotheses. A finding you did not derive yourself—subagent, tool, issue, earlier session—keeps the confidence of its source. Re-derive it before raising its severity, and carry its hedges word for word. Dropping a qualifier is how a correct finding turns false.
 
 Trace inputs, decisions, effects, failures, state, and cleanup far enough to identify affected callers and the owner. For mixed stacks, trace schema ownership, serialization, errors, and consumers across runtime boundaries.
 
@@ -55,4 +55,4 @@ Review the resulting path yourself, including meaningful failure, state, retry, 
 
 In implement mode, rerun the original acceptance check through the caller-visible interface. Cover meaningful failures and affected consumers. Run configured focused tests and lint/type checks, then broader checks only when the changed surface requires them. Diagnose failures instead of repeating unrelated commands or weakening checks.
 
-In plan mode, specify decisive caller-visible checks without running mutating setup. In both modes, report the owner and reason, affected contracts, actual evidence, checks run, and material uncertainty. Inspect the final diff for unintended changes in implement mode. Stop when the requested contract is proven; nearby cleanup is separate work.
+In plan mode, specify decisive caller-visible checks without running mutating setup. In both modes, report the owner and reason, affected contracts, actual evidence, checks run, and material uncertainty. Report the consequence you traced, not the one you expect: an untraced impact is unverified, so label it or drop it. Stating a hedged finding as a definite one is a reporting error even when the observation holds. Inspect the final diff for unintended changes in implement mode. Stop when the requested contract is proven; nearby cleanup is separate work.

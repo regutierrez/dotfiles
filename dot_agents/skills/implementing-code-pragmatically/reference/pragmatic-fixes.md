@@ -14,6 +14,8 @@ Choose a fix only after reproducing the behavior or tracing a reachable failing 
 
 Compare new concepts, affected callers, failure modes, proof cost, rollout, and rollback. A larger owner-level correction can be simpler than a small workaround that every caller must understand.
 
+This order covers what you propose as well as what you write. A recommendation that fails rule 1 is not a finding; do not carry it forward as future work.
+
 Keep each rule at its owner: upstream parsing errors belong at the data boundary, shared policy at the application owner, and local rendering at the view. A computed fallback or forwarding wrapper that conceals an incorrect source leaves the contract broken.
 
 **Complete when:** the chosen fix enforces the contract across the mapped callers, preserves unrelated behavior, and has a caller-visible acceptance check. Verification and reporting follow the main skill; this reference does not start another review loop.
