@@ -49,13 +49,28 @@ for argument in "$@"; do
   esac
 done
 
-if [ -z "$repo_hint" ] && "$real_git" rev-parse --git-dir >/dev/null 2>&1; then
-  repo_hint=$("$real_git" config --get remote.origin.url 2>/dev/null || true)
+if [ -z "$repo_hint" ]; then
+  for argument in "$@"; do
+    normalized_argument=$(printf '%s' "$argument" | tr '[:upper:]' '[:lower:]')
+    case "$normalized_argument" in
+      *regutierrez/*|*horizonmedia/*|*akkio-inc/*|*pael-akkio/*)
+        repo_hint=$argument
+        break
+        ;;
+    esac
+  done
+fi
 
-  if [ -z "$repo_hint" ]; then
-    first_remote=$("$real_git" remote 2>/dev/null | sed -n '1p')
-    if [ -n "$first_remote" ]; then
-      repo_hint=$("$real_git" config --get "remote.$first_remote.url" 2>/dev/null || true)
+if [ -z "$repo_hint" ]; then
+  git_dir=$("$real_git" rev-parse --git-dir 2>/dev/null) || git_dir=
+  if [ -n "$git_dir" ]; then
+    repo_hint=$("$real_git" --git-dir="$git_dir" config --get remote.origin.url 2>/dev/null || true)
+
+    if [ -z "$repo_hint" ]; then
+      first_remote=$("$real_git" --git-dir="$git_dir" remote 2>/dev/null | sed -n '1p')
+      if [ -n "$first_remote" ]; then
+        repo_hint=$("$real_git" --git-dir="$git_dir" config --get "remote.$first_remote.url" 2>/dev/null || true)
+      fi
     fi
   fi
 fi
@@ -70,8 +85,16 @@ if [ -z "$account" ]; then
     *horizonmedia/*)
       account=pael-hz
       ;;
-    *akkio-inc/*)
+    *akkio-inc/*|*pael-akkio/*)
       account=pael-akkio
+      ;;
+  esac
+fi
+
+if [ -z "$account" ]; then
+  case "$PWD" in
+    "$HOME/repos/blu-platform-transformations"|"$HOME/repos/blu-platform-transformations"/*)
+      account=pael-hz
       ;;
     *)
       account={{ $githubDefaultAccount }}
