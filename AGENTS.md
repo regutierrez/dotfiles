@@ -36,7 +36,7 @@ Important locations:
 - `run_after_60-remove-retired-herdr-plugins.sh.tmpl`: during `chezmoi apply`, uninstall retired Herdr plugins (`cloudmanic.herdr-plus`, `zenbu-labs.terminal-browser`, `dotfiles.workspace-mru`) and remove leftover config and plugin-state dirs.
 - `dot_agents/skills/`: managed `~/.agents/skills`.
 - `dot_claude/modify_settings.json`: managed Claude Code token-trim keys in `~/.claude/settings.json`. Matt Pocock's disable flags and bare tool denies, extra unused-tool denies (`Monitor`, worktrees, `ListAgents`, `SendUserFile`, `ShareOnboardingGuide`), plus Theo's `autoMemoryEnabled: false`. Model, theme, effort, and other keys stay machine-local.
-- `modify_private_dot_claude.json`: merges the `executor` (work, local) and `executor-personal` MCP servers into machine-local `~/.claude.json`, mirroring Pi (`dot_pi/agent/mcp.json.tmpl`). Amp MCP stays machine-local. Everything else in that file (sign-in, project state, history) stays machine-local, and the merge rewrites key order, so do not apply this target while Claude Code is running.
+- `modify_private_dot_claude.json`: merges `executor-personal` into machine-local `~/.claude.json`, and the local work `executor` MCP only when `profile` is `work`, mirroring Pi (`dot_pi/agent/mcp.json.tmpl`). Personal profiles drop a leftover work `executor` entry. Amp MCP stays machine-local. Everything else in that file (sign-in, project state, history) stays machine-local, and the merge rewrites key order, so do not apply this target while Claude Code is running.
 - `dot_claude/system-prompt-fable.md`: Amp Fable prompt adapted for Claude Code tools. `dot_zshrc.tmpl` wraps `claude` with `--system-prompt-file` when that file exists; subcommands skip the flag.
 - `dot_pi/agent/`: managed Pi agents, extensions, and configuration.
 - `private_dot_ssh/private_config`: managed personal macOS SSH client configuration, not a private key.
@@ -49,7 +49,7 @@ The supported profiles are `personal` and `work`. The selected value is stored u
 - Both profiles are for workstations on macOS and Fedora.
 - Personal Fedora is the gaming workstation and receives gaming packages plus GNOME/xremap setup.
 - Work Fedora does not receive gaming or GNOME workstation setup.
-- Work alone receives the `work` skill group and `akkio-helpers/`.
+- Work alone receives the `work` skill group, `akkio-helpers/`, and the local work `executor` MCP. Both profiles receive `executor-personal`.
 - Both profiles use `pi-rename` for session names and Linear-aware Herdr title metadata. Auto Title owns tab names; the old window-number plugin is retired.
 
 Skill directories are allow-listed from groups in `.chezmoidata.toml`. Unclassified skills are ignored everywhere.

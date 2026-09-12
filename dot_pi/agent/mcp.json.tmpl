@@ -18,6 +18,7 @@
         "timeout": 60000
       },
 {{- end }}
+{{- if eq .profile "work" }}
       "executor": {
         "type": "remote",
         "url": "http://127.0.0.1:4788/mcp",
@@ -26,6 +27,7 @@
           "Authorization": "Bearer ${EXECUTOR_API_KEY}"
         }
       },
+{{- end }}
       "executor-personal": {
         "type": "remote",
         "url": "https://executor.esquie.pael.dev/mcp",

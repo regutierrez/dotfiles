@@ -125,7 +125,7 @@ Preview with `chezmoi cat ~/.claude/settings.json` and `chezmoi cat ~/.claude/sy
 Profile behavior lives in [`.chezmoiignore`](.chezmoiignore). Skill membership lives in [`.chezmoidata.toml`](.chezmoidata.toml):
 
 - `personal`: shared skills.
-- `work`: shared and work skills, plus `akkio-helpers/`. Linear-aware Pi title metadata is shared by both profiles.
+- `work`: shared and work skills, plus `akkio-helpers/` and the local work `executor` MCP. `executor-personal` is on both profiles. Linear-aware Pi title metadata is shared by both profiles.
 
 Pi subagent prompts are shared across profiles, but their model and reasoning settings are rendered per profile from `dot_pi/agent/agents/*.md.tmpl`. Personal uses the OpenCode Go selections; work keeps the original xAI and OpenAI Codex selections.
 
